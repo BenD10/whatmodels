@@ -363,7 +363,7 @@
     "weight_gb": 28.94,
     "kv_per_1k_gb": 0.351,
     "max_context_k": 8,
-    "notes": "46 layers, 16 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+    "notes": "46 layers, 16 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
   {
     "id": "gemma-2-27b-q4",
@@ -374,5 +374,131 @@
     "kv_per_1k_gb": 0.351,
     "max_context_k": 8,
     "notes": "46 layers, 16 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+  },
+
+  {
+    "id": "gemma-3-4b-q8",
+    "name": "Gemma 3 4B",
+    "params_b": 3.88,
+    "quantization": "Q8_0",
+    "weight_gb": 4.13,
+    "kv_per_1k_gb": 0.147,
+    "max_context_k": 128,
+    "notes": "34 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q8_0."
+  },
+  {
+    "id": "gemma-3-4b-q4",
+    "name": "Gemma 3 4B",
+    "params_b": 3.88,
+    "quantization": "Q4_K_M",
+    "weight_gb": 2.49,
+    "kv_per_1k_gb": 0.147,
+    "max_context_k": 128,
+    "notes": "34 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q4_K_M."
+  },
+
+  {
+    "id": "gemma-3-12b-q8",
+    "name": "Gemma 3 12B",
+    "params_b": 11.8,
+    "quantization": "Q8_0",
+    "weight_gb": 12.51,
+    "kv_per_1k_gb": 0.466,
+    "max_context_k": 128,
+    "notes": "48 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q8_0."
+  },
+  {
+    "id": "gemma-3-12b-q4",
+    "name": "Gemma 3 12B",
+    "params_b": 11.8,
+    "quantization": "Q4_K_M",
+    "weight_gb": 7.30,
+    "kv_per_1k_gb": 0.466,
+    "max_context_k": 128,
+    "notes": "48 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q4_K_M."
+  },
+
+  {
+    "id": "gemma-3-27b-q8",
+    "name": "Gemma 3 27B",
+    "params_b": 27.0,
+    "quantization": "Q8_0",
+    "weight_gb": 28.71,
+    "kv_per_1k_gb": 0.584,
+    "max_context_k": 128,
+    "notes": "62 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q8_0."
+  },
+  {
+    "id": "gemma-3-27b-q4",
+    "name": "Gemma 3 27B",
+    "params_b": 27.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 16.55,
+    "kv_per_1k_gb": 0.584,
+    "max_context_k": 128,
+    "notes": "62 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q4_K_M."
+  },
+
+  {
+    "id": "qwen-2.5-coder-7b-q8",
+    "name": "Qwen 2.5 Coder 7B",
+    "params_b": 7.62,
+    "quantization": "Q8_0",
+    "weight_gb": 8.10,
+    "kv_per_1k_gb": 0.053,
+    "max_context_k": 128,
+    "notes": "Based on Qwen 2.5 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+  },
+  {
+    "id": "qwen-2.5-coder-7b-q4",
+    "name": "Qwen 2.5 Coder 7B",
+    "params_b": 7.62,
+    "quantization": "Q4_K_M",
+    "weight_gb": 4.68,
+    "kv_per_1k_gb": 0.053,
+    "max_context_k": 128,
+    "notes": "Based on Qwen 2.5 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+  },
+
+  {
+    "id": "qwen-2.5-coder-14b-q8",
+    "name": "Qwen 2.5 Coder 14B",
+    "params_b": 14.7,
+    "quantization": "Q8_0",
+    "weight_gb": 15.70,
+    "kv_per_1k_gb": 0.183,
+    "max_context_k": 128,
+    "notes": "Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+  },
+  {
+    "id": "qwen-2.5-coder-14b-q4",
+    "name": "Qwen 2.5 Coder 14B",
+    "params_b": 14.7,
+    "quantization": "Q4_K_M",
+    "weight_gb": 8.99,
+    "kv_per_1k_gb": 0.183,
+    "max_context_k": 128,
+    "notes": "Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+  },
+
+  {
+    "id": "qwen-2.5-coder-32b-q8",
+    "name": "Qwen 2.5 Coder 32B",
+    "params_b": 32.5,
+    "quantization": "Q8_0",
+    "weight_gb": 34.82,
+    "kv_per_1k_gb": 0.244,
+    "max_context_k": 128,
+    "notes": "Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+  },
+  {
+    "id": "qwen-2.5-coder-32b-q4",
+    "name": "Qwen 2.5 Coder 32B",
+    "params_b": 32.5,
+    "quantization": "Q4_K_M",
+    "weight_gb": 19.85,
+    "kv_per_1k_gb": 0.244,
+    "max_context_k": 128,
+    "notes": "Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   }
 ]

@@ -84,5 +84,15 @@
   { "id": "m3-ultra", "name": "M3 Ultra", "manufacturer": "Apple", "vram_options": [{ "vram_gb": 192, "bandwidth_gbps": 800 }] },
   { "id": "m3-max",   "name": "M3 Max",   "manufacturer": "Apple", "vram_options": [{ "vram_gb": 36, "bandwidth_gbps": 300 }, { "vram_gb": 48, "bandwidth_gbps": 300 }, { "vram_gb": 64, "bandwidth_gbps": 400 }, { "vram_gb": 96, "bandwidth_gbps": 300 }, { "vram_gb": 128, "bandwidth_gbps": 400 }] },
   { "id": "m3-pro",   "name": "M3 Pro",   "manufacturer": "Apple", "vram_options": [{ "vram_gb": 18, "bandwidth_gbps": 150 }, { "vram_gb": 36, "bandwidth_gbps": 150 }] },
-  { "id": "m3",       "name": "M3",       "manufacturer": "Apple", "vram_options": [{ "vram_gb": 8, "bandwidth_gbps": 100 }, { "vram_gb": 16, "bandwidth_gbps": 100 }, { "vram_gb": 24, "bandwidth_gbps": 100 }] }
+  { "id": "m3",       "name": "M3",       "manufacturer": "Apple", "vram_options": [{ "vram_gb": 8, "bandwidth_gbps": 100 }, { "vram_gb": 16, "bandwidth_gbps": 100 }, { "vram_gb": 24, "bandwidth_gbps": 100 }] },
+
+  { "id": "m2-ultra", "name": "M2 Ultra", "manufacturer": "Apple", "vram_options": [{ "vram_gb": 64, "bandwidth_gbps": 800 }, { "vram_gb": 128, "bandwidth_gbps": 800 }, { "vram_gb": 192, "bandwidth_gbps": 800 }] },
+  { "id": "m2-max",   "name": "M2 Max",   "manufacturer": "Apple", "vram_options": [{ "vram_gb": 32, "bandwidth_gbps": 400 }, { "vram_gb": 64, "bandwidth_gbps": 400 }, { "vram_gb": 96, "bandwidth_gbps": 400 }] },
+  { "id": "m2-pro",   "name": "M2 Pro",   "manufacturer": "Apple", "vram_options": [{ "vram_gb": 16, "bandwidth_gbps": 200 }, { "vram_gb": 32, "bandwidth_gbps": 200 }] },
+  { "id": "m2",       "name": "M2",       "manufacturer": "Apple", "vram_options": [{ "vram_gb": 8, "bandwidth_gbps": 100 }, { "vram_gb": 16, "bandwidth_gbps": 100 }, { "vram_gb": 24, "bandwidth_gbps": 100 }] },
+
+  { "id": "m1-ultra", "name": "M1 Ultra", "manufacturer": "Apple", "vram_options": [{ "vram_gb": 64, "bandwidth_gbps": 800 }, { "vram_gb": 128, "bandwidth_gbps": 800 }] },
+  { "id": "m1-max",   "name": "M1 Max",   "manufacturer": "Apple", "vram_options": [{ "vram_gb": 32, "bandwidth_gbps": 400 }, { "vram_gb": 64, "bandwidth_gbps": 400 }] },
+  { "id": "m1-pro",   "name": "M1 Pro",   "manufacturer": "Apple", "vram_options": [{ "vram_gb": 16, "bandwidth_gbps": 200 }, { "vram_gb": 32, "bandwidth_gbps": 200 }] },
+  { "id": "m1",       "name": "M1",       "manufacturer": "Apple", "vram_options": [{ "vram_gb": 8, "bandwidth_gbps": 68 }, { "vram_gb": 16, "bandwidth_gbps": 68 }] }
 ]
