@@ -4,7 +4,9 @@
 
   const gpuItems = gpus.map((g) => ({
     id: g.id,
-    label: `${g.name} (${g.vram_gb} GB)`,
+    label: g.vram_options
+      ? g.name
+      : `${g.name} (${g.vram_gb} GB)`,
     group: g.manufacturer,
   }));
 
@@ -35,12 +37,38 @@
   let manualVram = $state('');
   let contextSelection = $state('');
   let speedSelection = $state('');
+  let selectedMemoryIdx = $state('');
+
+  // Derived: does the selected GPU have configurable memory?
+  let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
+  let hasMemoryOptions = $derived(!!selectedGpu?.vram_options);
 
   function onGpuChange() {
     manualVram = '';
-    const gpu = gpus.find((g) => g.id === selectedGpuId);
-    vram = gpu ? gpu.vram_gb : null;
-    bandwidth = gpu ? gpu.bandwidth_gbps : null;
+    selectedMemoryIdx = '';
+    const gpu = selectedGpu;
+    if (!gpu) {
+      vram = null;
+      bandwidth = null;
+    } else if (gpu.vram_options) {
+      // Two-step: wait for memory selection
+      vram = null;
+      bandwidth = null;
+    } else {
+      vram = gpu.vram_gb;
+      bandwidth = gpu.bandwidth_gbps;
+    }
+  }
+
+  function onMemoryChange() {
+    if (selectedMemoryIdx === '' || !selectedGpu?.vram_options) {
+      vram = null;
+      bandwidth = null;
+      return;
+    }
+    const opt = selectedGpu.vram_options[Number(selectedMemoryIdx)];
+    vram = opt.vram_gb;
+    bandwidth = opt.bandwidth_gbps;
   }
 
   function onManualInput() {
@@ -71,6 +99,18 @@
         onchange={onGpuChange}
       />
     </div>
+
+    {#if hasMemoryOptions}
+      <div class="field memory-field">
+        <label for="memory-select">Memory</label>
+        <select id="memory-select" bind:value={selectedMemoryIdx} onchange={onMemoryChange}>
+          <option value="">Select memory…</option>
+          {#each selectedGpu.vram_options as opt, i}
+            <option value={i}>{opt.vram_gb} GB</option>
+          {/each}
+        </select>
+      </div>
+    {/if}
 
     <span class="divider">or</span>
 

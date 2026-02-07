@@ -18,19 +18,27 @@
   let query = $state('');
   let open = $state(false);
   let highlightIdx = $state(-1);
+  let activeGroup = $state(null);
   let inputEl = $state(null);
   let listEl = $state(null);
 
   // Displayed label when a value is selected and input is not focused
   let selectedLabel = $derived(items.find((i) => i.id === value)?.label ?? '');
 
+  // Unique group names for the filter pills
+  let allGroups = $derived([...new Set(items.map((i) => i.group).filter(Boolean))]);
+
   let filtered = $derived.by(() => {
-    const base = !query
-      ? items
-      : items.filter((i) => {
-          const q = query.toLowerCase();
-          return i.label.toLowerCase().includes(q) || (i.group && i.group.toLowerCase().includes(q));
-        });
+    let base = items;
+    if (activeGroup) {
+      base = base.filter((i) => i.group === activeGroup);
+    }
+    if (query) {
+      const q = query.toLowerCase();
+      base = base.filter((i) =>
+        i.label.toLowerCase().includes(q) || (i.group && i.group.toLowerCase().includes(q))
+      );
+    }
     return base;
   });
 
@@ -56,6 +64,7 @@
   function selectItem(item) {
     value = item.id;
     query = '';
+    activeGroup = null;
     open = false;
     highlightIdx = -1;
     onchange();
@@ -64,6 +73,7 @@
   function clear() {
     value = '';
     query = '';
+    activeGroup = null;
     open = false;
     highlightIdx = -1;
     onchange();
@@ -80,8 +90,16 @@
     setTimeout(() => {
       open = false;
       query = '';
+      activeGroup = null;
       highlightIdx = -1;
     }, 150);
+  }
+
+  function setGroup(g) {
+    activeGroup = activeGroup === g ? null : g;
+    highlightIdx = 0;
+    // Re-focus input so the dropdown stays open
+    inputEl?.focus();
   }
 
   function onInput() {
@@ -161,7 +179,21 @@
   {/if}
 
   {#if open}
-    <ul class="dropdown" role="listbox" id="{id}-listbox" bind:this={listEl}>
+    <div class="dropdown" id="{id}-listbox" bind:this={listEl}>
+      {#if allGroups.length > 1}
+        <div class="group-pills" role="tablist">
+          {#each allGroups as g}
+            <button
+              class="group-pill"
+              class:active={activeGroup === g}
+              role="tab"
+              aria-selected={activeGroup === g}
+              onmousedown={(e) => { e.preventDefault(); setGroup(g); }}
+            >{g}</button>
+          {/each}
+        </div>
+      {/if}
+      <ul class="options-list" role="listbox">
       {#if flatFiltered.length === 0}
         <li class="no-results">No matches</li>
       {:else}
@@ -185,7 +217,8 @@
           {/each}
         {/each}
       {/if}
-    </ul>
+      </ul>
+    </div>
   {/if}
 </div>
 
@@ -253,38 +286,75 @@
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    max-height: 240px;
-    overflow-y: auto;
-    list-style: none;
-    margin: 0;
-    padding: 0.25rem 0;
+    display: flex;
+    flex-direction: column;
+    max-height: 280px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     z-index: 100;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .group-pills {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .group-pill {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .group-pill:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .group-pill.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .options-list {
+    overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
 
-  .dropdown::-webkit-scrollbar {
+  .options-list::-webkit-scrollbar {
     width: 6px;
   }
 
-  .dropdown::-webkit-scrollbar-track {
+  .options-list::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .dropdown::-webkit-scrollbar-thumb {
+  .options-list::-webkit-scrollbar-thumb {
     background: var(--border);
     border-radius: 3px;
   }
 
-  .dropdown::-webkit-scrollbar-thumb:hover {
+  .options-list::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
   }
 
-  .dropdown li {
+  .options-list li {
     padding: 0.45rem 0.75rem;
     cursor: pointer;
     font-size: 0.9rem;
@@ -293,7 +363,7 @@
     text-overflow: ellipsis;
   }
 
-  .dropdown li.group-header {
+  .options-list li.group-header {
     padding: 0.5rem 0.75rem 0.25rem;
     font-size: 0.7rem;
     font-weight: 600;
@@ -304,21 +374,21 @@
     pointer-events: none;
   }
 
-  .dropdown li.group-header:not(:first-child) {
+  .options-list li.group-header:not(:first-child) {
     margin-top: 0.25rem;
     border-top: 1px solid var(--border);
     padding-top: 0.6rem;
   }
 
-  .dropdown li.highlighted {
+  .options-list li.highlighted {
     background: var(--accent-dim);
   }
 
-  .dropdown li.selected {
+  .options-list li.selected {
     color: var(--accent);
   }
 
-  .dropdown li.no-results {
+  .options-list li.no-results {
     color: var(--text-muted);
     font-style: italic;
     cursor: default;

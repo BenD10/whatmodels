@@ -147,6 +147,8 @@ Each model is placed into one of three buckets:
 
 ### GPU entry (`gpus.json`)
 
+Discrete GPUs use top-level `vram_gb` and `bandwidth_gbps`:
+
 ```json
 {
   "id": "rtx-4090",
@@ -157,13 +159,29 @@ Each model is placed into one of three buckets:
 }
 ```
 
+Apple Silicon chips use `vram_options` instead — an array of memory configurations, each with its own bandwidth (since bandwidth can vary by memory config on chips like M3 Max / M4 Max):
+
+```json
+{
+  "id": "m4-max",
+  "name": "M4 Max",
+  "manufacturer": "Apple",
+  "vram_options": [
+    { "vram_gb": 36,  "bandwidth_gbps": 410 },
+    { "vram_gb": 64,  "bandwidth_gbps": 546 },
+    { "vram_gb": 128, "bandwidth_gbps": 546 }
+  ]
+}
+```
+
 | Field | Type | Description |
 |---|---|---|
 | `id` | string | Unique identifier |
 | `name` | string | Display name (without manufacturer prefix) |
-| `manufacturer` | string | `"NVIDIA"` or `"AMD"` — used for dropdown grouping |
-| `vram_gb` | number | Video memory in GB |
-| `bandwidth_gbps` | number | Memory bandwidth in GB/s |
+| `manufacturer` | string | `"NVIDIA"`, `"AMD"`, `"Intel"`, or `"Apple"` — used for dropdown grouping |
+| `vram_gb` | number | Video memory in GB (discrete GPUs only) |
+| `bandwidth_gbps` | number | Memory bandwidth in GB/s (discrete GPUs only) |
+| `vram_options` | array | Memory configurations (Apple Silicon only). Each entry has `vram_gb` and `bandwidth_gbps` |
 
 ### Model entry (`models.json`)
 
