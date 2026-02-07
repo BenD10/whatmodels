@@ -72,7 +72,7 @@
 
     fits.sort((a, b) => b.maxCtxK - a.maxCtxK);
     tight.sort((a, b) => b.maxCtxK - a.maxCtxK);
-    noFit.sort((a, b) => (b.vram ?? 0) - (a.vram ?? 0));
+    noFit.sort((a, b) => b.weight_gb - a.weight_gb);
 
     return { fits, tight, noFit };
   });
@@ -196,7 +196,7 @@
                   </span>
                 </div>
               </div>
-              <p class="reason">Weights alone need {m.weight_gb} GB — {(m.weight_gb - vram).toFixed(1)} GB over budget</p>
+              <p class="reason">Needs at least {(m.weight_gb + m.kv_per_1k_gb).toFixed(1)} GB — {(m.weight_gb + m.kv_per_1k_gb - vram).toFixed(1)} GB over budget</p>
               {#if m.notes}<p class="notes">{m.notes}</p>{/if}
             </li>
           {/each}
