@@ -1,0 +1,46 @@
+/* What Model? – Global styles */
+
+:root {
+  --bg: #0b0b0f;
+  --surface: #151519;
+  --surface-hover: #1c1c22;
+  --text: #e4e4eb;
+  --text-muted: #7a7a8a;
+  --accent: #6b8aff;
+  --accent-dim: rgba(107, 138, 255, 0.12);
+  --fits: #4ade80;
+  --fits-dim: rgba(74, 222, 128, 0.08);
+  --fits-border: rgba(74, 222, 128, 0.25);
+  --tight: #facc15;
+  --tight-dim: rgba(250, 204, 21, 0.08);
+  --tight-border: rgba(250, 204, 21, 0.25);
+  --no-fit: #f87171;
+  --no-fit-dim: rgba(248, 113, 113, 0.06);
+  --no-fit-border: rgba(248, 113, 113, 0.2);
+  --border: #252530;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+input, select, button {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}

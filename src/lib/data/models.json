@@ -1,0 +1,62 @@
+[
+  {
+    "id": "llama-3.2-3b-fp16",
+    "name": "Llama 3.2 3B",
+    "params_b": 3.21,
+    "quantization": "fp16",
+    "weight_gb": 6.43,
+    "kv_per_1k_gb": 0.107,
+    "max_context_k": 128,
+    "notes": "28 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF f16."
+  },
+  {
+    "id": "llama-3.2-3b-q8",
+    "name": "Llama 3.2 3B",
+    "params_b": 3.21,
+    "quantization": "Q8_0",
+    "weight_gb": 3.42,
+    "kv_per_1k_gb": 0.107,
+    "max_context_k": 128,
+    "notes": "28 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+  },
+  {
+    "id": "llama-3.2-3b-q4",
+    "name": "Llama 3.2 3B",
+    "params_b": 3.21,
+    "quantization": "Q4_K_M",
+    "weight_gb": 2.02,
+    "kv_per_1k_gb": 0.107,
+    "max_context_k": 128,
+    "notes": "28 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+  },
+  {
+    "id": "llama-3.1-8b-fp16",
+    "name": "Llama 3.1 8B",
+    "params_b": 8.03,
+    "quantization": "fp16",
+    "weight_gb": 16.1,
+    "kv_per_1k_gb": 0.122,
+    "max_context_k": 128,
+    "notes": "32 layers, 8 KV heads, head_dim 128. Estimated from f32 (32.1 GB) / 2."
+  },
+  {
+    "id": "llama-3.1-8b-q8",
+    "name": "Llama 3.1 8B",
+    "params_b": 8.03,
+    "quantization": "Q8_0",
+    "weight_gb": 8.54,
+    "kv_per_1k_gb": 0.122,
+    "max_context_k": 128,
+    "notes": "32 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+  },
+  {
+    "id": "llama-3.1-8b-q4",
+    "name": "Llama 3.1 8B",
+    "params_b": 8.03,
+    "quantization": "Q4_K_M",
+    "weight_gb": 4.92,
+    "kv_per_1k_gb": 0.122,
+    "max_context_k": 128,
+    "notes": "32 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+  }
+]
