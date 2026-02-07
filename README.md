@@ -1,4 +1,4 @@
-# What Model?
+# What Models?
 
 A static website that helps users find out which AI models their GPU can run — and how well.
 

@@ -12,7 +12,7 @@
       <div>
         <h1>
           <span class="what">What</span>
-          <span class="model">Model</span><span class="question">?</span>
+          <span class="model">Models</span><span class="question">?</span>
         </h1>
         <p class="tagline">Find out which AI models your GPU can run.</p>
       </div>
