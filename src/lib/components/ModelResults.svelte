@@ -1,83 +1,17 @@
 <script>
   import allModels from '$lib/data/models.json';
+  import { contextLabel, tokLabel, bucketModels } from '$lib/calculations.js';
 
   let { vram, bandwidth = null, minContextK = null, minTokPerSec = null } = $props();
 
-  /**
-   * For a given model and user VRAM, calculate the max context (in K tokens)
-   * that fits. Capped at the model's trained max_context_k.
-   */
-  function calcMaxContext(model, userVram) {
-    const availableForKv = userVram - model.weight_gb;
-    if (availableForKv <= 0) return 0;
-    const maxTokensK = availableForKv / model.kv_per_1k_gb;
-    return Math.min(Math.floor(maxTokensK), model.max_context_k);
-  }
-
-  /**
-   * Estimate decode tokens/sec from memory bandwidth.
-   * During autoregressive generation, every token requires reading all weights
-   * plus additional memory for KV cache reads, activations, and engine overhead.
-   * tok/s ≈ bandwidth / (weight_gb + overhead)
-   *
-   * The overhead constant (≈ 1 GB) was empirically derived from real-world
-   * benchmarks on consumer GPUs using llama.cpp-based engines.
-   */
-  const INFERENCE_OVERHEAD_GB = 1.0;
-
-  function calcTokPerSec(model, bw) {
-    if (bw == null) return null;
-    return Math.round(bw / (model.weight_gb + INFERENCE_OVERHEAD_GB));
-  }
-
-  function contextLabel(k) {
-    if (k >= 1000) return `${(k / 1000).toFixed(0)}M`;
-    return `${k}K`;
-  }
-
-  function tokLabel(tps) {
-    if (tps == null) return null;
-    return `~${tps} tok/s`;
-  }
-
   let results = $derived.by(() => {
     if (vram == null) return null;
-
-    const entries = allModels.map((m) => {
-      const maxCtxK = calcMaxContext(m, vram);
-      const totalAtMinCtx = m.weight_gb + m.kv_per_1k_gb; // 1K min context
-      const fitsAtAll = vram >= totalAtMinCtx;
-      const meetsMinCtx = minContextK != null ? maxCtxK >= minContextK : true;
-      const tokPerSec = calcTokPerSec(m, bandwidth);
-      const meetsMinSpeed = minTokPerSec != null && tokPerSec != null ? tokPerSec >= minTokPerSec : true;
-      return { ...m, maxCtxK, fitsAtAll, meetsMinCtx, meetsMinSpeed, tokPerSec };
-    });
-
-    const fits = [];
-    const tight = [];
-    const noFit = [];
-
-    for (const e of entries) {
-      if (!e.fitsAtAll) {
-        noFit.push(e);
-      } else if (!e.meetsMinCtx || !e.meetsMinSpeed) {
-        tight.push(e);
-      } else if (e.maxCtxK < 4) {
-        // Less than 4K context is a tight fit regardless
-        tight.push(e);
-      } else {
-        fits.push(e);
-      }
-    }
-
-    fits.sort((a, b) => b.maxCtxK - a.maxCtxK);
-    tight.sort((a, b) => b.maxCtxK - a.maxCtxK);
-    noFit.sort((a, b) => b.weight_gb - a.weight_gb);
-
-    return { fits, tight, noFit };
+    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec);
   });
 
   let totalFit = $derived(results ? results.fits.length + results.tight.length : 0);
+
+  const mmluExplainer = 'MMLU (Massive Multitask Language Understanding) measures general knowledge across 57 subjects. Higher = more capable. Sorted best-first.';
 </script>
 
 {#if results == null}
@@ -91,6 +25,10 @@
       <strong>{vram} GB</strong>
       {#if minContextK != null} with at least <strong>{contextLabel(minContextK)}</strong> context{/if}
       {#if minTokPerSec != null} at <strong>{minTokPerSec}+ tok/s</strong>{/if}
+      — sorted by quality
+    </p>
+    <p class="mmlu-note" title={mmluExplainer}>
+      Ranked by <strong>MMLU</strong> benchmark <span class="info-icon">?</span>
     </p>
 
     {#if results.fits.length > 0}
@@ -104,11 +42,12 @@
                   <span class="model-name">{m.name}</span>
                   <span class="badge quant">{m.quantization}</span>
                   <span class="badge params">{m.params_b}B</span>
+                  <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
                 </div>
                 <div class="model-stats">
-                  <span class="stat">
-                    <span class="stat-label">Weights</span>
-                    <span class="stat-value">{m.weight_gb} GB</span>
+                  <span class="stat quality-stat">
+                    <span class="stat-label">MMLU</span>
+                    <span class="stat-value">{m.mmlu_score}</span>
                   </span>
                   <span class="stat context">
                     <span class="stat-label">Max context</span>
@@ -140,11 +79,12 @@
                   <span class="model-name">{m.name}</span>
                   <span class="badge quant">{m.quantization}</span>
                   <span class="badge params">{m.params_b}B</span>
+                  <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
                 </div>
                 <div class="model-stats">
-                  <span class="stat">
-                    <span class="stat-label">Weights</span>
-                    <span class="stat-value">{m.weight_gb} GB</span>
+                  <span class="stat quality-stat">
+                    <span class="stat-label">MMLU</span>
+                    <span class="stat-value">{m.mmlu_score}</span>
                   </span>
                   <span class="stat context">
                     <span class="stat-label">Max context</span>
@@ -184,11 +124,12 @@
                   <span class="model-name">{m.name}</span>
                   <span class="badge quant">{m.quantization}</span>
                   <span class="badge params">{m.params_b}B</span>
+                  <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
                 </div>
                 <div class="model-stats">
-                  <span class="stat">
-                    <span class="stat-label">Weights</span>
-                    <span class="stat-value">{m.weight_gb} GB</span>
+                  <span class="stat quality-stat">
+                    <span class="stat-label">MMLU</span>
+                    <span class="stat-value">{m.mmlu_score}</span>
                   </span>
                   <span class="stat context">
                     <span class="stat-label">Need</span>
@@ -225,10 +166,38 @@
   .summary {
     font-size: 0.95rem;
     color: var(--text-muted);
+    margin-bottom: -0.9rem;
   }
 
   .summary strong {
     color: var(--text);
+  }
+
+  .mmlu-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    cursor: help;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .mmlu-note strong {
+    color: var(--text);
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 1px solid var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    flex-shrink: 0;
   }
 
   /* Groups */
@@ -339,12 +308,48 @@
     font-weight: 600;
   }
 
+  .stat.quality-stat .stat-value {
+    font-weight: 700;
+  }
+
   .stat.context .stat-value {
     color: var(--accent);
   }
 
   .stat.speed .stat-value {
     color: var(--fits);
+  }
+
+  /* Quality tier badges */
+  .badge.quality {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .badge.quality.tier-excellent {
+    background: rgba(76, 175, 80, 0.15);
+    color: #66bb6a;
+  }
+
+  .badge.quality.tier-great {
+    background: rgba(33, 150, 243, 0.15);
+    color: #42a5f5;
+  }
+
+  .badge.quality.tier-good {
+    background: rgba(156, 39, 176, 0.15);
+    color: #ab47bc;
+  }
+
+  .badge.quality.tier-fair {
+    background: rgba(255, 167, 38, 0.15);
+    color: #ffa726;
+  }
+
+  .badge.quality.tier-basic {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-muted);
   }
 
   .reason {

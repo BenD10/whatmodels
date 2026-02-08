@@ -7,6 +7,7 @@
     "weight_gb": 1.32,
     "kv_per_1k_gb": 0.031,
     "max_context_k": 128,
+    "mmlu_score": 49.3,
     "notes": "16 layers, 8 KV heads, head_dim 64. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -17,6 +18,7 @@
     "weight_gb": 0.81,
     "kv_per_1k_gb": 0.031,
     "max_context_k": 128,
+    "mmlu_score": 49.3,
     "notes": "16 layers, 8 KV heads, head_dim 64. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -28,6 +30,7 @@
     "weight_gb": 6.43,
     "kv_per_1k_gb": 0.107,
     "max_context_k": 128,
+    "mmlu_score": 63.4,
     "notes": "28 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF f16."
   },
   {
@@ -38,6 +41,7 @@
     "weight_gb": 3.42,
     "kv_per_1k_gb": 0.107,
     "max_context_k": 128,
+    "mmlu_score": 63.4,
     "notes": "28 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -48,6 +52,7 @@
     "weight_gb": 2.02,
     "kv_per_1k_gb": 0.107,
     "max_context_k": 128,
+    "mmlu_score": 63.4,
     "notes": "28 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -59,6 +64,7 @@
     "weight_gb": 16.1,
     "kv_per_1k_gb": 0.122,
     "max_context_k": 128,
+    "mmlu_score": 69.4,
     "notes": "32 layers, 8 KV heads, head_dim 128. Estimated from f32 (32.1 GB) / 2."
   },
   {
@@ -69,6 +75,7 @@
     "weight_gb": 8.54,
     "kv_per_1k_gb": 0.122,
     "max_context_k": 128,
+    "mmlu_score": 69.4,
     "notes": "32 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -79,6 +86,7 @@
     "weight_gb": 4.92,
     "kv_per_1k_gb": 0.122,
     "max_context_k": 128,
+    "mmlu_score": 69.4,
     "notes": "32 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -90,6 +98,7 @@
     "weight_gb": 74.98,
     "kv_per_1k_gb": 0.305,
     "max_context_k": 128,
+    "mmlu_score": 86.0,
     "notes": "80 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -100,6 +109,7 @@
     "weight_gb": 42.52,
     "kv_per_1k_gb": 0.305,
     "max_context_k": 128,
+    "mmlu_score": 86.0,
     "notes": "80 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -111,6 +121,7 @@
     "weight_gb": 3.29,
     "kv_per_1k_gb": 0.034,
     "max_context_k": 32,
+    "mmlu_score": 65.6,
     "notes": "36 layers, 2 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -121,6 +132,7 @@
     "weight_gb": 1.93,
     "kv_per_1k_gb": 0.034,
     "max_context_k": 32,
+    "mmlu_score": 65.6,
     "notes": "36 layers, 2 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -132,6 +144,7 @@
     "weight_gb": 8.10,
     "kv_per_1k_gb": 0.053,
     "max_context_k": 128,
+    "mmlu_score": 74.2,
     "notes": "28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -142,6 +155,7 @@
     "weight_gb": 4.68,
     "kv_per_1k_gb": 0.053,
     "max_context_k": 128,
+    "mmlu_score": 74.2,
     "notes": "28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -153,6 +167,7 @@
     "weight_gb": 15.70,
     "kv_per_1k_gb": 0.183,
     "max_context_k": 128,
+    "mmlu_score": 79.9,
     "notes": "48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -163,6 +178,7 @@
     "weight_gb": 8.99,
     "kv_per_1k_gb": 0.183,
     "max_context_k": 128,
+    "mmlu_score": 79.9,
     "notes": "48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -174,6 +190,7 @@
     "weight_gb": 34.82,
     "kv_per_1k_gb": 0.244,
     "max_context_k": 128,
+    "mmlu_score": 83.3,
     "notes": "64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -184,6 +201,7 @@
     "weight_gb": 19.85,
     "kv_per_1k_gb": 0.244,
     "max_context_k": 128,
+    "mmlu_score": 83.3,
     "notes": "64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -195,6 +213,7 @@
     "weight_gb": 77.26,
     "kv_per_1k_gb": 0.305,
     "max_context_k": 128,
+    "mmlu_score": 86.1,
     "notes": "80 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -205,6 +224,7 @@
     "weight_gb": 47.42,
     "kv_per_1k_gb": 0.305,
     "max_context_k": 128,
+    "mmlu_score": 86.1,
     "notes": "80 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -216,7 +236,8 @@
     "weight_gb": 8.10,
     "kv_per_1k_gb": 0.053,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+    "mmlu_score": 58.0,
+    "notes": "Reasoning model (distilled from R1). Based on Qwen 2.5 Math 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
     "id": "deepseek-r1-distill-qwen-7b-q4",
@@ -226,7 +247,8 @@
     "weight_gb": 4.68,
     "kv_per_1k_gb": 0.053,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+    "mmlu_score": 58.0,
+    "notes": "Reasoning model (distilled from R1). Based on Qwen 2.5 Math 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
   {
@@ -237,7 +259,8 @@
     "weight_gb": 15.70,
     "kv_per_1k_gb": 0.183,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+    "mmlu_score": 72.0,
+    "notes": "Reasoning model (distilled from R1). Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
     "id": "deepseek-r1-distill-qwen-14b-q4",
@@ -247,7 +270,8 @@
     "weight_gb": 9.13,
     "kv_per_1k_gb": 0.183,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+    "mmlu_score": 72.0,
+    "notes": "Reasoning model (distilled from R1). Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
   {
@@ -258,7 +282,8 @@
     "weight_gb": 34.82,
     "kv_per_1k_gb": 0.244,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+    "mmlu_score": 80.0,
+    "notes": "Reasoning model (distilled from R1). Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
     "id": "deepseek-r1-distill-qwen-32b-q4",
@@ -268,7 +293,8 @@
     "weight_gb": 19.90,
     "kv_per_1k_gb": 0.244,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+    "mmlu_score": 80.0,
+    "notes": "Reasoning model (distilled from R1). Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
   {
@@ -279,7 +305,8 @@
     "weight_gb": 74.98,
     "kv_per_1k_gb": 0.305,
     "max_context_k": 128,
-    "notes": "Based on Llama 3.1 70B. 80 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+    "mmlu_score": 84.0,
+    "notes": "Reasoning model (distilled from R1). Based on Llama 3.3 70B. 80 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
     "id": "deepseek-r1-distill-llama-70b-q4",
@@ -289,7 +316,8 @@
     "weight_gb": 42.52,
     "kv_per_1k_gb": 0.305,
     "max_context_k": 128,
-    "notes": "Based on Llama 3.1 70B. 80 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+    "mmlu_score": 84.0,
+    "notes": "Reasoning model (distilled from R1). Based on Llama 3.3 70B. 80 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
   {
@@ -300,6 +328,7 @@
     "weight_gb": 15.58,
     "kv_per_1k_gb": 0.191,
     "max_context_k": 16,
+    "mmlu_score": 84.8,
     "notes": "40 layers, 10 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -310,6 +339,7 @@
     "weight_gb": 9.06,
     "kv_per_1k_gb": 0.191,
     "max_context_k": 16,
+    "mmlu_score": 84.8,
     "notes": "40 layers, 10 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -321,6 +351,7 @@
     "weight_gb": 25.05,
     "kv_per_1k_gb": 0.153,
     "max_context_k": 128,
+    "mmlu_score": 81.0,
     "notes": "40 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -331,6 +362,7 @@
     "weight_gb": 14.33,
     "kv_per_1k_gb": 0.153,
     "max_context_k": 128,
+    "mmlu_score": 81.0,
     "notes": "40 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -342,6 +374,7 @@
     "weight_gb": 9.83,
     "kv_per_1k_gb": 0.321,
     "max_context_k": 8,
+    "mmlu_score": 71.3,
     "notes": "42 layers, 8 KV heads, head_dim 256. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -352,6 +385,7 @@
     "weight_gb": 5.76,
     "kv_per_1k_gb": 0.321,
     "max_context_k": 8,
+    "mmlu_score": 71.3,
     "notes": "42 layers, 8 KV heads, head_dim 256. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -363,7 +397,8 @@
     "weight_gb": 28.94,
     "kv_per_1k_gb": 0.351,
     "max_context_k": 8,
-    "notes": "46 layers, 16 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+    "mmlu_score": 75.2,
+    "notes": "46 layers, 16 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
     "id": "gemma-2-27b-q4",
@@ -373,6 +408,7 @@
     "weight_gb": 16.65,
     "kv_per_1k_gb": 0.351,
     "max_context_k": 8,
+    "mmlu_score": 75.2,
     "notes": "46 layers, 16 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -384,6 +420,7 @@
     "weight_gb": 4.13,
     "kv_per_1k_gb": 0.147,
     "max_context_k": 128,
+    "mmlu_score": 63.0,
     "notes": "34 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -394,6 +431,7 @@
     "weight_gb": 2.49,
     "kv_per_1k_gb": 0.147,
     "max_context_k": 128,
+    "mmlu_score": 63.0,
     "notes": "34 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -405,6 +443,7 @@
     "weight_gb": 12.51,
     "kv_per_1k_gb": 0.466,
     "max_context_k": 128,
+    "mmlu_score": 74.0,
     "notes": "48 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -415,6 +454,7 @@
     "weight_gb": 7.30,
     "kv_per_1k_gb": 0.466,
     "max_context_k": 128,
+    "mmlu_score": 74.0,
     "notes": "48 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -426,6 +466,7 @@
     "weight_gb": 28.71,
     "kv_per_1k_gb": 0.584,
     "max_context_k": 128,
+    "mmlu_score": 78.0,
     "notes": "62 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q8_0."
   },
   {
@@ -436,6 +477,7 @@
     "weight_gb": 16.55,
     "kv_per_1k_gb": 0.584,
     "max_context_k": 128,
+    "mmlu_score": 78.0,
     "notes": "62 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. Weights from bartowski GGUF Q4_K_M."
   },
 
@@ -447,7 +489,8 @@
     "weight_gb": 8.10,
     "kv_per_1k_gb": 0.053,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+    "mmlu_score": 68.0,
+    "notes": "Code model. Based on Qwen 2.5 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
     "id": "qwen-2.5-coder-7b-q4",
@@ -457,7 +500,8 @@
     "weight_gb": 4.68,
     "kv_per_1k_gb": 0.053,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+    "mmlu_score": 68.0,
+    "notes": "Code model. Based on Qwen 2.5 7B. 28 layers, 4 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
   {
@@ -468,7 +512,8 @@
     "weight_gb": 15.70,
     "kv_per_1k_gb": 0.183,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+    "mmlu_score": 74.0,
+    "notes": "Code model. Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
     "id": "qwen-2.5-coder-14b-q4",
@@ -478,7 +523,8 @@
     "weight_gb": 8.99,
     "kv_per_1k_gb": 0.183,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+    "mmlu_score": 74.0,
+    "notes": "Code model. Based on Qwen 2.5 14B. 48 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   },
 
   {
@@ -489,7 +535,8 @@
     "weight_gb": 34.82,
     "kv_per_1k_gb": 0.244,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
+    "mmlu_score": 79.0,
+    "notes": "Code model. Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q8_0."
   },
   {
     "id": "qwen-2.5-coder-32b-q4",
@@ -499,6 +546,7 @@
     "weight_gb": 19.85,
     "kv_per_1k_gb": 0.244,
     "max_context_k": 128,
-    "notes": "Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
+    "mmlu_score": 79.0,
+    "notes": "Code model. Based on Qwen 2.5 32B. 64 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF Q4_K_M."
   }
 ]
