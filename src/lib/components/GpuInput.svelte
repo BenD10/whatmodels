@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import gpus from '$lib/data/gpus.json';
   import SearchSelect from './SearchSelect.svelte';
   import { trackGpuSelected, trackManualVram, trackFilterChanged } from '$lib/analytics.js';
@@ -32,17 +33,38 @@
     { value: 100, label: '100 tok/s' },
   ];
 
-  let { vram = $bindable(null), bandwidth = $bindable(null), minContextK = $bindable(null), minTokPerSec = $bindable(null) } = $props();
+  let {
+    vram = $bindable(null),
+    bandwidth = $bindable(null),
+    minContextK = $bindable(null),
+    minTokPerSec = $bindable(null),
+    initialGpuId = '',
+    initialMemIdx = '',
+    initialManualVram = '',
+    initialContextK = '',
+    initialSpeed = '',
+    onstatechange = () => {},
+  } = $props();
 
-  let selectedGpuId = $state('');
-  let manualVram = $state('');
-  let contextSelection = $state('');
-  let speedSelection = $state('');
-  let selectedMemoryIdx = $state('');
+  let selectedGpuId = $state(initialGpuId);
+  let manualVram = $state(initialManualVram);
+  let contextSelection = $state(initialContextK);
+  let speedSelection = $state(initialSpeed);
+  let selectedMemoryIdx = $state(initialMemIdx);
 
   // Derived: does the selected GPU have configurable memory?
   let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
   let hasMemoryOptions = $derived(!!selectedGpu?.vram_options);
+
+  function fireStateChange() {
+    onstatechange({
+      gpuId: selectedGpuId,
+      memIdx: selectedMemoryIdx,
+      manualVram,
+      contextK: contextSelection,
+      speed: speedSelection,
+    });
+  }
 
   function onGpuChange() {
     manualVram = '';
@@ -60,18 +82,21 @@
       bandwidth = gpu.bandwidth_gbps;
       trackGpuSelected(gpu.name, gpu.vram_gb, gpu.bandwidth_gbps);
     }
+    fireStateChange();
   }
 
   function onMemoryChange() {
     if (selectedMemoryIdx === '' || !selectedGpu?.vram_options) {
       vram = null;
       bandwidth = null;
+      fireStateChange();
       return;
     }
     const opt = selectedGpu.vram_options[Number(selectedMemoryIdx)];
     vram = opt.vram_gb;
     bandwidth = opt.bandwidth_gbps;
     trackGpuSelected(selectedGpu.name, opt.vram_gb, opt.bandwidth_gbps);
+    fireStateChange();
   }
 
   function onManualInput() {
@@ -82,17 +107,54 @@
     if (vram != null) {
       trackManualVram(vram);
     }
+    fireStateChange();
   }
 
   function onContextChange() {
     minContextK = contextSelection === '' ? null : Number(contextSelection);
     trackFilterChanged('min_context', minContextK);
+    fireStateChange();
   }
 
   function onSpeedChange() {
     minTokPerSec = speedSelection === '' ? null : Number(speedSelection);
     trackFilterChanged('min_speed', minTokPerSec);
+    fireStateChange();
   }
+
+  // Apply initial values on mount (from URL query params)
+  onMount(() => {
+    if (initialGpuId) {
+      const gpu = gpus.find((g) => g.id === initialGpuId) ?? null;
+      if (gpu) {
+        if (gpu.vram_options) {
+          if (initialMemIdx !== '') {
+            const opt = gpu.vram_options[Number(initialMemIdx)];
+            if (opt) {
+              vram = opt.vram_gb;
+              bandwidth = opt.bandwidth_gbps;
+            }
+          }
+        } else {
+          vram = gpu.vram_gb;
+          bandwidth = gpu.bandwidth_gbps;
+        }
+      }
+    } else if (initialManualVram) {
+      const val = parseFloat(initialManualVram);
+      if (!Number.isNaN(val) && val > 0) {
+        vram = val;
+        bandwidth = null;
+      }
+    }
+
+    if (initialContextK !== '') {
+      minContextK = Number(initialContextK);
+    }
+    if (initialSpeed !== '') {
+      minTokPerSec = Number(initialSpeed);
+    }
+  });
 </script>
 
 <section class="gpu-input">
@@ -250,5 +312,43 @@
 
   .muted {
     color: var(--text-muted);
+  }
+
+  @media (max-width: 600px) {
+    .gpu-input {
+      padding: 1rem;
+    }
+
+    .row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .gpu-field,
+    .vram-field {
+      width: 100%;
+    }
+
+    .vram-field {
+      flex-shrink: 1;
+    }
+
+    select {
+      min-width: 0;
+      width: 100%;
+    }
+
+    input[type="number"] {
+      width: 100%;
+    }
+
+    .divider {
+      text-align: center;
+      padding: 0.25rem 0;
+    }
+
+    .field {
+      width: 100%;
+    }
   }
 </style>

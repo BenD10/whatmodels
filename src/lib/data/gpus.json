@@ -54,9 +54,14 @@
 
   { "id": "rx-9070-xt",        "name": "Radeon RX 9070 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 640 },
   { "id": "rx-9070",           "name": "Radeon RX 9070",            "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 640 },
+  { "id": "rx-9070-gre",       "name": "Radeon RX 9070 GRE",       "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 576 },
+  { "id": "rx-9060-xt-16gb",   "name": "Radeon RX 9060 XT 16GB",   "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 320 },
+  { "id": "rx-9060-xt",        "name": "Radeon RX 9060 XT",        "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 320 },
+  { "id": "rx-9060",           "name": "Radeon RX 9060",            "manufacturer": "AMD",    "vram_gb": 8,  "bandwidth_gbps": 288 },
 
   { "id": "rx-7900-xtx",       "name": "Radeon RX 7900 XTX",       "manufacturer": "AMD",    "vram_gb": 24, "bandwidth_gbps": 960 },
   { "id": "rx-7900-xt",        "name": "Radeon RX 7900 XT",        "manufacturer": "AMD",    "vram_gb": 20, "bandwidth_gbps": 800 },
+  { "id": "rx-7900-gre",       "name": "Radeon RX 7900 GRE",       "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 576 },
   { "id": "rx-7800-xt",        "name": "Radeon RX 7800 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 624 },
   { "id": "rx-7700-xt",        "name": "Radeon RX 7700 XT",        "manufacturer": "AMD",    "vram_gb": 12, "bandwidth_gbps": 432 },
   { "id": "rx-7600-xt",        "name": "Radeon RX 7600 XT",        "manufacturer": "AMD",    "vram_gb": 16, "bandwidth_gbps": 288 },

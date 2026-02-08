@@ -22,6 +22,14 @@
   <main>
     {@render children()}
   </main>
+
+  <footer>
+    <p>
+      Data last updated February 2026.
+      <a href="https://github.com/BenD10/whatmodels" target="_blank" rel="noopener">Source on GitHub</a> ·
+      <a href="https://github.com/BenD10/whatmodels/issues" target="_blank" rel="noopener">Report an issue</a>
+    </p>
+  </footer>
 </div>
 
 <style>
@@ -74,5 +82,44 @@
     color: var(--text-muted);
     margin-top: 0.2rem;
     font-size: 0.95rem;
+  }
+
+  footer {
+    margin-top: 3rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+
+  footer a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+
+  @media (max-width: 600px) {
+    .shell {
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+    }
+
+    .tagline {
+      font-size: 0.85rem;
+    }
   }
 </style>

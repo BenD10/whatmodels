@@ -360,4 +360,28 @@
     color: var(--text-muted);
     opacity: 0.7;
   }
+
+  @media (max-width: 600px) {
+    .model-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .model-stats {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .stat {
+      align-items: flex-start;
+    }
+
+    .group {
+      padding: 0.75rem 0.85rem;
+    }
+
+    li {
+      padding: 0.55rem 0.65rem;
+    }
+  }
 </style>

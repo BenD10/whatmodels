@@ -393,4 +393,11 @@
     font-style: italic;
     cursor: default;
   }
+
+  @media (max-width: 600px) {
+    .search-select {
+      min-width: 0;
+      width: 100%;
+    }
+  }
 </style>
