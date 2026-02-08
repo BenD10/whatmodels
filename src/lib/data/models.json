@@ -431,6 +431,87 @@
   },
 
   {
+    "id": "qwen3-8b-q8",
+    "name": "Qwen3 8B",
+    "params_b": 8.2,
+    "quantization": "Q8_0",
+    "weight_gb": 8.71,
+    "kv_per_1k_gb": 0.137,
+    "max_context_k": 128,
+    "mmlu_score": 79.0,
+    "swe_bench_score": null,
+    "features": ["reasoning", "tool_use"],
+    "notes": "Reasoning model (thinking/non-thinking modes). 36 layers, 8 KV heads, head_dim 128. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3-8b-q4",
+    "name": "Qwen3 8B",
+    "params_b": 8.2,
+    "quantization": "Q4_K_M",
+    "weight_gb": 5.03,
+    "kv_per_1k_gb": 0.137,
+    "max_context_k": 128,
+    "mmlu_score": 79.0,
+    "swe_bench_score": null,
+    "features": ["reasoning", "tool_use"],
+    "notes": "Reasoning model (thinking/non-thinking modes). 36 layers, 8 KV heads, head_dim 128. GGUF Q4_K_M file size."
+  },
+
+  {
+    "id": "qwen3-32b-q8",
+    "name": "Qwen3 32B",
+    "params_b": 32.8,
+    "quantization": "Q8_0",
+    "weight_gb": 34.8,
+    "kv_per_1k_gb": 0.244,
+    "max_context_k": 128,
+    "mmlu_score": 85.0,
+    "swe_bench_score": null,
+    "features": ["reasoning", "tool_use"],
+    "notes": "Reasoning model (thinking/non-thinking modes). 64 layers, 8 KV heads, head_dim 128. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3-32b-q4",
+    "name": "Qwen3 32B",
+    "params_b": 32.8,
+    "quantization": "Q4_K_M",
+    "weight_gb": 19.8,
+    "kv_per_1k_gb": 0.244,
+    "max_context_k": 128,
+    "mmlu_score": 85.0,
+    "swe_bench_score": null,
+    "features": ["reasoning", "tool_use"],
+    "notes": "Reasoning model (thinking/non-thinking modes). 64 layers, 8 KV heads, head_dim 128. GGUF Q4_K_M file size."
+  },
+
+  {
+    "id": "qwen3-next-80b-a3b-q8",
+    "name": "Qwen3 Next 80B-A3B",
+    "params_b": 80,
+    "quantization": "Q8_0",
+    "weight_gb": 84.8,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 256,
+    "mmlu_score": 90.0,
+    "swe_bench_score": null,
+    "features": ["tool_use"],
+    "notes": "MoE: 80B total, 3B active (512 experts). Hybrid architecture (Gated DeltaNet + Gated Attention). Only 12 of 48 layers use attention (2 KV heads, head_dim 256). KV estimate covers attention layers only; DeltaNet layers use fixed-size recurrent state. Instruct-only (no thinking mode). GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3-next-80b-a3b-q4",
+    "name": "Qwen3 Next 80B-A3B",
+    "params_b": 80,
+    "quantization": "Q4_K_M",
+    "weight_gb": 48.4,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 256,
+    "mmlu_score": 90.0,
+    "swe_bench_score": null,
+    "features": ["tool_use"],
+    "notes": "MoE: 80B total, 3B active (512 experts). Hybrid architecture (Gated DeltaNet + Gated Attention). Only 12 of 48 layers use attention (2 KV heads, head_dim 256). KV estimate covers attention layers only; DeltaNet layers use fixed-size recurrent state. Instruct-only (no thinking mode). GGUF Q4_K_M file size."
+  },
+
+  {
     "id": "deepseek-r1-distill-qwen-7b-q8",
     "name": "DeepSeek R1 Distill Qwen 7B",
     "params_b": 7.62,
@@ -806,6 +887,60 @@
     "swe_bench_score": 17.4,
     "features": ["vision"],
     "notes": "62 layers (5:1 local:global, sw=1024), head_dim 256. KV estimate from Gemma 3 tech report. GGUF Q4_K_M file size."
+  },
+
+  {
+    "id": "glm-4.7-flash-q8",
+    "name": "GLM-4.7 Flash",
+    "params_b": 31,
+    "quantization": "Q8_0",
+    "weight_gb": 31.8,
+    "kv_per_1k_gb": 0.050,
+    "max_context_k": 128,
+    "mmlu_score": 82.0,
+    "swe_bench_score": null,
+    "features": ["reasoning", "tool_use"],
+    "notes": "MoE: 30B total, 3B active (64 experts, 4 active). 47 layers, uses MLA (kv_lora_rank=512). KV estimate is for compressed MLA cache. GGUF Q8_0 file size."
+  },
+  {
+    "id": "glm-4.7-flash-q4",
+    "name": "GLM-4.7 Flash",
+    "params_b": 31,
+    "quantization": "Q4_K_M",
+    "weight_gb": 18.3,
+    "kv_per_1k_gb": 0.050,
+    "max_context_k": 128,
+    "mmlu_score": 82.0,
+    "swe_bench_score": null,
+    "features": ["reasoning", "tool_use"],
+    "notes": "MoE: 30B total, 3B active (64 experts, 4 active). 47 layers, uses MLA (kv_lora_rank=512). KV estimate is for compressed MLA cache. GGUF Q4_K_M file size."
+  },
+
+  {
+    "id": "nemotron-nano-12b-q8",
+    "name": "Nemotron Nano 12B",
+    "params_b": 12.6,
+    "quantization": "Q8_0",
+    "weight_gb": 13.09,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 128,
+    "mmlu_score": 76.0,
+    "swe_bench_score": null,
+    "features": ["reasoning", "tool_use"],
+    "notes": "Hybrid Mamba-Transformer (6 attention + 56 Mamba-2 layers). 8 KV heads, head_dim 128 on attention layers only. KV estimate covers attention layers; Mamba layers use fixed-size state (~140 MB). GGUF Q8_0 file size."
+  },
+  {
+    "id": "nemotron-nano-12b-q4",
+    "name": "Nemotron Nano 12B",
+    "params_b": 12.6,
+    "quantization": "Q4_K_M",
+    "weight_gb": 7.37,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 128,
+    "mmlu_score": 76.0,
+    "swe_bench_score": null,
+    "features": ["reasoning", "tool_use"],
+    "notes": "Hybrid Mamba-Transformer (6 attention + 56 Mamba-2 layers). 8 KV heads, head_dim 128 on attention layers only. KV estimate covers attention layers; Mamba layers use fixed-size state (~140 MB). GGUF Q4_K_M file size."
   },
 
   {
