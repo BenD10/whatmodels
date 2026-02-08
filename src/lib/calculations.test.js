@@ -50,6 +50,45 @@ const largeModel = {
   mmlu_score: 86.1,
 };
 
+/** A model with vision feature */
+const visionModel = {
+  id: 'test-vision',
+  name: 'Test Vision',
+  params_b: 12,
+  quantization: 'Q8_0',
+  weight_gb: 12.5,
+  kv_per_1k_gb: 0.466,
+  max_context_k: 128,
+  mmlu_score: 74.0,
+  features: ['vision'],
+};
+
+/** A model with reasoning feature */
+const reasoningModel = {
+  id: 'test-reasoning',
+  name: 'Test Reasoning',
+  params_b: 14,
+  quantization: 'Q4_K_M',
+  weight_gb: 8.99,
+  kv_per_1k_gb: 0.183,
+  max_context_k: 128,
+  mmlu_score: 72.0,
+  features: ['reasoning'],
+};
+
+/** A model with multiple features */
+const multiFeatureModel = {
+  id: 'test-multi',
+  name: 'Test Multi',
+  params_b: 24,
+  quantization: 'Q8_0',
+  weight_gb: 25.0,
+  kv_per_1k_gb: 0.153,
+  max_context_k: 128,
+  mmlu_score: 81.0,
+  features: ['vision', 'tool_use'],
+};
+
 // ---------------------------------------------------------------------------
 // calcMaxContext
 // ---------------------------------------------------------------------------
@@ -277,5 +316,47 @@ describe('bucketModels', () => {
 
   it('uses TIGHT_FIT_CONTEXT_K threshold', () => {
     expect(TIGHT_FIT_CONTEXT_K).toBe(4);
+  });
+
+  // Feature filtering tests
+
+  it('returns all models in fits when no features required', () => {
+    const models = [visionModel, reasoningModel, multiFeatureModel];
+    const result = bucketModels(models, 200, 1000, null, null, []);
+    expect(result.fits).toHaveLength(3);
+    expect(result.tight).toHaveLength(0);
+  });
+
+  it('filters to only models with required vision feature', () => {
+    const models = [visionModel, reasoningModel, multiFeatureModel];
+    const result = bucketModels(models, 200, 1000, null, null, ['vision']);
+    // visionModel and multiFeatureModel have vision
+    expect(result.fits.map((m) => m.id)).toContain('test-vision');
+    expect(result.fits.map((m) => m.id)).toContain('test-multi');
+    // reasoningModel goes to tight (missing vision)
+    expect(result.tight.map((m) => m.id)).toContain('test-reasoning');
+  });
+
+  it('filters to only models matching all required features', () => {
+    const models = [visionModel, reasoningModel, multiFeatureModel];
+    // Require both vision and tool_use — only multiFeatureModel has both
+    const result = bucketModels(models, 200, 1000, null, null, ['vision', 'tool_use']);
+    expect(result.fits).toHaveLength(1);
+    expect(result.fits[0].id).toBe('test-multi');
+    expect(result.tight).toHaveLength(2);
+  });
+
+  it('puts models without features array in tight when features required', () => {
+    // smallModel has no features field
+    const result = bucketModels([smallModel], 200, 1000, null, null, ['vision']);
+    expect(result.fits).toHaveLength(0);
+    expect(result.tight).toHaveLength(1);
+    expect(result.tight[0].meetsFeatures).toBe(false);
+  });
+
+  it('sets meetsFeatures true when no features required', () => {
+    const result = bucketModels([smallModel], 200, 1000, null, null, []);
+    expect(result.fits).toHaveLength(1);
+    expect(result.fits[0].meetsFeatures).toBe(true);
   });
 });

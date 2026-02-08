@@ -2,11 +2,13 @@
   import allModels from '$lib/data/models.json';
   import { contextLabel, tokLabel, bucketModels } from '$lib/calculations.js';
 
-  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null } = $props();
+  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [] } = $props();
+
+  const FEATURE_LABELS = { vision: 'Vision', reasoning: 'Reasoning', tool_use: 'Tool use' };
 
   let results = $derived.by(() => {
     if (vram == null) return null;
-    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec);
+    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures);
   });
 
   let totalFit = $derived(results ? results.fits.length + results.tight.length : 0);
@@ -74,6 +76,9 @@
                   <span class="badge quant">{m.quantization}</span>
                   <span class="badge params">{m.params_b}B</span>
                   <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
+                  {#each m.features ?? [] as feat}
+                    <span class="badge feature feature-{feat}">{FEATURE_LABELS[feat] ?? feat}</span>
+                  {/each}
                 </div>
                 <div class="model-stats">
                   <span class="stat quality-stat">
@@ -111,6 +116,9 @@
                   <span class="badge quant">{m.quantization}</span>
                   <span class="badge params">{m.params_b}B</span>
                   <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
+                  {#each m.features ?? [] as feat}
+                    <span class="badge feature feature-{feat}">{FEATURE_LABELS[feat] ?? feat}</span>
+                  {/each}
                 </div>
                 <div class="model-stats">
                   <span class="stat quality-stat">
@@ -137,6 +145,9 @@
               {#if !m.meetsMinSpeed && m.tokPerSec != null}
                 <p class="reason">~{m.tokPerSec} tok/s — below your {minTokPerSec} tok/s minimum</p>
               {/if}
+              {#if !m.meetsFeatures}
+                <p class="reason">Missing features: {requiredFeatures.filter((f) => !(m.features ?? []).includes(f)).map((f) => FEATURE_LABELS[f] ?? f).join(', ')}</p>
+              {/if}
               {#if m.notes}<p class="notes">{m.notes}</p>{/if}
             </li>
           {/each}
@@ -156,6 +167,9 @@
                   <span class="badge quant">{m.quantization}</span>
                   <span class="badge params">{m.params_b}B</span>
                   <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
+                  {#each m.features ?? [] as feat}
+                    <span class="badge feature feature-{feat}">{FEATURE_LABELS[feat] ?? feat}</span>
+                  {/each}
                 </div>
                 <div class="model-stats">
                   <span class="stat quality-stat">
@@ -455,6 +469,28 @@
   .badge.quality.tier-basic {
     background: rgba(255, 255, 255, 0.06);
     color: var(--text-muted);
+  }
+
+  /* Feature badges */
+  .badge.feature {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .badge.feature-vision {
+    background: rgba(0, 188, 212, 0.15);
+    color: #4dd0e1;
+  }
+
+  .badge.feature-reasoning {
+    background: rgba(233, 30, 99, 0.15);
+    color: #f06292;
+  }
+
+  .badge.feature-tool_use {
+    background: rgba(255, 152, 0, 0.15);
+    color: #ffb74d;
   }
 
   .reason {

@@ -85,7 +85,8 @@ export function qualityTier(score) {
 
 /**
  * Bucket a list of models into "fits", "tight", and "noFit" categories
- * based on available VRAM and optional minimum-context / minimum-speed filters.
+ * based on available VRAM and optional minimum-context / minimum-speed /
+ * required-features filters.
  * Results are sorted by MMLU score (descending), with context/weight as tiebreakers.
  *
  * @param {Array} allModels       Full list of model objects
@@ -93,9 +94,10 @@ export function qualityTier(score) {
  * @param {number|null} bandwidth Memory bandwidth in GB/s (null if unknown)
  * @param {number|null} minContextK  Minimum required context in K tokens (null = any)
  * @param {number|null} minTokPerSec Minimum required tok/s (null = any)
+ * @param {string[]} requiredFeatures  Features the model must support (empty = any)
  * @returns {{ fits: Array, tight: Array, noFit: Array }}
  */
-export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec) {
+export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures = []) {
   const entries = allModels.map((m) => {
     const maxCtxK = calcMaxContext(m, vram);
     const totalAtMinCtx = m.weight_gb + m.kv_per_1k_gb; // 1K min context
@@ -103,8 +105,12 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     const meetsMinCtx = minContextK != null ? maxCtxK >= minContextK : true;
     const tokPerSec = calcTokPerSec(m, bandwidth);
     const meetsMinSpeed = minTokPerSec != null && tokPerSec != null ? tokPerSec >= minTokPerSec : true;
+    const modelFeatures = m.features ?? [];
+    const meetsFeatures = requiredFeatures.length > 0
+      ? requiredFeatures.every((f) => modelFeatures.includes(f))
+      : true;
     const tier = qualityTier(m.mmlu_score);
-    return { ...m, maxCtxK, fitsAtAll, meetsMinCtx, meetsMinSpeed, tokPerSec, tier };
+    return { ...m, maxCtxK, fitsAtAll, meetsMinCtx, meetsMinSpeed, meetsFeatures, tokPerSec, tier };
   });
 
   const fits = [];
@@ -114,7 +120,7 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
   for (const e of entries) {
     if (!e.fitsAtAll) {
       noFit.push(e);
-    } else if (!e.meetsMinCtx || !e.meetsMinSpeed) {
+    } else if (!e.meetsMinCtx || !e.meetsMinSpeed || !e.meetsFeatures) {
       tight.push(e);
     } else if (e.maxCtxK < TIGHT_FIT_CONTEXT_K) {
       // Less than 4K context is a tight fit regardless

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import gpus from '$lib/data/gpus.json';
   import SearchSelect from './SearchSelect.svelte';
+  import MultiSelect from './MultiSelect.svelte';
   import { trackGpuSelected, trackManualVram, trackFilterChanged } from '$lib/analytics.js';
 
   const gpuItems = gpus.map((g) => ({
@@ -33,16 +34,24 @@
     { value: 100, label: '100 tok/s' },
   ];
 
+  const FEATURE_OPTIONS = [
+    { id: 'vision', label: 'Vision' },
+    { id: 'reasoning', label: 'Reasoning' },
+    { id: 'tool_use', label: 'Tool use' },
+  ];
+
   let {
     vram = $bindable(null),
     bandwidth = $bindable(null),
     minContextK = $bindable(null),
     minTokPerSec = $bindable(null),
+    requiredFeatures = $bindable([]),
     initialGpuId = '',
     initialMemIdx = '',
     initialManualVram = '',
     initialContextK = '',
     initialSpeed = '',
+    initialFeatures = [],
     onstatechange = () => {},
   } = $props();
 
@@ -51,6 +60,7 @@
   let contextSelection = $state(initialContextK !== '' ? Number(initialContextK) : '');
   let speedSelection = $state(initialSpeed !== '' ? Number(initialSpeed) : '');
   let selectedMemoryIdx = $state(initialMemIdx !== '' ? Number(initialMemIdx) : '');
+  let featureSelection = $state(initialFeatures.length > 0 ? [...initialFeatures] : []);
 
   // Derived: does the selected GPU have configurable memory?
   let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
@@ -63,6 +73,7 @@
       manualVram,
       contextK: contextSelection,
       speed: speedSelection,
+      features: featureSelection,
     });
   }
 
@@ -129,6 +140,12 @@
     fireStateChange();
   }
 
+  function onFeaturesChange() {
+    requiredFeatures = [...featureSelection];
+    trackFilterChanged('features', featureSelection.join(','));
+    fireStateChange();
+  }
+
   // Apply initial values on mount (from URL query params)
   onMount(() => {
     if (initialGpuId) {
@@ -160,6 +177,9 @@
     }
     if (initialSpeed !== '') {
       minTokPerSec = Number(initialSpeed);
+    }
+    if (initialFeatures.length > 0) {
+      requiredFeatures = [...initialFeatures];
     }
   });
 </script>
@@ -222,6 +242,17 @@
           <option value={opt.value ?? ''}>{opt.label}</option>
         {/each}
       </select>
+    </div>
+
+    <div class="field">
+      <label for="features-select">Required features</label>
+      <MultiSelect
+        id="features-select"
+        items={FEATURE_OPTIONS}
+        bind:selected={featureSelection}
+        placeholder="Any"
+        onchange={onFeaturesChange}
+      />
     </div>
   </div>
 
