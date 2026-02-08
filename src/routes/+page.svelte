@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { replaceState } from '$app/navigation';
+  import gpus from '$lib/data/gpus.json';
   import GpuInput from '$lib/components/GpuInput.svelte';
   import ModelResults from '$lib/components/ModelResults.svelte';
 
@@ -18,13 +19,68 @@
   let initialSpeed = $state('');
   let ready = $state(false);
 
+  /** Validate and sanitize URL query parameters */
+  function parseUrlParams(params) {
+    let gpuId = '';
+    let memIdx = '';
+    let manualVram = '';
+    let contextK = '';
+    let speed = '';
+
+    // Validate GPU ID — must match a known GPU
+    const rawGpu = params.get('gpu') ?? '';
+    if (rawGpu && gpus.some((g) => g.id === rawGpu)) {
+      gpuId = rawGpu;
+
+      // Validate memory index — must be in range for this GPU
+      const rawMem = params.get('mem') ?? '';
+      if (rawMem !== '') {
+        const gpu = gpus.find((g) => g.id === gpuId);
+        const idx = Number(rawMem);
+        if (gpu?.vram_options && Number.isInteger(idx) && idx >= 0 && idx < gpu.vram_options.length) {
+          memIdx = rawMem;
+        }
+      }
+    }
+
+    // Validate manual VRAM — must be a positive number
+    const rawVram = params.get('vram') ?? '';
+    if (rawVram !== '') {
+      const val = parseFloat(rawVram);
+      if (!Number.isNaN(val) && val > 0 && val <= 1000) {
+        manualVram = rawVram;
+      }
+    }
+
+    // Validate context — must be a positive number
+    const rawCtx = params.get('ctx') ?? '';
+    if (rawCtx !== '') {
+      const val = Number(rawCtx);
+      if (!Number.isNaN(val) && val > 0) {
+        contextK = rawCtx;
+      }
+    }
+
+    // Validate speed — must be a positive number
+    const rawSpeed = params.get('speed') ?? '';
+    if (rawSpeed !== '') {
+      const val = Number(rawSpeed);
+      if (!Number.isNaN(val) && val > 0) {
+        speed = rawSpeed;
+      }
+    }
+
+    return { gpuId, memIdx, manualVram, contextK, speed };
+  }
+
   onMount(() => {
     const params = new URL(window.location.href).searchParams;
-    initialGpuId = params.get('gpu') ?? '';
-    initialMemIdx = params.get('mem') ?? '';
-    initialManualVram = params.get('vram') ?? '';
-    initialContextK = params.get('ctx') ?? '';
-    initialSpeed = params.get('speed') ?? '';
+    const validated = parseUrlParams(params);
+    initialGpuId = validated.gpuId;
+    initialMemIdx = validated.memIdx;
+    initialManualVram = validated.manualVram;
+    initialContextK = validated.contextK;
+    initialSpeed = validated.speed;
     ready = true;
   });
 
@@ -49,6 +105,18 @@
 
 <svelte:head>
   <meta name="description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://whatmodelscanirun.com" />
+  <meta property="og:title" content="What Models? — Pick the right model for your GPU in seconds" />
+  <meta property="og:description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
+  <meta property="og:site_name" content="What Models?" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="What Models? — Pick the right model for your GPU in seconds" />
+  <meta name="twitter:description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
 </svelte:head>
 
 <div class="page">
