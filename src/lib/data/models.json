@@ -31,7 +31,7 @@
     "kv_per_1k_gb": 0.107,
     "max_context_k": 128,
     "mmlu_score": 63.4,
-    "notes": "28 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF f16."
+    "notes": "28 layers, 8 KV heads, head_dim 128. Weights from bartowski GGUF fp16."
   },
   {
     "id": "llama-3.2-3b-q8",
@@ -61,11 +61,11 @@
     "name": "Llama 3.1 8B",
     "params_b": 8.03,
     "quantization": "fp16",
-    "weight_gb": 16.1,
+    "weight_gb": 16.05,
     "kv_per_1k_gb": 0.122,
     "max_context_k": 128,
     "mmlu_score": 69.4,
-    "notes": "32 layers, 8 KV heads, head_dim 128. Estimated from f32 (32.1 GB) / 2."
+    "notes": "32 layers, 8 KV heads, head_dim 128. Estimated from bartowski GGUF f32 (32.1 GB) / 2."
   },
   {
     "id": "llama-3.1-8b-q8",
@@ -267,7 +267,7 @@
     "name": "DeepSeek R1 Distill Qwen 14B",
     "params_b": 14.7,
     "quantization": "Q4_K_M",
-    "weight_gb": 9.13,
+    "weight_gb": 8.99,
     "kv_per_1k_gb": 0.183,
     "max_context_k": 128,
     "mmlu_score": 72.0,
@@ -290,7 +290,7 @@
     "name": "DeepSeek R1 Distill Qwen 32B",
     "params_b": 32.5,
     "quantization": "Q4_K_M",
-    "weight_gb": 19.90,
+    "weight_gb": 19.85,
     "kv_per_1k_gb": 0.244,
     "max_context_k": 128,
     "mmlu_score": 80.0,
