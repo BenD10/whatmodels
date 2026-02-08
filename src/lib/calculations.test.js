@@ -7,6 +7,7 @@ import {
   qualityTier,
   codingQualityTier,
   bucketModels,
+  groupVariants,
   INFERENCE_OVERHEAD_GB,
   TIGHT_FIT_CONTEXT_K,
   AGENTIC_MIN_CONTEXT_K,
@@ -424,6 +425,99 @@ describe('bucketModels', () => {
 
   it('uses AGENTIC_MIN_CONTEXT_K constant', () => {
     expect(AGENTIC_MIN_CONTEXT_K).toBe(64);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// groupVariants
+// ---------------------------------------------------------------------------
+
+describe('groupVariants', () => {
+  // Build enriched entries like bucketModels would produce
+  const makeEntry = (overrides) => ({
+    name: 'Test Model',
+    params_b: 8,
+    mmlu_score: 70,
+    swe_bench_score: null,
+    features: [],
+    tier: { label: 'Good', cls: 'tier-good' },
+    maxCtxK: 64,
+    tokPerSec: 50,
+    weight_gb: 5,
+    quantization: 'Q8_0',
+    ...overrides,
+  });
+
+  it('groups entries with the same name', () => {
+    const models = [
+      makeEntry({ quantization: 'Q8_0', weight_gb: 8.5, tokPerSec: 45 }),
+      makeEntry({ quantization: 'Q4_K_M', weight_gb: 4.9, tokPerSec: 62 }),
+    ];
+    const groups = groupVariants(models);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].name).toBe('Test Model');
+    expect(groups[0].variants).toHaveLength(2);
+  });
+
+  it('keeps different models as separate groups', () => {
+    const models = [
+      makeEntry({ name: 'Model A', quantization: 'Q8_0' }),
+      makeEntry({ name: 'Model B', quantization: 'Q8_0' }),
+    ];
+    const groups = groupVariants(models);
+    expect(groups).toHaveLength(2);
+    expect(groups[0].name).toBe('Model A');
+    expect(groups[1].name).toBe('Model B');
+  });
+
+  it('sorts variants within a group by weight_gb ascending', () => {
+    const models = [
+      makeEntry({ quantization: 'Q8_0', weight_gb: 8.5 }),
+      makeEntry({ quantization: 'fp16', weight_gb: 16.0 }),
+      makeEntry({ quantization: 'Q4_K_M', weight_gb: 4.9 }),
+    ];
+    const groups = groupVariants(models);
+    expect(groups[0].variants.map((v) => v.quantization)).toEqual(['Q4_K_M', 'Q8_0', 'fp16']);
+  });
+
+  it('preserves order of first appearance across groups', () => {
+    const models = [
+      makeEntry({ name: 'Better Model', mmlu_score: 85 }),
+      makeEntry({ name: 'Worse Model', mmlu_score: 60 }),
+      makeEntry({ name: 'Better Model', mmlu_score: 85, quantization: 'Q4_K_M', weight_gb: 3 }),
+    ];
+    const groups = groupVariants(models);
+    expect(groups[0].name).toBe('Better Model');
+    expect(groups[1].name).toBe('Worse Model');
+    expect(groups[0].variants).toHaveLength(2);
+  });
+
+  it('copies shared metadata from first entry', () => {
+    const models = [
+      makeEntry({ params_b: 14, mmlu_score: 79.9, swe_bench_score: 22.6, features: ['tool_use'] }),
+    ];
+    const groups = groupVariants(models);
+    expect(groups[0].params_b).toBe(14);
+    expect(groups[0].mmlu_score).toBe(79.9);
+    expect(groups[0].swe_bench_score).toBe(22.6);
+    expect(groups[0].features).toEqual(['tool_use']);
+  });
+
+  it('returns empty array for empty input', () => {
+    expect(groupVariants([])).toEqual([]);
+  });
+
+  it('handles single variant per model', () => {
+    const models = [makeEntry({ name: 'Solo Model' })];
+    const groups = groupVariants(models);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].variants).toHaveLength(1);
+  });
+
+  it('defaults swe_bench_score to null when undefined', () => {
+    const models = [makeEntry({ swe_bench_score: undefined })];
+    const groups = groupVariants(models);
+    expect(groups[0].swe_bench_score).toBeNull();
   });
 });
 

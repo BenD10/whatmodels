@@ -195,3 +195,45 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
 
   return { fits, tight, noFit };
 }
+
+/**
+ * Group an array of enriched model entries by base model name.
+ * Variants of the same model (different quantizations) are collapsed
+ * into a single group with shared metadata shown once.
+ *
+ * Preserves the order of first appearance (i.e. the sorted order from
+ * bucketModels). Variants within each group are sorted by weight_gb
+ * ascending (smallest / most quantized first).
+ *
+ * @param {Array} models  Enriched model entries (output of bucketModels bucket)
+ * @returns {Array<{ name: string, params_b: number, tier: object, mmlu_score: number, swe_bench_score: number|null, features: string[], variants: Array }>}
+ */
+export function groupVariants(models) {
+  const groups = [];
+  const seen = new Map();
+
+  for (const m of models) {
+    if (seen.has(m.name)) {
+      seen.get(m.name).variants.push(m);
+    } else {
+      const group = {
+        name: m.name,
+        params_b: m.params_b,
+        tier: m.tier,
+        mmlu_score: m.mmlu_score,
+        swe_bench_score: m.swe_bench_score ?? null,
+        features: m.features ?? [],
+        variants: [m],
+      };
+      groups.push(group);
+      seen.set(m.name, group);
+    }
+  }
+
+  // Sort variants within each group by weight ascending (smallest quant first)
+  for (const g of groups) {
+    g.variants.sort((a, b) => a.weight_gb - b.weight_gb);
+  }
+
+  return groups;
+}

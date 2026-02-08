@@ -1,6 +1,6 @@
 <script>
   import allModels from '$lib/data/models.json';
-  import { contextLabel, tokLabel, bucketModels } from '$lib/calculations.js';
+  import { contextLabel, tokLabel, bucketModels, groupVariants } from '$lib/calculations.js';
 
   let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], agenticCoding = false } = $props();
 
@@ -10,6 +10,10 @@
     if (vram == null) return null;
     return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures, agenticCoding);
   });
+
+  let groupedFits = $derived(results ? groupVariants(results.fits) : []);
+  let groupedTight = $derived(results ? groupVariants(results.tight) : []);
+  let groupedNoFit = $derived(results ? groupVariants(results.noFit) : []);
 
   let totalFit = $derived(results ? results.fits.length + results.tight.length : 0);
 
@@ -33,6 +37,25 @@
     copyTimeout = setTimeout(() => (copyState = 'idle'), 2000);
   }
 </script>
+
+{#snippet modelHeader(g)}
+  <div class="model-row">
+    <div class="model-info">
+      <span class="model-name">{g.name}</span>
+      <span class="badge params">{g.params_b}B</span>
+      <span class="badge quality {g.tier.cls}">{g.tier.label}</span>
+      {#each g.features as feat}
+        <span class="badge feature feature-{feat}">{FEATURE_LABELS[feat] ?? feat}</span>
+      {/each}
+    </div>
+    <div class="model-stats">
+      <span class="stat quality-stat">
+        <span class="stat-label">{benchmarkName}</span>
+        <span class="stat-value">{agenticCoding ? (g.swe_bench_score != null ? g.swe_bench_score : 'N/A') : g.mmlu_score}</span>
+      </span>
+    </div>
+  </div>
+{/snippet}
 
 {#if results == null}
   <section class="empty">
@@ -68,126 +91,96 @@
       </button>
     </div>
 
-    {#if results.fits.length > 0}
+    {#if groupedFits.length > 0}
       <div class="group fits">
         <h3>Runs well</h3>
         <ul>
-          {#each results.fits as m}
+          {#each groupedFits as g}
             <li>
-              <div class="model-row">
-                <div class="model-info">
-                  <span class="model-name">{m.name}</span>
-                  <span class="badge quant">{m.quantization}</span>
-                  <span class="badge params">{m.params_b}B</span>
-                  <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
-                  {#each m.features ?? [] as feat}
-                    <span class="badge feature feature-{feat}">{FEATURE_LABELS[feat] ?? feat}</span>
-                  {/each}
-                </div>
-                <div class="model-stats">
-                  <span class="stat quality-stat">
-                    <span class="stat-label">{benchmarkName}</span>
-                    <span class="stat-value">{agenticCoding ? (m.swe_bench_score != null ? m.swe_bench_score : 'N/A') : m.mmlu_score}</span>
-                  </span>
-                  <span class="stat context">
-                    <span class="stat-label">Max context</span>
-                    <span class="stat-value">{contextLabel(m.maxCtxK)}</span>
-                  </span>
-                  {#if m.tokPerSec != null}
-                    <span class="stat speed">
-                      <span class="stat-label">Est. speed</span>
-                      <span class="stat-value">{tokLabel(m.tokPerSec)}</span>
-                    </span>
-                  {/if}
-                </div>
+              {@render modelHeader(g)}
+              <div class="variants">
+                {#each g.variants as v}
+                  <div class="variant-row">
+                    <span class="badge quant">{v.quantization}</span>
+                    <div class="variant-stats">
+                      <span class="stat context">
+                        <span class="stat-label">Context</span>
+                        <span class="stat-value">{contextLabel(v.maxCtxK)}</span>
+                      </span>
+                      {#if v.tokPerSec != null}
+                        <span class="stat speed">
+                          <span class="stat-label">Speed</span>
+                          <span class="stat-value">{tokLabel(v.tokPerSec)}</span>
+                        </span>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
               </div>
-              {#if m.notes}<p class="notes">{m.notes}</p>{/if}
             </li>
           {/each}
         </ul>
       </div>
     {/if}
 
-    {#if results.tight.length > 0}
+    {#if groupedTight.length > 0}
       <div class="group tight">
         <h3>Tight fit</h3>
         <ul>
-          {#each results.tight as m}
+          {#each groupedTight as g}
             <li>
-              <div class="model-row">
-                <div class="model-info">
-                  <span class="model-name">{m.name}</span>
-                  <span class="badge quant">{m.quantization}</span>
-                  <span class="badge params">{m.params_b}B</span>
-                  <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
-                  {#each m.features ?? [] as feat}
-                    <span class="badge feature feature-{feat}">{FEATURE_LABELS[feat] ?? feat}</span>
-                  {/each}
-                </div>
-                <div class="model-stats">
-                  <span class="stat quality-stat">
-                    <span class="stat-label">{benchmarkName}</span>
-                    <span class="stat-value">{agenticCoding ? (m.swe_bench_score != null ? m.swe_bench_score : 'N/A') : m.mmlu_score}</span>
-                  </span>
-                  <span class="stat context">
-                    <span class="stat-label">Max context</span>
-                    <span class="stat-value">{m.maxCtxK > 0 ? contextLabel(m.maxCtxK) : '—'}</span>
-                  </span>
-                  {#if m.tokPerSec != null}
-                    <span class="stat speed">
-                      <span class="stat-label">Est. speed</span>
-                      <span class="stat-value">{tokLabel(m.tokPerSec)}</span>
-                    </span>
+              {@render modelHeader(g)}
+              <div class="variants">
+                {#each g.variants as v}
+                  <div class="variant-row">
+                    <span class="badge quant">{v.quantization}</span>
+                    <div class="variant-stats">
+                      <span class="stat context">
+                        <span class="stat-label">Context</span>
+                        <span class="stat-value">{v.maxCtxK > 0 ? contextLabel(v.maxCtxK) : '—'}</span>
+                      </span>
+                      {#if v.tokPerSec != null}
+                        <span class="stat speed">
+                          <span class="stat-label">Speed</span>
+                          <span class="stat-value">{tokLabel(v.tokPerSec)}</span>
+                        </span>
+                      {/if}
+                    </div>
+                  </div>
+                  {#if !v.meetsMinCtx && v.fitsAtAll}
+                    <p class="reason variant-reason">Only {contextLabel(v.maxCtxK)} context — below your {contextLabel(minContextK)} minimum</p>
+                  {:else if v.maxCtxK < 4}
+                    <p class="reason variant-reason">Very limited context window ({contextLabel(v.maxCtxK)})</p>
                   {/if}
-                </div>
+                  {#if !v.meetsMinSpeed && v.tokPerSec != null}
+                    <p class="reason variant-reason">~{v.tokPerSec} tok/s — below your {minTokPerSec} tok/s minimum</p>
+                  {/if}
+                  {#if !v.meetsFeatures}
+                    <p class="reason variant-reason">Missing features: {requiredFeatures.filter((f) => !(v.features ?? []).includes(f)).map((f) => FEATURE_LABELS[f] ?? f).join(', ')}</p>
+                  {/if}
+                {/each}
               </div>
-              {#if !m.meetsMinCtx && m.fitsAtAll}
-                <p class="reason">Only {contextLabel(m.maxCtxK)} context — below your {contextLabel(minContextK)} minimum</p>
-              {:else if m.maxCtxK < 4}
-                <p class="reason">Very limited context window ({contextLabel(m.maxCtxK)})</p>
-              {/if}
-              {#if !m.meetsMinSpeed && m.tokPerSec != null}
-                <p class="reason">~{m.tokPerSec} tok/s — below your {minTokPerSec} tok/s minimum</p>
-              {/if}
-              {#if !m.meetsFeatures}
-                <p class="reason">Missing features: {requiredFeatures.filter((f) => !(m.features ?? []).includes(f)).map((f) => FEATURE_LABELS[f] ?? f).join(', ')}</p>
-              {/if}
-              {#if m.notes}<p class="notes">{m.notes}</p>{/if}
             </li>
           {/each}
         </ul>
       </div>
     {/if}
 
-    {#if results.noFit.length > 0}
+    {#if groupedNoFit.length > 0}
       <div class="group no-fit">
         <h3>Doesn't fit</h3>
         <ul>
-          {#each results.noFit as m}
+          {#each groupedNoFit as g}
             <li>
-              <div class="model-row">
-                <div class="model-info">
-                  <span class="model-name">{m.name}</span>
-                  <span class="badge quant">{m.quantization}</span>
-                  <span class="badge params">{m.params_b}B</span>
-                  <span class="badge quality {m.tier.cls}">{m.tier.label}</span>
-                  {#each m.features ?? [] as feat}
-                    <span class="badge feature feature-{feat}">{FEATURE_LABELS[feat] ?? feat}</span>
-                  {/each}
-                </div>
-                <div class="model-stats">
-                  <span class="stat quality-stat">
-                    <span class="stat-label">{benchmarkName}</span>
-                    <span class="stat-value">{agenticCoding ? (m.swe_bench_score != null ? m.swe_bench_score : 'N/A') : m.mmlu_score}</span>
-                  </span>
-                  <span class="stat context">
-                    <span class="stat-label">Need</span>
-                    <span class="stat-value">{(m.weight_gb + m.kv_per_1k_gb).toFixed(1)} GB+</span>
-                  </span>
-                </div>
+              {@render modelHeader(g)}
+              <div class="variants">
+                {#each g.variants as v}
+                  <div class="variant-row">
+                    <span class="badge quant">{v.quantization}</span>
+                    <span class="variant-need">Needs {(v.weight_gb + v.kv_per_1k_gb).toFixed(1)} GB — {(v.weight_gb + v.kv_per_1k_gb - vram).toFixed(1)} GB over</span>
+                  </div>
+                {/each}
               </div>
-              <p class="reason">Needs at least {(m.weight_gb + m.kv_per_1k_gb).toFixed(1)} GB — {(m.weight_gb + m.kv_per_1k_gb - vram).toFixed(1)} GB over budget</p>
-              {#if m.notes}<p class="notes">{m.notes}</p>{/if}
             </li>
           {/each}
         </ul>
@@ -507,6 +500,36 @@
     color: #ffb74d;
   }
 
+  /* Variant rows */
+  .variants {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: 0.45rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .variant-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.2rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.82rem;
+  }
+
+  .variant-stats {
+    display: flex;
+    gap: 1rem;
+    margin-left: auto;
+  }
+
+  .variant-need {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
   .reason {
     margin-top: 0.3rem;
     font-size: 0.8rem;
@@ -514,11 +537,11 @@
     color: var(--text-muted);
   }
 
-  .notes {
-    margin-top: 0.2rem;
+  .reason.variant-reason {
+    margin-top: 0;
+    margin-bottom: 0.15rem;
+    padding-left: 1.85rem; /* indent past the quant badge */
     font-size: 0.75rem;
-    color: var(--text-muted);
-    opacity: 0.7;
   }
 
   @media (max-width: 600px) {
@@ -543,6 +566,14 @@
 
     li {
       padding: 0.55rem 0.65rem;
+    }
+
+    .variant-stats {
+      margin-left: 0;
+    }
+
+    .reason.variant-reason {
+      padding-left: 0;
     }
   }
 </style>
