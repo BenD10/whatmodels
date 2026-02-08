@@ -8,7 +8,7 @@
 <div class="shell">
   <header>
     <div class="brand">
-      <img src="{base}/logo.png" alt="" class="logo" />
+      <img src="{base}/logo.png" alt="What Models? logo" class="logo" />
       <div>
         <h1>
           <span class="what">What</span>
@@ -50,9 +50,10 @@
   }
 
   .logo {
-    width: 64px;
-    height: 64px;
+    width: 96px;
+    height: 96px;
     object-fit: contain;
+    border-radius: 12px;
     filter: drop-shadow(0 0 14px rgba(107, 138, 255, 0.45));
   }
 
@@ -110,8 +111,8 @@
     }
 
     .logo {
-      width: 48px;
-      height: 48px;
+      width: 72px;
+      height: 72px;
     }
 
     h1 {
