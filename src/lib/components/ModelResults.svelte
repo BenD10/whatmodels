@@ -12,6 +12,20 @@
   let totalFit = $derived(results ? results.fits.length + results.tight.length : 0);
 
   const mmluExplainer = 'MMLU (Massive Multitask Language Understanding) measures general knowledge across 57 subjects. Higher = more capable. Sorted best-first.';
+
+  let copyState = $state('idle'); // 'idle' | 'copied' | 'error'
+  let copyTimeout;
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      copyState = 'copied';
+    } catch {
+      copyState = 'error';
+    }
+    clearTimeout(copyTimeout);
+    copyTimeout = setTimeout(() => (copyState = 'idle'), 2000);
+  }
 </script>
 
 {#if results == null}
@@ -27,13 +41,26 @@
       {#if minTokPerSec != null} at <strong>{minTokPerSec}+ tok/s</strong>{/if}
       — sorted by quality
     </p>
-    <p class="mmlu-note">
-      Ranked by <strong>MMLU</strong> benchmark
-      <span class="tooltip-wrap" tabindex="0" role="button" aria-label="What is MMLU?">
-        <span class="info-icon">?</span>
-        <span class="tooltip">{mmluExplainer}</span>
-      </span>
-    </p>
+    <div class="results-meta">
+      <p class="mmlu-note">
+        Ranked by <strong>MMLU</strong> benchmark
+        <span class="tooltip-wrap" tabindex="0" role="button" aria-label="What is MMLU?">
+          <span class="info-icon">?</span>
+          <span class="tooltip">{mmluExplainer}</span>
+        </span>
+      </p>
+      <button class="copy-btn" onclick={copyLink} aria-label="Copy link to clipboard">
+        {#if copyState === 'copied'}
+          <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          Copied
+        {:else if copyState === 'error'}
+          Failed
+        {:else}
+          <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Copy link
+        {/if}
+      </button>
+    </div>
 
     {#if results.fits.length > 0}
       <div class="group fits">
@@ -177,6 +204,14 @@
     color: var(--text);
   }
 
+  .results-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
   .mmlu-note {
     font-size: 0.8rem;
     color: var(--text-muted);
@@ -187,6 +222,34 @@
 
   .mmlu-note strong {
     color: var(--text);
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .copy-btn:hover {
+    color: var(--text);
+    border-color: var(--accent);
+    background: var(--surface-hover);
+  }
+
+  .copy-icon {
+    width: 0.9rem;
+    height: 0.9rem;
   }
 
   .tooltip-wrap {

@@ -117,6 +117,21 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="What Models? — Pick the right model for your GPU in seconds" />
   <meta name="twitter:description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
+
+  <!-- Structured Data -->
+  {@html `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "What Models?",
+    "url": "https://whatmodelscanirun.com",
+    "description": "Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "name": "BenD10", "url": "https://github.com/BenD10" },
+    "browserRequirements": "Requires JavaScript",
+    "softwareHelp": { "@type": "WebPage", "url": "https://github.com/BenD10/whatmodels" }
+  })}</script>`}
 </svelte:head>
 
 <div class="page">
