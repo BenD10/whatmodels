@@ -423,6 +423,32 @@ describe('bucketModels', () => {
     expect(result.fits[0].tier).toEqual({ label: 'Great', cls: 'tier-great' });
   });
 
+  it('puts model in noFit when max_context_k < agentic minimum', () => {
+    // Model with max_context_k = 32 can never reach 64K regardless of VRAM
+    const lowCtxModel = { ...mediumModel, id: 'low-ctx', max_context_k: 32 };
+    const result = bucketModels([lowCtxModel], 200, 1000, null, null, [], true);
+    expect(result.noFit).toHaveLength(1);
+    expect(result.noFit[0].id).toBe('low-ctx');
+    expect(result.fits).toHaveLength(0);
+    expect(result.tight).toHaveLength(0);
+  });
+
+  it('puts model in noFit when max_context_k < user minContextK', () => {
+    // Model max_context_k = 32 can never reach user's requested 64K (even without agentic mode)
+    const lowCtxModel = { ...mediumModel, id: 'low-ctx', max_context_k: 32 };
+    const result = bucketModels([lowCtxModel], 200, 1000, 64, null, []);
+    expect(result.noFit).toHaveLength(1);
+    expect(result.noFit[0].id).toBe('low-ctx');
+  });
+
+  it('keeps model in tight when it supports context but VRAM is insufficient', () => {
+    // Model's max_context_k = 128 (supports 64K), but only 60K fits due to VRAM
+    // 24 GB VRAM, medium model: (24 - 8.99) / 0.25 = 60K context → tight (not noFit)
+    const result = bucketModels([mediumModel], 24, 500, null, null, [], true);
+    expect(result.tight).toHaveLength(1);
+    expect(result.noFit).toHaveLength(0);
+  });
+
   it('uses AGENTIC_MIN_CONTEXT_K constant', () => {
     expect(AGENTIC_MIN_CONTEXT_K).toBe(64);
   });

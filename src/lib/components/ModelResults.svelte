@@ -1,8 +1,10 @@
 <script>
   import allModels from '$lib/data/models.json';
-  import { contextLabel, tokLabel, bucketModels, groupVariants } from '$lib/calculations.js';
+  import { contextLabel, tokLabel, bucketModels, groupVariants, AGENTIC_MIN_CONTEXT_K } from '$lib/calculations.js';
 
   let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], agenticCoding = false } = $props();
+
+  let effectiveMinCtx = $derived(agenticCoding ? Math.max(minContextK ?? 0, AGENTIC_MIN_CONTEXT_K) : minContextK);
 
   const FEATURE_LABELS = { vision: 'Vision', reasoning: 'Reasoning', tool_use: 'Tool use' };
 
@@ -177,7 +179,11 @@
                 {#each g.variants as v}
                   <div class="variant-row">
                     <span class="badge quant">{v.quantization}</span>
-                    <span class="variant-need">Needs {(v.weight_gb + v.kv_per_1k_gb).toFixed(1)} GB — {(v.weight_gb + v.kv_per_1k_gb - vram).toFixed(1)} GB over</span>
+                    {#if !v.fitsAtAll}
+                      <span class="variant-need">Needs {(v.weight_gb + v.kv_per_1k_gb).toFixed(1)} GB — {(v.weight_gb + v.kv_per_1k_gb - vram).toFixed(1)} GB over</span>
+                    {:else if !v.modelSupportsCtx}
+                      <span class="variant-need">Max context {contextLabel(v.max_context_k)} — needs {contextLabel(effectiveMinCtx)}</span>
+                    {/if}
                   </div>
                 {/each}
               </div>

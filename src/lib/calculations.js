@@ -151,6 +151,8 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     const totalAtMinCtx = m.weight_gb + m.kv_per_1k_gb; // 1K min context
     const fitsAtAll = vram >= totalAtMinCtx;
     const meetsMinCtx = effectiveMinCtx != null ? maxCtxK >= effectiveMinCtx : true;
+    // Model architecturally can't support the required context (regardless of VRAM)
+    const modelSupportsCtx = effectiveMinCtx != null ? m.max_context_k >= effectiveMinCtx : true;
     const tokPerSec = calcTokPerSec(m, bandwidth);
     const meetsMinSpeed = minTokPerSec != null && tokPerSec != null ? tokPerSec >= minTokPerSec : true;
     const modelFeatures = m.features ?? [];
@@ -160,7 +162,7 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     const tier = agenticCoding
       ? codingQualityTier(m.swe_bench_score ?? null)
       : qualityTier(m.mmlu_score);
-    return { ...m, maxCtxK, fitsAtAll, meetsMinCtx, meetsMinSpeed, meetsFeatures, tokPerSec, tier };
+    return { ...m, maxCtxK, fitsAtAll, meetsMinCtx, meetsMinSpeed, meetsFeatures, modelSupportsCtx, tokPerSec, tier };
   });
 
   const fits = [];
@@ -168,7 +170,9 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
   const noFit = [];
 
   for (const e of entries) {
-    if (!e.fitsAtAll) {
+    if (!e.fitsAtAll || !e.modelSupportsCtx) {
+      // Model doesn't fit in VRAM, or its architecture can't support the
+      // required context length (e.g. a 32K model when 64K is needed)
       noFit.push(e);
     } else if (!e.meetsMinCtx || !e.meetsMinSpeed || !e.meetsFeatures) {
       tight.push(e);
