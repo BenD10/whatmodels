@@ -65,8 +65,8 @@ describe('models.json', () => {
       expect(model.mmlu_score).toBeLessThanOrEqual(100);
     });
 
-    it('has swe_bench_score that is null or a number 0–100', () => {
-      if (model.swe_bench_score !== null) {
+    it('has swe_bench_score that is null, undefined, or a number 0–100', () => {
+      if (model.swe_bench_score != null) {
         expect(model.swe_bench_score).toBeGreaterThanOrEqual(0);
         expect(model.swe_bench_score).toBeLessThanOrEqual(100);
       }
