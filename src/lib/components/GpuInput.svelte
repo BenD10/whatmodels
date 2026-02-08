@@ -48,9 +48,9 @@
 
   let selectedGpuId = $state(initialGpuId);
   let manualVram = $state(initialManualVram);
-  let contextSelection = $state(initialContextK);
-  let speedSelection = $state(initialSpeed);
-  let selectedMemoryIdx = $state(initialMemIdx);
+  let contextSelection = $state(initialContextK !== '' ? Number(initialContextK) : '');
+  let speedSelection = $state(initialSpeed !== '' ? Number(initialSpeed) : '');
+  let selectedMemoryIdx = $state(initialMemIdx !== '' ? Number(initialMemIdx) : '');
 
   // Derived: does the selected GPU have configurable memory?
   let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
