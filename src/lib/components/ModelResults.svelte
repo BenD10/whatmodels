@@ -1,16 +1,21 @@
 <script>
   import allModels from '$lib/data/models.json';
-  import { contextLabel, tokLabel, bucketModels, groupVariants, AGENTIC_MIN_CONTEXT_K } from '$lib/calculations.js';
+  import { contextLabel, tokLabel, bucketModels, groupVariants } from '$lib/calculations.js';
+  import { trackFilterChanged } from '$lib/analytics.js';
 
-  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], agenticCoding = false } = $props();
+  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], sortBy = $bindable('mmlu'), onsortchange = () => {} } = $props();
 
-  let effectiveMinCtx = $derived(agenticCoding ? Math.max(minContextK ?? 0, AGENTIC_MIN_CONTEXT_K) : minContextK);
+  function onSortByChange(e) {
+    sortBy = e.target.value;
+    trackFilterChanged('sort_by', sortBy);
+    onsortchange(sortBy);
+  }
 
   const FEATURE_LABELS = { vision: 'Vision', reasoning: 'Reasoning', tool_use: 'Tool use' };
 
   let results = $derived.by(() => {
     if (vram == null) return null;
-    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures, agenticCoding);
+    return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures, sortBy);
   });
 
   let groupedFits = $derived(results ? groupVariants(results.fits) : []);
@@ -22,8 +27,8 @@
   const mmluExplainer = 'MMLU (Massive Multitask Language Understanding) measures general knowledge across 57 subjects. Higher = more capable. Sorted best-first.';
   const sweBenchExplainer = 'SWE-bench Verified measures a model\'s ability to resolve real-world GitHub issues. Higher = better at coding tasks. Sorted best-first.';
 
-  let benchmarkName = $derived(agenticCoding ? 'SWE-bench' : 'MMLU');
-  let benchmarkExplainer = $derived(agenticCoding ? sweBenchExplainer : mmluExplainer);
+  let benchmarkName = $derived(sortBy === 'swe-bench' ? 'SWE-Bench' : 'MMLU');
+  let benchmarkExplainer = $derived(sortBy === 'swe-bench' ? sweBenchExplainer : mmluExplainer);
 
   let copyState = $state('idle'); // 'idle' | 'copied' | 'error'
   let copyTimeout;
@@ -53,7 +58,7 @@
     <div class="model-stats">
       <span class="stat quality-stat">
         <span class="stat-label">{benchmarkName}</span>
-        <span class="stat-value">{agenticCoding ? (g.swe_bench_score != null ? g.swe_bench_score : 'N/A') : g.mmlu_score}</span>
+        <span class="stat-value">{sortBy === 'swe-bench' ? (g.swe_bench_score != null ? g.swe_bench_score : 'N/A') : g.mmlu_score}</span>
       </span>
     </div>
   </div>
@@ -73,13 +78,17 @@
       — sorted by quality
     </p>
     <div class="results-meta">
-      <p class="mmlu-note">
-        Ranked by <strong>{benchmarkName}</strong> benchmark
+      <div class="sort-control">
+        <label for="sort-select">Ranked by</label>
+        <select id="sort-select" value={sortBy} onchange={onSortByChange}>
+          <option value="mmlu">MMLU</option>
+          <option value="swe-bench">SWE-Bench</option>
+        </select>
         <span class="tooltip-wrap" tabindex="0" role="button" aria-label="What is {benchmarkName}?">
           <span class="info-icon">?</span>
           <span class="tooltip">{benchmarkExplainer}</span>
         </span>
-      </p>
+      </div>
       <button class="copy-btn" onclick={copyLink} aria-label="Copy link to clipboard">
         {#if copyState === 'copied'}
           <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -182,7 +191,7 @@
                     {#if !v.fitsAtAll}
                       <span class="variant-need">Needs {(v.weight_gb + v.kv_per_1k_gb).toFixed(1)} GB — {(v.weight_gb + v.kv_per_1k_gb - vram).toFixed(1)} GB over</span>
                     {:else if !v.modelSupportsCtx}
-                      <span class="variant-need">Max context {contextLabel(v.max_context_k)} — needs {contextLabel(effectiveMinCtx)}</span>
+                      <span class="variant-need">Max context {contextLabel(v.max_context_k)} — needs {contextLabel(minContextK)}</span>
                     {/if}
                   </div>
                 {/each}
@@ -229,16 +238,38 @@
     flex-wrap: wrap;
   }
 
-  .mmlu-note {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+  .sort-control {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
   }
 
-  .mmlu-note strong {
+  .sort-control label {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .sort-control select {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
     color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .sort-control select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .sort-control select:hover {
+    border-color: var(--accent);
   }
 
   .copy-btn {

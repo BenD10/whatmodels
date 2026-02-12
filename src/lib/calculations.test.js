@@ -10,7 +10,6 @@ import {
   groupVariants,
   INFERENCE_OVERHEAD_GB,
   TIGHT_FIT_CONTEXT_K,
-  AGENTIC_MIN_CONTEXT_K,
 } from './calculations.js';
 
 // ---------------------------------------------------------------------------
@@ -369,88 +368,60 @@ describe('bucketModels', () => {
     expect(result.fits[0].meetsFeatures).toBe(true);
   });
 
-  // Agentic coding mode tests
+  // sortBy benchmark tests
 
-  it('enforces 64K minimum context in agentic mode', () => {
-    // 24 GB VRAM, medium model: (24 - 8.99) / 0.25 = 60K context
-    // In agentic mode, 60K < 64K minimum → tight
-    const result = bucketModels([mediumModel], 24, 500, null, null, [], true);
-    expect(result.fits).toHaveLength(0);
-    expect(result.tight).toHaveLength(1);
-  });
-
-  it('allows models meeting 64K in agentic mode', () => {
-    // 26 GB VRAM, medium model: (26 - 8.99) / 0.25 = 68K context → passes 64K
-    const result = bucketModels([mediumModel], 26, 500, null, null, [], true);
-    expect(result.fits).toHaveLength(1);
-  });
-
-  it('uses max(userMinCtx, 64K) in agentic mode', () => {
-    // User sets minContextK = 128, agentic mode → effective min = 128K (higher than 64K)
-    // 26 GB VRAM, medium model: 68K context < 128K → tight
-    const result = bucketModels([mediumModel], 26, 500, 128, null, [], true);
-    expect(result.fits).toHaveLength(0);
-    expect(result.tight).toHaveLength(1);
-  });
-
-  it('sorts by swe_bench_score in agentic mode', () => {
+  it('sorts by swe_bench_score when sortBy is swe-bench', () => {
     // All models fit at 200 GB, should be sorted by swe_bench_score descending
-    const result = bucketModels([smallModel, mediumModel, largeModel], 200, 1000, null, null, [], true);
+    const result = bucketModels([smallModel, mediumModel, largeModel], 200, 1000, null, null, [], 'swe-bench');
     // largeModel: 33.4, mediumModel: 22.6, smallModel: null → null at bottom
     expect(result.fits[0].id).toBe('test-large');
     expect(result.fits[1].id).toBe('test-medium');
     expect(result.fits[2].id).toBe('test-small'); // null score → bottom
   });
 
-  it('puts null swe_bench_score models at bottom in agentic mode', () => {
+  it('puts null swe_bench_score models at bottom when sortBy is swe-bench', () => {
     const modelWithScore = { ...smallModel, id: 'has-score', swe_bench_score: 5.0, mmlu_score: 30 };
     const modelWithoutScore = { ...smallModel, id: 'no-score', swe_bench_score: null, mmlu_score: 90 };
-    const result = bucketModels([modelWithoutScore, modelWithScore], 200, 1000, null, null, [], true);
-    // Despite lower MMLU, has-score should be above no-score in agentic mode
+    const result = bucketModels([modelWithoutScore, modelWithScore], 200, 1000, null, null, [], 'swe-bench');
+    // Despite lower MMLU, has-score should be above no-score when sorting by SWE-bench
     expect(result.fits[0].id).toBe('has-score');
     expect(result.fits[1].id).toBe('no-score');
   });
 
-  it('uses codingQualityTier in agentic mode', () => {
-    const result = bucketModels([mediumModel], 200, 1000, null, null, [], true);
+  it('uses codingQualityTier when sortBy is swe-bench', () => {
+    const result = bucketModels([mediumModel], 200, 1000, null, null, [], 'swe-bench');
     // mediumModel has swe_bench_score = 22.6 → Great tier (>= 22)
     expect(result.fits[0].tier).toEqual({ label: 'Great', cls: 'tier-great' });
   });
 
-  it('uses qualityTier (MMLU) when not in agentic mode', () => {
-    const result = bucketModels([mediumModel], 200, 1000, null, null, [], false);
+  it('uses qualityTier (MMLU) when sortBy is mmlu', () => {
+    const result = bucketModels([mediumModel], 200, 1000, null, null, [], 'mmlu');
     // mediumModel has mmlu_score = 79.9 → Great tier (>= 75)
     expect(result.fits[0].tier).toEqual({ label: 'Great', cls: 'tier-great' });
   });
 
-  it('puts model in noFit when max_context_k < agentic minimum', () => {
-    // Model with max_context_k = 32 can never reach 64K regardless of VRAM
-    const lowCtxModel = { ...mediumModel, id: 'low-ctx', max_context_k: 32 };
-    const result = bucketModels([lowCtxModel], 200, 1000, null, null, [], true);
-    expect(result.noFit).toHaveLength(1);
-    expect(result.noFit[0].id).toBe('low-ctx');
-    expect(result.fits).toHaveLength(0);
+  it('defaults to MMLU sorting when sortBy is omitted', () => {
+    const result = bucketModels([smallModel, mediumModel, largeModel], 200, 1000, null, null);
+    // Should sort by mmlu_score: largeModel 86.1, mediumModel 79.9, smallModel 49.3
+    expect(result.fits[0].id).toBe('test-large');
+    expect(result.fits[1].id).toBe('test-medium');
+    expect(result.fits[2].id).toBe('test-small');
+  });
+
+  it('does not enforce 64K minimum context when sortBy is swe-bench', () => {
+    // 24 GB VRAM, medium model: (24 - 8.99) / 0.25 = 60K context
+    // Without agentic mode, no 64K enforcement → model fits (60K > 4K tight threshold)
+    const result = bucketModels([mediumModel], 24, 500, null, null, [], 'swe-bench');
+    expect(result.fits).toHaveLength(1);
     expect(result.tight).toHaveLength(0);
   });
 
   it('puts model in noFit when max_context_k < user minContextK', () => {
-    // Model max_context_k = 32 can never reach user's requested 64K (even without agentic mode)
+    // Model max_context_k = 32 can never reach user's requested 64K
     const lowCtxModel = { ...mediumModel, id: 'low-ctx', max_context_k: 32 };
     const result = bucketModels([lowCtxModel], 200, 1000, 64, null, []);
     expect(result.noFit).toHaveLength(1);
     expect(result.noFit[0].id).toBe('low-ctx');
-  });
-
-  it('keeps model in tight when it supports context but VRAM is insufficient', () => {
-    // Model's max_context_k = 128 (supports 64K), but only 60K fits due to VRAM
-    // 24 GB VRAM, medium model: (24 - 8.99) / 0.25 = 60K context → tight (not noFit)
-    const result = bucketModels([mediumModel], 24, 500, null, null, [], true);
-    expect(result.tight).toHaveLength(1);
-    expect(result.noFit).toHaveLength(0);
-  });
-
-  it('uses AGENTIC_MIN_CONTEXT_K constant', () => {
-    expect(AGENTIC_MIN_CONTEXT_K).toBe(64);
   });
 });
 

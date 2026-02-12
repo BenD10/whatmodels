@@ -19,13 +19,6 @@ export const INFERENCE_OVERHEAD_GB = 1.0;
 export const TIGHT_FIT_CONTEXT_K = 4;
 
 /**
- * Minimum context (in K tokens) enforced when agentic coding mode is active.
- * Agentic coding tools (Roo Code, Cline, etc.) need large context windows
- * to send file contents, tool results, and conversation history.
- */
-export const AGENTIC_MIN_CONTEXT_K = 64;
-
-/**
  * For a given model and user VRAM, calculate the max context (in K tokens)
  * that fits. Capped at the model's trained max_context_k.
  *
@@ -123,10 +116,9 @@ function compareScores(a, b) {
  * Bucket a list of models into "fits", "tight", and "noFit" categories
  * based on available VRAM and optional minimum-context / minimum-speed /
  * required-features filters.
- * Results are sorted by MMLU score (descending), with context/weight as tiebreakers.
+ * Results are sorted by the selected benchmark (descending), with context/weight as tiebreakers.
  *
- * When agenticCoding is true:
- * - Minimum context is raised to at least 64K (AGENTIC_MIN_CONTEXT_K)
+ * When sortBy is 'swe-bench':
  * - Models are sorted by swe_bench_score instead of mmlu_score
  * - Quality tier uses codingQualityTier() thresholds
  * - Models without swe_bench_score sort to the bottom
@@ -137,14 +129,11 @@ function compareScores(a, b) {
  * @param {number|null} minContextK  Minimum required context in K tokens (null = any)
  * @param {number|null} minTokPerSec Minimum required tok/s (null = any)
  * @param {string[]} requiredFeatures  Features the model must support (empty = any)
- * @param {boolean} agenticCoding  Enable agentic coding mode (default false)
+ * @param {string} sortBy  Benchmark to sort by: 'mmlu' (default) or 'swe-bench'
  * @returns {{ fits: Array, tight: Array, noFit: Array }}
  */
-export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures = [], agenticCoding = false) {
-  // In agentic mode, enforce a minimum 64K context
-  const effectiveMinCtx = agenticCoding
-    ? Math.max(minContextK ?? 0, AGENTIC_MIN_CONTEXT_K)
-    : minContextK;
+export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures = [], sortBy = 'mmlu') {
+  const effectiveMinCtx = minContextK;
 
   const entries = allModels.map((m) => {
     const maxCtxK = calcMaxContext(m, vram);
@@ -159,7 +148,7 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     const meetsFeatures = requiredFeatures.length > 0
       ? requiredFeatures.every((f) => modelFeatures.includes(f))
       : true;
-    const tier = agenticCoding
+    const tier = sortBy === 'swe-bench'
       ? codingQualityTier(m.swe_bench_score ?? null)
       : qualityTier(m.mmlu_score);
     return { ...m, maxCtxK, fitsAtAll, meetsMinCtx, meetsMinSpeed, meetsFeatures, modelSupportsCtx, tokPerSec, tier };
@@ -184,7 +173,7 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     }
   }
 
-  if (agenticCoding) {
+  if (sortBy === 'swe-bench') {
     // Sort by SWE-bench score (descending), null scores to bottom, context as tiebreaker
     const sortFn = (a, b) => compareScores(a.swe_bench_score, b.swe_bench_score) || b.maxCtxK - a.maxCtxK;
     fits.sort(sortFn);

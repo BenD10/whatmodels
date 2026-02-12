@@ -64,10 +64,12 @@
       features = rawFeat.split(',').filter((f) => validFeatures.includes(f));
     }
 
-    // Validate agentic coding flag — must be "1"
-    const agentic = params.get('agentic') === '1';
+    // Validate sort benchmark — 'swe-bench' or default to 'mmlu'
+    // Also support legacy agentic=1 param for backward compatibility
+    const rawSort = params.get('sort') ?? '';
+    const sortBy = rawSort === 'swe-bench' || params.get('agentic') === '1' ? 'swe-bench' : 'mmlu';
 
-    return { gpuId, memIdx, manualVram, contextK, speed, features, agentic };
+    return { gpuId, memIdx, manualVram, contextK, speed, features, sortBy };
   }
 
   /** Derive initial vram/bandwidth from parsed URL params so results render immediately */
@@ -91,7 +93,7 @@
   // During SSR (static build) browser is false so we get safe defaults.
   const urlParams = browser
     ? parseUrlParams(new URL(window.location.href).searchParams)
-    : { gpuId: '', memIdx: '', manualVram: '', contextK: '', speed: '', features: [], agentic: false };
+    : { gpuId: '', memIdx: '', manualVram: '', contextK: '', speed: '', features: [], sortBy: 'mmlu' };
 
   const initialHw = computeInitialHardware(urlParams);
 
@@ -100,7 +102,7 @@
   let minContextK = $state(urlParams.contextK !== '' ? Number(urlParams.contextK) : null);
   let minTokPerSec = $state(urlParams.speed !== '' ? Number(urlParams.speed) : null);
   let requiredFeatures = $state(urlParams.features.length > 0 ? [...urlParams.features] : []);
-  let agenticCoding = $state(urlParams.agentic);
+  let sortBy = $state(urlParams.sortBy);
 
   // Initial values passed to GpuInput (constant after parse, no need for $state)
   const initialGpuId = urlParams.gpuId;
@@ -109,27 +111,39 @@
   const initialContextK = urlParams.contextK;
   const initialSpeed = urlParams.speed;
   const initialFeatures = urlParams.features;
-  const initialAgentic = urlParams.agentic;
+
+  function updateUrl(overrides = {}) {
+    if (!browser) return;
+    const url = new URL(window.location.href);
+    for (const key of Object.keys(overrides)) {
+      url.searchParams.delete(key);
+    }
+    for (const [key, val] of Object.entries(overrides)) {
+      if (val != null && val !== '') url.searchParams.set(key, val);
+    }
+    url.searchParams.delete('agentic'); // clean up legacy param
+    replaceState(url, {});
+  }
 
   function onStateChange(state) {
     if (!browser) return;
+    updateUrl({
+      gpu: state.gpuId || null,
+      mem: state.memIdx !== '' ? state.memIdx : null,
+      vram: state.manualVram || null,
+      ctx: state.contextK !== '' ? state.contextK : null,
+      speed: state.speed !== '' ? state.speed : null,
+      feat: state.features?.length > 0 ? state.features.join(',') : null,
+      sort: sortBy !== 'mmlu' ? sortBy : null,
+    });
+  }
+
+  function onSortChange() {
+    if (!browser) return;
     const url = new URL(window.location.href);
-    url.searchParams.delete('gpu');
-    url.searchParams.delete('mem');
-    url.searchParams.delete('vram');
-    url.searchParams.delete('ctx');
-    url.searchParams.delete('speed');
-    url.searchParams.delete('feat');
-    url.searchParams.delete('agentic');
-
-    if (state.gpuId) url.searchParams.set('gpu', state.gpuId);
-    if (state.memIdx !== '') url.searchParams.set('mem', state.memIdx);
-    if (state.manualVram) url.searchParams.set('vram', state.manualVram);
-    if (state.contextK !== '') url.searchParams.set('ctx', state.contextK);
-    if (state.speed !== '') url.searchParams.set('speed', state.speed);
-    if (state.features?.length > 0) url.searchParams.set('feat', state.features.join(','));
-    if (state.agentic) url.searchParams.set('agentic', '1');
-
+    url.searchParams.delete('sort');
+    url.searchParams.delete('agentic'); // clean up legacy param
+    if (sortBy !== 'mmlu') url.searchParams.set('sort', sortBy);
     replaceState(url, {});
   }
 </script>
@@ -172,20 +186,18 @@
     bind:minContextK
     bind:minTokPerSec
     bind:requiredFeatures
-    bind:agenticCoding
     {initialGpuId}
     {initialMemIdx}
     {initialManualVram}
     {initialContextK}
     {initialSpeed}
     {initialFeatures}
-    {initialAgentic}
     onstatechange={onStateChange}
   />
 
   <section class="results-section">
     <h2>Results</h2>
-    <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} {agenticCoding} />
+    <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} bind:sortBy onsortchange={onSortChange} />
   </section>
 </div>
 

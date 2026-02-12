@@ -46,14 +46,12 @@
     minContextK = $bindable(null),
     minTokPerSec = $bindable(null),
     requiredFeatures = $bindable([]),
-    agenticCoding = $bindable(false),
     initialGpuId = '',
     initialMemIdx = '',
     initialManualVram = '',
     initialContextK = '',
     initialSpeed = '',
     initialFeatures = [],
-    initialAgentic = false,
     onstatechange = () => {},
   } = $props();
 
@@ -63,7 +61,6 @@
   let speedSelection = $state(initialSpeed !== '' ? Number(initialSpeed) : '');
   let selectedMemoryIdx = $state(initialMemIdx !== '' ? Number(initialMemIdx) : '');
   let featureSelection = $state(initialFeatures.length > 0 ? [...initialFeatures] : []);
-  let agenticSelection = $state(initialAgentic);
 
   // Derived: does the selected GPU have configurable memory?
   let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
@@ -77,7 +74,6 @@
       contextK: contextSelection,
       speed: speedSelection,
       features: featureSelection,
-      agentic: agenticSelection,
     });
   }
 
@@ -150,12 +146,6 @@
     fireStateChange();
   }
 
-  function onAgenticChange() {
-    agenticCoding = agenticSelection;
-    trackFilterChanged('agentic_coding', agenticSelection);
-    fireStateChange();
-  }
-
   // Apply initial values on mount (from URL query params)
   onMount(() => {
     if (initialGpuId) {
@@ -190,9 +180,6 @@
     }
     if (initialFeatures.length > 0) {
       requiredFeatures = [...initialFeatures];
-    }
-    if (initialAgentic) {
-      agenticCoding = true;
     }
   });
 </script>
@@ -268,18 +255,11 @@
       />
     </div>
 
-    <div class="field agentic-field">
-      <label class="checkbox-label">
-        <input type="checkbox" bind:checked={agenticSelection} onchange={onAgenticChange} />
-        <span class="checkbox-text">Agentic coding</span>
-      </label>
-      <span class="filter-hint">For Roo Code, Cline, etc.</span>
-    </div>
   </div>
 
   <div class="effective">
     {#if vram != null}
-      Using <strong>{vram} GB</strong> VRAM{#if agenticSelection}, <strong>agentic coding</strong> mode (64K+ context, ranked by SWE-bench){/if}{#if minContextK != null && !agenticSelection}, need at least <strong>{minContextK}K</strong> context{/if}{#if minTokPerSec != null}, need at least <strong>{minTokPerSec} tok/s</strong>{/if}
+      Using <strong>{vram} GB</strong> VRAM{#if minContextK != null}, need at least <strong>{minContextK}K</strong> context{/if}{#if minTokPerSec != null}, need at least <strong>{minTokPerSec} tok/s</strong>{/if}
     {:else}
       <span class="muted">Pick a GPU or enter VRAM to get started</span>
     {/if}
@@ -373,67 +353,6 @@
     color: var(--text-muted);
   }
 
-  .agentic-field {
-    justify-content: flex-end;
-  }
-
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    cursor: pointer;
-    text-transform: none;
-    font-size: 0.9rem;
-    color: var(--text);
-    letter-spacing: normal;
-  }
-
-  .checkbox-label input[type="checkbox"] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 1rem;
-    height: 1rem;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    background: var(--bg);
-    cursor: pointer;
-    display: grid;
-    place-content: center;
-    transition: background 0.15s, border-color 0.15s;
-  }
-
-  .checkbox-label input[type="checkbox"]::after {
-    content: '';
-    width: 0.55rem;
-    height: 0.55rem;
-    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-    background: var(--bg);
-    transform: scale(0);
-    transition: transform 0.1s ease-in-out;
-  }
-
-  .checkbox-label input[type="checkbox"]:checked {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-
-  .checkbox-label input[type="checkbox"]:checked::after {
-    transform: scale(1);
-  }
-
-  .checkbox-label input[type="checkbox"]:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  .checkbox-text {
-    font-weight: 500;
-  }
-
-  .filter-hint {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-  }
 
   @media (max-width: 600px) {
     .gpu-input {
