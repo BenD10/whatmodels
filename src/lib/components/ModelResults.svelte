@@ -72,7 +72,7 @@
   <section class="results">
     <p class="summary">
       <strong>{totalFit}</strong> of {allModels.length} model configurations can run on
-      <strong>{vram} GB</strong>
+      <strong>{vram} GB</strong>{#if systemRamGB != null}&nbsp;VRAM + <strong>{systemRamGB} GB</strong> system RAM{/if}
       {#if minContextK != null} with at least <strong>{contextLabel(minContextK)}</strong> context{/if}
       {#if minTokPerSec != null} at <strong>{minTokPerSec}+ tok/s</strong>{/if}
       — sorted by quality
