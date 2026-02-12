@@ -23,6 +23,7 @@
     { value: 32, label: '32K' },
     { value: 64, label: '64K' },
     { value: 128, label: '128K' },
+    { value: 200, label: '200K' },
   ];
 
   const SPEED_OPTIONS = [
