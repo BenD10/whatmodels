@@ -4,6 +4,7 @@
   import SearchSelect from './SearchSelect.svelte';
   import MultiSelect from './MultiSelect.svelte';
   import { trackGpuSelected, trackManualVram, trackFilterChanged } from '$lib/analytics.js';
+  import { calcMultiGpuResources } from '$lib/calculations.js';
 
   const gpuItems = gpus.map((g) => ({
     id: g.id,
@@ -54,6 +55,7 @@
     initialSpeed = '',
     initialFeatures = [],
     initialSystemRam = '',
+    initialGpuQuantity = '1',
     onstatechange = () => {},
   } = $props();
 
@@ -64,10 +66,27 @@
   let selectedMemoryIdx = $state(initialMemIdx !== '' ? Number(initialMemIdx) : '');
   let featureSelection = $state(initialFeatures.length > 0 ? [...initialFeatures] : []);
   let systemRamInput = $state(initialSystemRam);
+  let gpuQuantity = $state(initialGpuQuantity !== '' ? Number(initialGpuQuantity) : 1);
+
+  // Track per-GPU base VRAM/bandwidth so we can recalculate when quantity changes
+  let baseVram = $state(null);
+  let baseBandwidth = $state(null);
 
   // Derived: does the selected GPU have configurable memory?
   let selectedGpu = $derived(gpus.find((g) => g.id === selectedGpuId) ?? null);
   let hasMemoryOptions = $derived(!!selectedGpu?.vram_options);
+
+  /** Recalculate effective VRAM/bandwidth from base values and GPU quantity. */
+  function applyMultiGpu() {
+    if (baseVram == null) {
+      vram = null;
+      bandwidth = null;
+      return;
+    }
+    const res = calcMultiGpuResources(baseVram, baseBandwidth, gpuQuantity);
+    vram = res.vram;
+    bandwidth = res.bandwidth;
+  }
 
   function fireStateChange() {
     onstatechange({
@@ -78,6 +97,7 @@
       speed: speedSelection,
       features: featureSelection,
       systemRam: systemRamInput,
+      gpuQuantity: String(gpuQuantity),
     });
   }
 
@@ -86,46 +106,51 @@
     selectedMemoryIdx = '';
     const gpu = selectedGpu;
     if (!gpu) {
-      vram = null;
-      bandwidth = null;
+      baseVram = null;
+      baseBandwidth = null;
     } else if (gpu.vram_options) {
       // Two-step: wait for memory selection
-      vram = null;
-      bandwidth = null;
+      baseVram = null;
+      baseBandwidth = null;
     } else {
-      vram = gpu.vram_gb;
-      bandwidth = gpu.bandwidth_gbps;
+      baseVram = gpu.vram_gb;
+      baseBandwidth = gpu.bandwidth_gbps;
       trackGpuSelected(gpu.name, gpu.vram_gb, gpu.bandwidth_gbps);
     }
+    applyMultiGpu();
     fireStateChange();
   }
 
   function onMemoryChange() {
     if (selectedMemoryIdx === '' || !selectedGpu?.vram_options) {
-      vram = null;
-      bandwidth = null;
+      baseVram = null;
+      baseBandwidth = null;
+      applyMultiGpu();
       fireStateChange();
       return;
     }
     const idx = Number(selectedMemoryIdx);
     const opt = selectedGpu.vram_options[idx];
     if (!opt) {
-      vram = null;
-      bandwidth = null;
+      baseVram = null;
+      baseBandwidth = null;
+      applyMultiGpu();
       fireStateChange();
       return;
     }
-    vram = opt.vram_gb;
-    bandwidth = opt.bandwidth_gbps;
+    baseVram = opt.vram_gb;
+    baseBandwidth = opt.bandwidth_gbps;
     trackGpuSelected(selectedGpu.name, opt.vram_gb, opt.bandwidth_gbps);
+    applyMultiGpu();
     fireStateChange();
   }
 
   function onManualInput() {
     selectedGpuId = '';
     const val = parseFloat(manualVram);
-    vram = !Number.isNaN(val) && val > 0 ? val : null;
-    bandwidth = null; // unknown for manual entry
+    baseVram = !Number.isNaN(val) && val > 0 ? val : null;
+    baseBandwidth = null; // unknown for manual entry
+    applyMultiGpu();
     if (vram != null) {
       trackManualVram(vram);
     }
@@ -159,6 +184,13 @@
     fireStateChange();
   }
 
+  function onQuantityChange() {
+    gpuQuantity = Math.max(1, Math.min(8, Math.floor(Number(gpuQuantity) || 1)));
+    applyMultiGpu();
+    trackFilterChanged('gpu_quantity', gpuQuantity);
+    fireStateChange();
+  }
+
   // Apply initial values on mount (from URL query params)
   onMount(() => {
     if (initialGpuId) {
@@ -168,22 +200,33 @@
           if (initialMemIdx !== '') {
             const opt = gpu.vram_options[Number(initialMemIdx)];
             if (opt) {
-              vram = opt.vram_gb;
-              bandwidth = opt.bandwidth_gbps;
+              baseVram = opt.vram_gb;
+              baseBandwidth = opt.bandwidth_gbps;
             }
           }
         } else {
-          vram = gpu.vram_gb;
-          bandwidth = gpu.bandwidth_gbps;
+          baseVram = gpu.vram_gb;
+          baseBandwidth = gpu.bandwidth_gbps;
         }
       }
     } else if (initialManualVram) {
       const val = parseFloat(initialManualVram);
       if (!Number.isNaN(val) && val > 0) {
-        vram = val;
-        bandwidth = null;
+        baseVram = val;
+        baseBandwidth = null;
       }
     }
+
+    // Parse initial GPU quantity
+    if (initialGpuQuantity !== '' && initialGpuQuantity !== '1') {
+      const qty = Number(initialGpuQuantity);
+      if (Number.isInteger(qty) && qty >= 1 && qty <= 8) {
+        gpuQuantity = qty;
+      }
+    }
+
+    // Apply multi-GPU resources
+    applyMultiGpu();
 
     if (initialContextK !== '') {
       minContextK = Number(initialContextK);
@@ -226,6 +269,26 @@
             <option value={i}>{opt.vram_gb} GB</option>
           {/each}
         </select>
+      </div>
+    {/if}
+
+    {#if selectedGpuId || manualVram}
+      <div class="field quantity-field">
+        <label for="gpu-quantity">GPUs</label>
+        <div class="quantity-wrap">
+          <input
+            id="gpu-quantity"
+            type="number"
+            min="1"
+            max="8"
+            step="1"
+            bind:value={gpuQuantity}
+            oninput={onQuantityChange}
+          />
+          {#if gpuQuantity > 1}
+            <span class="quantity-hint">= {vram != null ? vram : '?'} GB</span>
+          {/if}
+        </div>
       </div>
     {/if}
 
@@ -302,7 +365,7 @@
 
   <div class="effective">
     {#if vram != null}
-      Using <strong>{vram} GB</strong> VRAM{#if systemRamGB != null} + <strong>{systemRamGB} GB</strong> system RAM{/if}{#if minContextK != null}, need at least <strong>{minContextK}K</strong> context{/if}{#if minTokPerSec != null}, need at least <strong>{minTokPerSec} tok/s</strong>{/if}
+      Using {#if gpuQuantity > 1}<strong>{gpuQuantity}×</strong> {/if}<strong>{vram} GB</strong> VRAM{#if gpuQuantity > 1} <span class="multi-gpu-detail">({baseVram} GB each)</span>{/if}{#if systemRamGB != null} + <strong>{systemRamGB} GB</strong> system RAM{/if}{#if minContextK != null}, need at least <strong>{minContextK}K</strong> context{/if}{#if minTokPerSec != null}, need at least <strong>{minTokPerSec} tok/s</strong>{/if}
     {:else}
       <span class="muted">Pick a GPU or enter VRAM to get started</span>
     {/if}
@@ -338,6 +401,31 @@
 
   .vram-field {
     flex-shrink: 0;
+  }
+
+  .quantity-field {
+    flex-shrink: 0;
+  }
+
+  .quantity-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .quantity-wrap input[type="number"] {
+    width: 60px;
+  }
+
+  .quantity-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .multi-gpu-detail {
+    font-size: 0.85em;
+    color: var(--text-muted);
   }
 
   .field {
@@ -499,6 +587,14 @@
 
     .vram-field {
       flex-shrink: 1;
+    }
+
+    .quantity-field {
+      flex-shrink: 1;
+    }
+
+    .quantity-wrap input[type="number"] {
+      width: 100%;
     }
 
     select {

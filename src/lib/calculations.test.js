@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calcMaxContext,
   calcMaxContextWithOffload,
+  calcMultiGpuResources,
   calcOffloadConfig,
   calcOffloadPenalty,
   calcTokPerSec,
@@ -192,6 +193,75 @@ describe('calcTokPerSec', () => {
 
   it('uses the documented overhead constant', () => {
     expect(INFERENCE_OVERHEAD_GB).toBe(1.0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// calcMultiGpuResources
+// ---------------------------------------------------------------------------
+
+describe('calcMultiGpuResources', () => {
+  it('returns single GPU values when quantity is 1', () => {
+    expect(calcMultiGpuResources(24, 1008, 1)).toEqual({
+      vram: 24,
+      bandwidth: 1008,
+    });
+  });
+
+  it('returns single GPU values when quantity is null', () => {
+    expect(calcMultiGpuResources(24, 1008, null)).toEqual({
+      vram: 24,
+      bandwidth: 1008,
+    });
+  });
+
+  it('doubles VRAM for 2 GPUs', () => {
+    // 2 × 24 = 48 GB
+    const result = calcMultiGpuResources(24, 1008, 2);
+    expect(result.vram).toBe(48);
+  });
+
+  it('applies 15% overhead for 2 GPUs (85% efficiency)', () => {
+    // 2 × 1008 × 0.85 = 1713.6 → 1714
+    const result = calcMultiGpuResources(24, 1008, 2);
+    expect(result.bandwidth).toBe(1714);
+  });
+
+  it('applies 25% overhead for 3 GPUs (75% efficiency)', () => {
+    // 3 × 1008 × 0.75 = 2268
+    const result = calcMultiGpuResources(24, 1008, 3);
+    expect(result.vram).toBe(72);
+    expect(result.bandwidth).toBe(2268);
+  });
+
+  it('applies 30% overhead for 4+ GPUs (70% efficiency)', () => {
+    // 4 × 1008 × 0.70 = 2822.4 → 2822
+    const result = calcMultiGpuResources(24, 1008, 4);
+    expect(result.vram).toBe(96);
+    expect(result.bandwidth).toBe(2822);
+  });
+
+  it('uses 70% efficiency for 8 GPUs too', () => {
+    // 8 × 1008 × 0.70 = 5644.8 → 5645
+    const result = calcMultiGpuResources(24, 1008, 8);
+    expect(result.vram).toBe(192);
+    expect(result.bandwidth).toBe(5645);
+  });
+
+  it('handles null bandwidth', () => {
+    const result = calcMultiGpuResources(24, null, 2);
+    expect(result).toEqual({
+      vram: 48,
+      bandwidth: null,
+    });
+  });
+
+  it('handles manual VRAM entry with no bandwidth', () => {
+    const result = calcMultiGpuResources(16, null, 3);
+    expect(result).toEqual({
+      vram: 48,
+      bandwidth: null,
+    });
   });
 });
 

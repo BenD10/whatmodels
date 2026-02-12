@@ -19,6 +19,35 @@ export const INFERENCE_OVERHEAD_GB = 1.0;
 export const TIGHT_FIT_CONTEXT_K = 4;
 
 /**
+ * Calculate effective VRAM and bandwidth for multi-GPU setups.
+ * VRAM pools additively, but bandwidth has communication overhead.
+ *
+ * @param {number} vram - Single GPU VRAM in GB
+ * @param {number|null} bandwidth - Single GPU bandwidth in GB/s (null if unknown)
+ * @param {number} quantity - Number of identical GPUs (1-8)
+ * @returns {{ vram: number, bandwidth: number|null }}
+ */
+export function calcMultiGpuResources(vram, bandwidth, quantity) {
+  if (quantity === 1 || quantity == null) {
+    return { vram, bandwidth };
+  }
+
+  // VRAM pools linearly
+  const totalVram = vram * quantity;
+
+  // Bandwidth has communication overhead
+  if (bandwidth == null) {
+    return { vram: totalVram, bandwidth: null };
+  }
+
+  // Communication efficiency decreases with more GPUs
+  const efficiency = quantity === 2 ? 0.85 : (quantity === 3 ? 0.75 : 0.70);
+  const effectiveBandwidth = Math.round(bandwidth * quantity * efficiency);
+
+  return { vram: totalVram, bandwidth: effectiveBandwidth };
+}
+
+/**
  * For a given model and user VRAM, calculate the max context (in K tokens)
  * that fits. Capped at the model's trained max_context_k.
  *

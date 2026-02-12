@@ -2,6 +2,7 @@
   import { browser } from '$app/environment';
   import { replaceState } from '$app/navigation';
   import gpus from '$lib/data/gpus.json';
+  import { calcMultiGpuResources } from '$lib/calculations.js';
   import GpuInput from '$lib/components/GpuInput.svelte';
   import ModelResults from '$lib/components/ModelResults.svelte';
 
@@ -74,36 +75,55 @@
       }
     }
 
+    // Validate GPU quantity — must be 1-8
+    let gpuQuantity = '1';
+    const rawQty = params.get('qty') ?? '';
+    if (rawQty !== '') {
+      const val = Number(rawQty);
+      if (Number.isInteger(val) && val >= 1 && val <= 8) {
+        gpuQuantity = rawQty;
+      }
+    }
+
     // Validate sort benchmark — 'swe-bench' or default to 'mmlu'
     // Also support legacy agentic=1 param for backward compatibility
     const rawSort = params.get('sort') ?? '';
     const sortBy = rawSort === 'swe-bench' || params.get('agentic') === '1' ? 'swe-bench' : 'mmlu';
 
-    return { gpuId, memIdx, manualVram, contextK, speed, features, systemRam, sortBy };
+    return { gpuId, memIdx, manualVram, contextK, speed, features, systemRam, gpuQuantity, sortBy };
   }
 
   /** Derive initial vram/bandwidth from parsed URL params so results render immediately */
   function computeInitialHardware(p) {
+    let baseVram = null;
+    let baseBandwidth = null;
+
     if (p.gpuId) {
       const gpu = gpus.find((g) => g.id === p.gpuId);
       if (gpu?.vram_options && p.memIdx !== '') {
         const opt = gpu.vram_options[Number(p.memIdx)];
-        if (opt) return { vram: opt.vram_gb, bandwidth: opt.bandwidth_gbps };
+        if (opt) { baseVram = opt.vram_gb; baseBandwidth = opt.bandwidth_gbps; }
       } else if (gpu) {
-        return { vram: gpu.vram_gb, bandwidth: gpu.bandwidth_gbps };
+        baseVram = gpu.vram_gb;
+        baseBandwidth = gpu.bandwidth_gbps;
       }
     } else if (p.manualVram) {
       const val = parseFloat(p.manualVram);
-      if (!Number.isNaN(val) && val > 0) return { vram: val, bandwidth: null };
+      if (!Number.isNaN(val) && val > 0) { baseVram = val; baseBandwidth = null; }
     }
-    return { vram: null, bandwidth: null };
+
+    if (baseVram == null) return { vram: null, bandwidth: null };
+
+    const qty = p.gpuQuantity ? Number(p.gpuQuantity) : 1;
+    const res = calcMultiGpuResources(baseVram, baseBandwidth, qty);
+    return { vram: res.vram, bandwidth: res.bandwidth };
   }
 
   // Parse URL params synchronously on the client to avoid layout shift.
   // During SSR (static build) browser is false so we get safe defaults.
   const urlParams = browser
     ? parseUrlParams(new URL(window.location.href).searchParams)
-    : { gpuId: '', memIdx: '', manualVram: '', contextK: '', speed: '', features: [], systemRam: '', sortBy: 'mmlu' };
+    : { gpuId: '', memIdx: '', manualVram: '', contextK: '', speed: '', features: [], systemRam: '', gpuQuantity: '1', sortBy: 'mmlu' };
 
   const initialHw = computeInitialHardware(urlParams);
 
@@ -123,6 +143,7 @@
   const initialSpeed = urlParams.speed;
   const initialFeatures = urlParams.features;
   const initialSystemRam = urlParams.systemRam;
+  const initialGpuQuantity = urlParams.gpuQuantity;
 
   function updateUrl(overrides = {}) {
     if (!browser) return;
@@ -143,6 +164,7 @@
       gpu: state.gpuId || null,
       mem: state.memIdx !== '' ? state.memIdx : null,
       vram: state.manualVram || null,
+      qty: (state.gpuQuantity && state.gpuQuantity !== '1') ? state.gpuQuantity : null,
       ctx: state.contextK !== '' ? state.contextK : null,
       speed: state.speed !== '' ? state.speed : null,
       feat: state.features?.length > 0 ? state.features.join(',') : null,
@@ -207,6 +229,7 @@
     {initialSpeed}
     {initialFeatures}
     {initialSystemRam}
+    {initialGpuQuantity}
     onstatechange={onStateChange}
   />
 
