@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import gpus from '$lib/data/gpus.json';
   import SearchSelect from './SearchSelect.svelte';
   import MultiSelect from './MultiSelect.svelte';
@@ -67,7 +67,7 @@
   let selectedMemoryIdx = $state(initialMemIdx !== '' ? Number(initialMemIdx) : '');
   let featureSelection = $state(initialFeatures.length > 0 ? [...initialFeatures] : []);
   let systemRamInput = $state(initialSystemRam);
-  let gpuQuantity = $state(initialGpuQuantity !== '' ? Number(initialGpuQuantity) : 1);
+  let gpuQuantity = $state(untrack(() => initialGpuQuantity !== '' ? Number(initialGpuQuantity) : 1));
 
   // Track per-GPU base VRAM/bandwidth so we can recalculate when quantity changes
   let baseVram = $state(null);
