@@ -237,6 +237,7 @@
     <h2>Results</h2>
     <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} {systemRamGB} bind:sortBy onsortchange={onSortChange} />
   </section>
+
 </div>
 
 <style>
