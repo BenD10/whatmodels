@@ -2208,5 +2208,271 @@
       "reasoning"
     ],
     "notes": "Dense multimodal model. Hybrid architecture: 16 blocks of (3 Gated DeltaNet -> FFN + 1 Gated Attention -> FFN). 64 total layers, only 16 use attention (24 Q heads, 4 KV heads, head_dim 256, RoPE rotation_dim 64). DeltaNet sublayers use 48 V heads, 16 QK heads, head_dim 128. KV estimate covers attention layers; DeltaNet layers use fixed-size recurrent state. Hidden dim 5120, FFN intermediate 17,408, vocab 248,320. Multi-Token Prediction enables speculative decoding. Native 262K context, extensible to ~1M tokens via YaRN. MMLU-Pro 86.2 (MMLU-Redux 93.5), SWE-bench Verified 77.2, Terminal-Bench 2.0 59.3, GPQA Diamond 87.8, AIME 2026 94.1, LiveCodeBench v6 83.9. Apache 2.0. GGUF Q4_K_M file size estimate."
+  },
+  {
+    "id": "deepseek-r1-0528-q4",
+    "name": "DeepSeek R1 0528",
+    "params_b": 671.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 409.23,
+    "kv_per_1k_gb": 0.065,
+    "max_context_k": 160,
+    "layers": 61,
+    "mmlu_score": 90.8,
+    "swe_bench_score": 57.6,
+    "features": [
+      "reasoning"
+    ],
+    "notes": "671B MoE (37B active), MLA KV compression; split GGUF ~409 GB"
+  },
+  {
+    "id": "deepseek-r1-0528-q8",
+    "name": "DeepSeek R1 0528",
+    "params_b": 671.0,
+    "quantization": "Q8_0",
+    "weight_gb": 713.29,
+    "kv_per_1k_gb": 0.065,
+    "max_context_k": 160,
+    "layers": 61,
+    "mmlu_score": 90.8,
+    "swe_bench_score": 57.6,
+    "features": [
+      "reasoning"
+    ],
+    "notes": "671B MoE (37B active), MLA KV compression; split GGUF ~713 GB"
+  },
+  {
+    "id": "mimo-v2.5-q4",
+    "name": "MiMo V2.5",
+    "params_b": 310.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 188.77,
+    "kv_per_1k_gb": 0.137,
+    "max_context_k": 1024,
+    "layers": 48,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "reasoning"
+    ],
+    "notes": "48 layers, 4 KV heads, head_dim 192; MoE 256 experts 8 active"
+  },
+  {
+    "id": "mimo-v2.5-q8",
+    "name": "MiMo V2.5",
+    "params_b": 310.0,
+    "quantization": "Q8_0",
+    "weight_gb": 329.28,
+    "kv_per_1k_gb": 0.137,
+    "max_context_k": 1024,
+    "layers": 48,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "reasoning"
+    ],
+    "notes": "48 layers, 4 KV heads, head_dim 192; MoE 256 experts 8 active"
+  },
+  {
+    "id": "mimo-v2.5-pro-q4",
+    "name": "MiMo V2.5 Pro",
+    "params_b": 1020.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 630.0,
+    "kv_per_1k_gb": 0.1,
+    "max_context_k": 1024,
+    "layers": 70,
+    "mmlu_score": 89.4,
+    "swe_bench_score": 78.9,
+    "features": [
+      "reasoning"
+    ],
+    "notes": "70 layers, 8 KV heads, head_dim 48; MoE 384 experts 8 active"
+  },
+  {
+    "id": "mimo-v2.5-pro-q8",
+    "name": "MiMo V2.5 Pro",
+    "params_b": 1020.0,
+    "quantization": "Q8_0",
+    "weight_gb": 1090.0,
+    "kv_per_1k_gb": 0.1,
+    "max_context_k": 1024,
+    "layers": 70,
+    "mmlu_score": 89.4,
+    "swe_bench_score": 78.9,
+    "features": [
+      "reasoning"
+    ],
+    "notes": "70 layers, 8 KV heads, head_dim 48; MoE 384 experts 8 active"
+  },
+  {
+    "id": "glm-5.1-q4",
+    "name": "GLM 5.1",
+    "params_b": 754.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 459.68,
+    "kv_per_1k_gb": 0.074,
+    "max_context_k": 198,
+    "layers": 78,
+    "mmlu_score": 91.7,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use"
+    ],
+    "notes": "78 layers, MLA KV compression (rank 512); MoE 256 experts 8 active"
+  },
+  {
+    "id": "glm-5.1-q8",
+    "name": "GLM 5.1",
+    "params_b": 754.0,
+    "quantization": "Q8_0",
+    "weight_gb": 801.34,
+    "kv_per_1k_gb": 0.074,
+    "max_context_k": 198,
+    "layers": 78,
+    "mmlu_score": 91.7,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use"
+    ],
+    "notes": "78 layers, MLA KV compression (rank 512); MoE 256 experts 8 active"
+  },
+  {
+    "id": "mistral-small-4-q4",
+    "name": "Mistral Small 4",
+    "params_b": 119.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 72.64,
+    "kv_per_1k_gb": 0.549,
+    "max_context_k": 1024,
+    "layers": 36,
+    "mmlu_score": 88.5,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use"
+    ],
+    "notes": "36 layers, 32 KV heads, head_dim 128; MoE 128 experts 4 active; Pixtral vision"
+  },
+  {
+    "id": "mistral-small-4-q8",
+    "name": "Mistral Small 4",
+    "params_b": 119.0,
+    "quantization": "Q8_0",
+    "weight_gb": 126.47,
+    "kv_per_1k_gb": 0.549,
+    "max_context_k": 1024,
+    "layers": 36,
+    "mmlu_score": 88.5,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use"
+    ],
+    "notes": "36 layers, 32 KV heads, head_dim 128; MoE 128 experts 4 active; Pixtral vision"
+  },
+  {
+    "id": "step-3.7-flash-q4",
+    "name": "Step 3.7 Flash",
+    "params_b": 198.0,
+    "quantization": "Q4_K_S",
+    "weight_gb": 103.84,
+    "kv_per_1k_gb": 0.172,
+    "max_context_k": 256,
+    "layers": 45,
+    "mmlu_score": null,
+    "swe_bench_score": 76.5,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "45 layers, 8 KV heads, head_dim 128; MoE 288 experts 8 active; vision encoder 1.8B"
+  },
+  {
+    "id": "step-3.7-flash-q8",
+    "name": "Step 3.7 Flash",
+    "params_b": 198.0,
+    "quantization": "Q8_0",
+    "weight_gb": 195.04,
+    "kv_per_1k_gb": 0.172,
+    "max_context_k": 256,
+    "layers": 45,
+    "mmlu_score": null,
+    "swe_bench_score": 76.5,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "45 layers, 8 KV heads, head_dim 128; MoE 288 experts 8 active; vision encoder 1.8B"
+  },
+  {
+    "id": "deepseek-v4-flash-q4",
+    "name": "DeepSeek V4 Flash",
+    "params_b": 284.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 161.0,
+    "kv_per_1k_gb": 0.082,
+    "max_context_k": 1024,
+    "layers": 43,
+    "mmlu_score": 86.4,
+    "swe_bench_score": 79.0,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "43 layers, MQA (1 KV head), head_dim 512; MoE 256 experts 6 active"
+  },
+  {
+    "id": "deepseek-v4-flash-q8",
+    "name": "DeepSeek V4 Flash",
+    "params_b": 284.0,
+    "quantization": "Q8_0",
+    "weight_gb": 282.0,
+    "kv_per_1k_gb": 0.082,
+    "max_context_k": 1024,
+    "layers": 43,
+    "mmlu_score": 86.4,
+    "swe_bench_score": 79.0,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "43 layers, MQA (1 KV head), head_dim 512; MoE 256 experts 6 active"
+  },
+  {
+    "id": "deepseek-v4-pro-q4",
+    "name": "DeepSeek V4 Pro",
+    "params_b": 1600.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 900.0,
+    "kv_per_1k_gb": 0.065,
+    "max_context_k": 1024,
+    "layers": 61,
+    "mmlu_score": null,
+    "swe_bench_score": 80.6,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "61 layers, MLA KV compression (rank 512); MoE 384 experts 6 active"
+  },
+  {
+    "id": "deepseek-v4-pro-q8",
+    "name": "DeepSeek V4 Pro",
+    "params_b": 1600.0,
+    "quantization": "Q8_0",
+    "weight_gb": 1670.0,
+    "kv_per_1k_gb": 0.065,
+    "max_context_k": 1024,
+    "layers": 61,
+    "mmlu_score": null,
+    "swe_bench_score": 80.6,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "61 layers, MLA KV compression (rank 512); MoE 384 experts 6 active"
   }
 ]

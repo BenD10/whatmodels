@@ -7,7 +7,7 @@ import gpus from './gpus.json';
 // ---------------------------------------------------------------------------
 
 const VALID_FEATURES = ['vision', 'reasoning', 'tool_use'];
-const VALID_QUANTIZATIONS = ['Q4_K_M', 'Q8_0', 'fp16'];
+const VALID_QUANTIZATIONS = ['Q4_K_M', 'Q4_K_S', 'Q8_0', 'fp16'];
 const VALID_MANUFACTURERS = ['NVIDIA', 'AMD', 'Intel', 'Apple'];
 
 // ---------------------------------------------------------------------------
@@ -46,9 +46,9 @@ describe('models.json', () => {
       expect(model.params_b).toBeGreaterThan(0);
     });
 
-    it('has weight_gb between 0.1 and 500', () => {
+    it('has weight_gb between 0.1 and 2000', () => {
       expect(model.weight_gb).toBeGreaterThanOrEqual(0.1);
-      expect(model.weight_gb).toBeLessThanOrEqual(500);
+      expect(model.weight_gb).toBeLessThanOrEqual(2000);
     });
 
     it('has kv_per_1k_gb between 0 and 2', () => {
