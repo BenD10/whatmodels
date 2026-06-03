@@ -24,6 +24,7 @@
     <nav>
       <a href="{base}/" class:active={$page.url.pathname === base + '/'}>Tool</a>
       <a href="{base}/primer" class:active={$page.url.pathname.startsWith(base + '/primer')}>LLM Primer</a>
+      <a href="{base}/about" class:active={$page.url.pathname.startsWith(base + '/about')}>About</a>
     </nav>
     <main>
       {@render children()}
