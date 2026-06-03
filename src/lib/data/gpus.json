@@ -476,6 +476,27 @@
     "bandwidth_gbps": 346
   },
   {
+    "id": "tesla-t4",
+    "name": "Tesla T4",
+    "manufacturer": "NVIDIA",
+    "vram_gb": 16,
+    "bandwidth_gbps": 320
+  },
+  {
+    "id": "tesla-v100-16gb",
+    "name": "Tesla V100 16GB",
+    "manufacturer": "NVIDIA",
+    "vram_gb": 16,
+    "bandwidth_gbps": 900
+  },
+  {
+    "id": "tesla-v100-32gb",
+    "name": "Tesla V100 32GB",
+    "manufacturer": "NVIDIA",
+    "vram_gb": 32,
+    "bandwidth_gbps": 900
+  },
+  {
     "id": "rx-9070-xt",
     "name": "Radeon RX 9070 XT",
     "manufacturer": "AMD",
@@ -649,6 +670,13 @@
     "manufacturer": "AMD",
     "vram_gb": 6,
     "bandwidth_gbps": 288
+  },
+  {
+    "id": "amd-bc250",
+    "name": "AMD BC-250",
+    "manufacturer": "AMD",
+    "vram_gb": 16,
+    "bandwidth_gbps": 448
   },
   {
     "id": "ryzen-ai-max",
