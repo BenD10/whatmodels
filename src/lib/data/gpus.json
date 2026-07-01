@@ -744,6 +744,67 @@
     "bandwidth_gbps": 512
   },
   {
+    "id": "m5-max",
+    "name": "M5 Max",
+    "manufacturer": "Apple",
+    "vram_options": [
+      {
+        "vram_gb": 36,
+        "bandwidth_gbps": 460
+      },
+      {
+        "vram_gb": 48,
+        "bandwidth_gbps": 614
+      },
+      {
+        "vram_gb": 64,
+        "bandwidth_gbps": 614
+      },
+      {
+        "vram_gb": 128,
+        "bandwidth_gbps": 614
+      }
+    ]
+  },
+  {
+    "id": "m5-pro",
+    "name": "M5 Pro",
+    "manufacturer": "Apple",
+    "vram_options": [
+      {
+        "vram_gb": 24,
+        "bandwidth_gbps": 307
+      },
+      {
+        "vram_gb": 48,
+        "bandwidth_gbps": 307
+      },
+      {
+        "vram_gb": 64,
+        "bandwidth_gbps": 307
+      }
+    ]
+  },
+  {
+    "id": "m5",
+    "name": "M5",
+    "manufacturer": "Apple",
+    "vram_options": [
+      {
+        "vram_gb": 16,
+        "bandwidth_gbps": 154
+      },
+      {
+        "vram_gb": 24,
+        "bandwidth_gbps": 154
+      },
+      {
+        "vram_gb": 32,
+        "bandwidth_gbps": 154
+      }
+    ]
+  },
+  {
     "id": "m4-max",
     "name": "M4 Max",
     "manufacturer": "Apple",
