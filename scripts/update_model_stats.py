@@ -1,173 +1,176 @@
 #!/usr/bin/env python3
 """
-Fetch and update benchmark scores for models from Hugging Face.
+Update benchmark scores on existing entries in src/lib/data/models.json.
+
+Scores are applied by model *name*, so every quantization variant of a model is
+updated together — the data tests require variants to agree on mmlu_score and
+swe_bench_score.
 
 Usage:
-    python scripts/update_model_stats.py [--models MODEL1,MODEL2,...]
+    # Set scores for one model
+    python scripts/update_model_stats.py --set "GLM 5:mmlu=none,swe=77.8"
 
-Examples:
-    python scripts/update_model_stats.py
-    python scripts/update_model_stats.py --models llama-3.2-1b-q8,qwen-2.5-7b-instruct
+    # Several at once
+    python scripts/update_model_stats.py \
+        --set "Qwen3.5 27B:swe=72.4" \
+        --set "Qwen3.5 397B A17B:swe=76.2"
 
-This script will fetch benchmark scores (MMLU, SWE-bench) from Hugging Face
-and update the models.json file with the latest data.
+    # Apply a batch from a JSON file: {"Model Name": {"mmlu": 84.3, "swe": 86.0}}
+    python scripts/update_model_stats.py --from-file scores.json
+
+    # See what is still missing
+    python scripts/update_model_stats.py --report
+
+mmlu_score follows the MMLU-Pro convention used by the recent entries in this
+file. swe_bench_score is SWE-bench Verified — do not mix in SWE-bench Pro or
+DeepSWE numbers, which are different benchmarks on different scales.
 """
 
+import argparse
 import json
-from pathlib import Path
+import sys
 
-def fetch_model_benchmarks(model_id: str) -> dict:
-    """
-    Fetch benchmark scores for a model from Hugging Face API.
-    
-    Args:
-        model_id: The model identifier to look up.
-    
-    Returns:
-        Dictionary containing benchmark data, or empty dict if not found.
-    """
-    import requests
-    
-    url = f"https://huggingface.co/api/models/{model_id}"
-    response = requests.get(url, timeout=30)
-    
-    if response.status_code != 200:
-        return {}
-    
-    model_info = response.json()
-    cardData = model_info.get("cardData", {})
-    
-    # Extract benchmark scores from cardData
-    benchmarks = {
-        "mmlu_score": None,
-        "swe_bench_score": None,
-        "hellaswag_score": None,
-        "arc_score": None,
-        "truthfulqa_score": None,
-    }
-    
-    for key, value in cardData.items():
-        if isinstance(value, dict) and "score" in value:
-            benchmarks[key] = value["score"]
-    
-    return benchmarks
+from model_script_utils import load_models, save_models
 
-def update_model_in_json(models_file: str, model_id: str, benchmarks: dict) -> None:
-    """
-    Update a model's benchmark scores in the JSON file.
-    
-    Args:
-        models_file: Path to the models.json file.
-        model_id: The model identifier to update.
-        benchmarks: Dictionary of benchmark scores to update.
-    """
-    with open(models_file, 'r') as f:
-        models = json.load(f)
-    
-    # Find and update the model
-    for model in models:
-        if model['id'] == model_id:
-            for key, value in benchmarks.items():
-                if value is not None:
-                    model[key + "_score"] = value
-            break
-    
-    # Write back with pretty formatting
-    with open(models_file, 'w') as f:
-        json.dump(models, f, indent=2)
 
-def main():
-    import argparse
-    
-    parser = argparse.ArgumentParser(
-        description="Fetch and update benchmark scores for models",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python update_model_stats.py
-  python update_model_stats.py --models llama-3.2-1b-q8,qwen-2.5-7b-instruct
-  python update_model_stats.py --dry-run  # Preview changes without saving
-        """
-    )
-    parser.add_argument(
-        "--models", "-m",
-        type=str,
-        default=None,
-        help="Comma-separated list of model IDs to update (reads all if not specified)"
-    )
-    parser.add_argument(
-        "--dry-run", "-d",
-        action="store_true",
-        help="Preview changes without saving to file"
-    )
-    
-    args = parser.parse_args()
-    
-    models_path = Path(__file__).parent.parent / 'src' / 'lib' / 'data' / 'models.json'
-    
-    # Determine which models to process
-    if args.models:
-        model_ids = [m.strip() for m in args.models.split(',')]
-        print(f"Updating benchmark scores for {len(model_ids)} specified model(s):\n")
-    else:
-        # Read all models and update them
-        with open(models_path, 'r') as f:
-            models = json.load(f)
-        
-        model_ids = [m['id'] for m in models]
-        print(f"Updating benchmark scores for {len(model_ids)} models...")
-    
-    # Fetch and update benchmarks
-    updated_count = 0
-    skipped_count = 0
-    errors = []
-    
-    for model_id in model_ids:
-        print(f"\n{'='*60}")
-        print(f"Fetching benchmarks for: {model_id}")
-        print("-" * 50)
-        
+def parse_set(value: str) -> tuple[str, dict]:
+    """Parse 'Model Name:mmlu=84.3,swe=86.0' into (name, {field: score})."""
+    if ":" not in value:
+        raise argparse.ArgumentTypeError(
+            f"Invalid --set '{value}'. Use \"Model Name:mmlu=84.3,swe=86.0\"."
+        )
+    name, assignments = value.rsplit(":", 1)
+    scores: dict[str, float | None] = {}
+    for assignment in assignments.split(","):
+        assignment = assignment.strip()
+        if not assignment:
+            continue
+        if "=" not in assignment:
+            raise argparse.ArgumentTypeError(f"Invalid assignment '{assignment}' in '{value}'.")
+        key, raw = (part.strip() for part in assignment.split("=", 1))
+        field = {"mmlu": "mmlu_score", "swe": "swe_bench_score"}.get(key)
+        if field is None:
+            raise argparse.ArgumentTypeError(f"Unknown score '{key}'. Use 'mmlu' or 'swe'.")
+        if raw.lower() in {"none", "null", ""}:
+            scores[field] = None
+            continue
         try:
-            benchmarks = fetch_model_benchmarks(model_id)
-            
-            if not benchmarks:
-                print(f"No benchmark data found for {model_id}")
-                skipped_count += 1
-                continue
-            
-            # Show what was found
-            available_scores = [k for k, v in benchmarks.items() if v is not None]
-            if available_scores:
-                print(f"Found benchmarks: {', '.join(available_scores)}")
-                
-                if args.dry_run:
-                    print(f"\nWould update model '{model_id}' with:")
-                    for key, value in benchmarks.items():
-                        if value is not None:
-                            print(f"  {key}_score: {value}")
-                else:
-                    # Update the file
-                    update_model_in_json(str(models_path), model_id, benchmarks)
-                    updated_count += 1
-                    print(f"Updated '{model_id}' with benchmark scores.")
-            else:
-                print("No benchmark scores available for this model")
-                skipped_count += 1
-        
-        except Exception as e:
-            error_msg = f"Error processing {model_id}: {str(e)}"
-            print(error_msg)
-            errors.append((model_id, str(e)))
-    
-    # Summary
-    print(f"\n{'='*60}")
-    print("SUMMARY")
-    print("-" * 50)
-    print(f"Models processed: {len(model_ids)}")
-    print(f"Updated: {updated_count}")
-    print(f"Skipped (no data): {skipped_count}")
-    if errors:
-        print(f"Errors: {len(errors)}")
+            score = float(raw)
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(f"'{raw}' is not a number in '{value}'.") from exc
+        if not 0 <= score <= 100:
+            raise argparse.ArgumentTypeError(f"Score {score} out of range 0-100 in '{value}'.")
+        scores[field] = score
+    return name.strip(), scores
+
+
+def report(models: list[dict]) -> None:
+    families: dict[str, dict] = {}
+    for model in models:
+        families.setdefault(model["name"], model)
+
+    missing_both, missing_mmlu, missing_swe = [], [], []
+    for name, model in families.items():
+        has_mmlu = model.get("mmlu_score") is not None
+        has_swe = model.get("swe_bench_score") is not None
+        if not has_mmlu and not has_swe:
+            missing_both.append(name)
+        elif not has_mmlu:
+            missing_mmlu.append(name)
+        elif not has_swe:
+            missing_swe.append(name)
+
+    print(f"{len(families)} model families\n")
+    for label, group in (
+        ("missing BOTH scores (sort to the bottom in every view)", missing_both),
+        ("missing mmlu_score", missing_mmlu),
+        ("missing swe_bench_score", missing_swe),
+    ):
+        print(f"== {label}: {len(group)}")
+        for name in sorted(group):
+            print(f"   {name}")
+        print()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Update benchmark scores on existing models.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--set",
+        action="append",
+        type=parse_set,
+        default=[],
+        dest="assignments",
+        help='"Model Name:mmlu=84.3,swe=86.0" (repeatable)',
+    )
+    parser.add_argument(
+        "--from-file",
+        default=None,
+        help='JSON file of {"Model Name": {"mmlu": 84.3, "swe": 86.0}}',
+    )
+    parser.add_argument("--report", action="store_true", help="Show which scores are missing")
+    parser.add_argument("--dry-run", action="store_true", help="Print changes without writing")
+    parser.add_argument("--yes", action="store_true", help="Write without confirmation")
+    args = parser.parse_args()
+
+    models = load_models()
+
+    if args.report:
+        report(models)
+        return
+
+    updates: dict[str, dict] = {}
+    for name, scores in args.assignments:
+        updates.setdefault(name, {}).update(scores)
+
+    if args.from_file:
+        with open(args.from_file, "r", encoding="utf-8") as f:
+            for name, scores in json.load(f).items():
+                mapped = {
+                    {"mmlu": "mmlu_score", "swe": "swe_bench_score"}.get(k, k): v
+                    for k, v in scores.items()
+                }
+                updates.setdefault(name, {}).update(mapped)
+
+    if not updates:
+        parser.error("Nothing to do. Pass --set, --from-file, or --report.")
+
+    known_names = {m["name"] for m in models}
+    unknown = sorted(set(updates) - known_names)
+    if unknown:
+        print("Unknown model name(s):")
+        for name in unknown:
+            print(f"  - {name}")
+        sys.exit(1)
+
+    changed = 0
+    for model in models:
+        scores = updates.get(model["name"])
+        if not scores:
+            continue
+        for field, value in scores.items():
+            if model.get(field) != value:
+                print(f"  {model['id']:32s} {field}: {model.get(field)} -> {value}")
+                model[field] = value
+                changed += 1
+
+    if not changed:
+        print("No changes needed; scores already match.")
+        return
+
+    print(f"\n{changed} field(s) across {len(updates)} model(s).")
+    if args.dry_run:
+        print("Dry run; nothing written.")
+        return
+    if not args.yes and input("Write to models.json? (y/n): ").strip().lower() != "y":
+        print("Operation cancelled.")
+        return
+
+    save_models(models)
+    print("Updated src/lib/data/models.json")
+
 
 if __name__ == "__main__":
     main()

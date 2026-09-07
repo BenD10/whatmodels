@@ -1601,7 +1601,7 @@
     "max_context_k": 200,
     "layers": 62,
     "mmlu_score": 87.0,
-    "swe_bench_score": null,
+    "swe_bench_score": 68.2,
     "features": [
       "reasoning",
       "tool_use"
@@ -1618,306 +1618,12 @@
     "max_context_k": 200,
     "layers": 62,
     "mmlu_score": 87.0,
-    "swe_bench_score": null,
+    "swe_bench_score": 68.2,
     "features": [
       "reasoning",
       "tool_use"
     ],
     "notes": "MoE: 357B total. Expanded context to 200K from GLM-4.5. Uses MLA. KV estimate is for compressed MLA cache. GGUF Q4_K_M file size."
-  },
-  {
-    "id": "qwen3.5-0.8b-q8",
-    "name": "Qwen3.5 0.8B",
-    "params_b": 0.8,
-    "quantization": "Q8_0",
-    "weight_gb": 0.76,
-    "kv_per_1k_gb": 0.02,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 42.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q8_0 file size from Qwen3.5-0.8B-Q8_0.gguf."
-  },
-  {
-    "id": "qwen3.5-2b-q8",
-    "name": "Qwen3.5 2B",
-    "params_b": 2.0,
-    "quantization": "Q8_0",
-    "weight_gb": 1.87,
-    "kv_per_1k_gb": 0.04,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 52.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q8_0 file size from Qwen3.5-2B-Q8_0.gguf."
-  },
-  {
-    "id": "qwen3.5-4b-q8",
-    "name": "Qwen3.5 4B",
-    "params_b": 4.0,
-    "quantization": "Q8_0",
-    "weight_gb": 4.17,
-    "kv_per_1k_gb": 0.08,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 62.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q8_0 file size from Qwen3.5-4B-Q8_0.gguf."
-  },
-  {
-    "id": "qwen3.5-9b-q8",
-    "name": "Qwen3.5 9B",
-    "params_b": 9.0,
-    "quantization": "Q8_0",
-    "weight_gb": 8.87,
-    "kv_per_1k_gb": 0.16,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 72.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q8_0 file size from Qwen3.5-9B-Q8_0.gguf."
-  },
-  {
-    "id": "qwen3.5-27b-q8",
-    "name": "Qwen3.5 27B",
-    "params_b": 27.0,
-    "quantization": "Q8_0",
-    "weight_gb": 26.63,
-    "kv_per_1k_gb": 0.48,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 80.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q8_0 file size from Qwen3.5-27B-Q8_0.gguf."
-  },
-  {
-    "id": "qwen3.5-35b-a3b-q8",
-    "name": "Qwen3.5 35B A3B",
-    "params_b": 35.0,
-    "quantization": "Q8_0",
-    "weight_gb": 34.37,
-    "kv_per_1k_gb": 0.62,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 78.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q8_0 file size from Qwen3.5-35B-A3B-Q8_0.gguf.",
-    "active_weight_gb": 2.95
-  },
-  {
-    "id": "qwen3.5-0.8b-q4",
-    "name": "Qwen3.5 0.8B",
-    "params_b": 0.8,
-    "quantization": "Q4_K_M",
-    "weight_gb": 0.5,
-    "kv_per_1k_gb": 0.02,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 42.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q4_K_M file size from Qwen3.5-0.8B-Q4_K_M.gguf."
-  },
-  {
-    "id": "qwen3.5-2b-q4",
-    "name": "Qwen3.5 2B",
-    "params_b": 2.0,
-    "quantization": "Q4_K_M",
-    "weight_gb": 1.19,
-    "kv_per_1k_gb": 0.04,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 52.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q4_K_M file size from Qwen3.5-2B-Q4_K_M.gguf."
-  },
-  {
-    "id": "qwen3.5-4b-q4",
-    "name": "Qwen3.5 4B",
-    "params_b": 4.0,
-    "quantization": "Q4_K_M",
-    "weight_gb": 2.55,
-    "kv_per_1k_gb": 0.08,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 62.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q4_K_M file size from Qwen3.5-4B-Q4_K_M.gguf."
-  },
-  {
-    "id": "qwen3.5-9b-q4",
-    "name": "Qwen3.5 9B",
-    "params_b": 9.0,
-    "quantization": "Q4_K_M",
-    "weight_gb": 5.29,
-    "kv_per_1k_gb": 0.16,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 72.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q4_K_M file size from Qwen3.5-9B-Q4_K_M.gguf."
-  },
-  {
-    "id": "qwen3.5-27b-q4",
-    "name": "Qwen3.5 27B",
-    "params_b": 27.0,
-    "quantization": "Q4_K_M",
-    "weight_gb": 15.59,
-    "kv_per_1k_gb": 0.48,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 80.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q4_K_M file size from Qwen3.5-27B-Q4_K_M.gguf."
-  },
-  {
-    "id": "qwen3.5-35b-a3b-q4",
-    "name": "Qwen3.5 35B A3B",
-    "params_b": 35.0,
-    "quantization": "Q4_K_M",
-    "weight_gb": 20.5,
-    "kv_per_1k_gb": 0.62,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 78.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q4_K_M file size from Qwen3.5-35B-A3B-Q4_K_M.gguf.",
-    "active_weight_gb": 1.76
-  },
-  {
-    "id": "qwen3.5-122b-a10b-q8",
-    "name": "Qwen3.5 122B A10B",
-    "params_b": 122.0,
-    "quantization": "Q8_0",
-    "weight_gb": 46.39,
-    "kv_per_1k_gb": 0.84,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 85.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q8_0 file size from Q8_0/Qwen3.5-122B-A10B-Q8_0-00003-of-00004.gguf.",
-    "active_weight_gb": 3.8
-  },
-  {
-    "id": "qwen3.5-122b-a10b-q4",
-    "name": "Qwen3.5 122B A10B",
-    "params_b": 122.0,
-    "quantization": "Q4_K_M",
-    "weight_gb": 23.27,
-    "kv_per_1k_gb": 0.84,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 85.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q4_K_M file size from Q4_K_M/Qwen3.5-122B-A10B-Q4_K_M-00002-of-00003.gguf.",
-    "active_weight_gb": 1.91
-  },
-  {
-    "id": "qwen3.5-397b-a17b-q8",
-    "name": "Qwen3.5 397B A17B",
-    "params_b": 397.0,
-    "quantization": "Q8_0",
-    "weight_gb": 45.59,
-    "kv_per_1k_gb": 1.56,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 87.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q8_0 file size from Q8_0/Qwen3.5-397B-A17B-Q8_0-00005-of-00010.gguf.",
-    "active_weight_gb": 1.95
-  },
-  {
-    "id": "qwen3.5-397b-a17b-q4",
-    "name": "Qwen3.5 397B A17B",
-    "params_b": 397.0,
-    "quantization": "Q4_K_M",
-    "weight_gb": 22.95,
-    "kv_per_1k_gb": 1.56,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 87.0,
-    "swe_bench_score": null,
-    "features": [],
-    "notes": "GGUF Q4_K_M file size from Q4_K_M/Qwen3.5-397B-A17B-Q4_K_M-00004-of-00006.gguf.",
-    "active_weight_gb": 0.98
-  },
-  {
-    "id": "minimax-m2.5-q8",
-    "name": "MiniMax M2.5",
-    "params_b": 56.85,
-    "quantization": "Q8_0",
-    "weight_gb": 46.05,
-    "kv_per_1k_gb": 0.88,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 82.0,
-    "swe_bench_score": null,
-    "features": [
-      "tool_use"
-    ],
-    "notes": "GGUF Q8_0 file size from Q8_0/MiniMax-M2.5-Q8_0-00002-of-00006.gguf."
-  },
-  {
-    "id": "minimax-m2.5-q4",
-    "name": "MiniMax M2.5",
-    "params_b": 56.85,
-    "quantization": "Q4_K_M",
-    "weight_gb": 23.1,
-    "kv_per_1k_gb": 0.88,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 82.0,
-    "swe_bench_score": null,
-    "features": [
-      "tool_use"
-    ],
-    "notes": "GGUF Q4_K_M file size from Q4_K_M/MiniMax-M2.5-Q4_K_M-00003-of-00004.gguf."
-  },
-  {
-    "id": "glm-5-q8",
-    "name": "GLM 5",
-    "params_b": 56.41,
-    "quantization": "Q8_0",
-    "weight_gb": 45.69,
-    "kv_per_1k_gb": 0.86,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 83.0,
-    "swe_bench_score": null,
-    "features": [
-      "tool_use"
-    ],
-    "notes": "GGUF Q8_0 file size from Q8_0/GLM-5-Q8_0-00006-of-00018.gguf."
-  },
-  {
-    "id": "glm-5-q4",
-    "name": "GLM 5",
-    "params_b": 56.41,
-    "quantization": "Q4_K_M",
-    "weight_gb": 22.9,
-    "kv_per_1k_gb": 0.86,
-    "max_context_k": 128,
-    "layers": null,
-    "mmlu_score": 83.0,
-    "swe_bench_score": null,
-    "features": [
-      "tool_use"
-    ],
-    "notes": "GGUF Q4_K_M file size from Q4_K_M/GLM-5-Q4_K_M-00002-of-00011.gguf."
   },
   {
     "id": "gemma-4-e2b-q8",
@@ -2474,5 +2180,757 @@
       "reasoning"
     ],
     "notes": "61 layers, MLA KV compression (rank 512); MoE 384 experts 6 active"
+  },
+  {
+    "id": "qwen3.8-27b-q4",
+    "name": "Qwen3.8 27B",
+    "params_b": 27.78,
+    "quantization": "Q4_K_M",
+    "weight_gb": 15.33,
+    "kv_per_1k_gb": 0.061,
+    "max_context_k": 256,
+    "layers": 64,
+    "mmlu_score": 84.3,
+    "swe_bench_score": 86.0,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model. Hybrid architecture: 64 layers, only 16 use full attention (4 KV heads, head_dim 256); the other 48 are linear-attention layers with fixed-size recurrent state, so KV per 1K counts the attention layers only. Native 262K context, extensible to ~1M via YaRN. Accepts text, images and video. GPQA Diamond 89.2, LiveCodeBench v6 90.3, Terminal-Bench 2.1 73.0, OSWorld-Verified 84.3, SWE-bench Pro 61.7, IFBench 79.5. MMLU-Pro 84.3 and SWE-bench 86.0 are Vals AI third-party runs; Alibaba did not publish MMLU-Pro or SWE-bench Verified. Apache 2.0. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "qwen3.8-27b-q8",
+    "name": "Qwen3.8 27B",
+    "params_b": 27.78,
+    "quantization": "Q8_0",
+    "weight_gb": 27.05,
+    "kv_per_1k_gb": 0.061,
+    "max_context_k": 256,
+    "layers": 64,
+    "mmlu_score": 84.3,
+    "swe_bench_score": 86.0,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model. Hybrid architecture: 64 layers, only 16 use full attention (4 KV heads, head_dim 256); the other 48 are linear-attention layers with fixed-size recurrent state, so KV per 1K counts the attention layers only. Native 262K context, extensible to ~1M via YaRN. Accepts text, images and video. GPQA Diamond 89.2, LiveCodeBench v6 90.3, Terminal-Bench 2.1 73.0, OSWorld-Verified 84.3, SWE-bench Pro 61.7, IFBench 79.5. MMLU-Pro 84.3 and SWE-bench 86.0 are Vals AI third-party runs; Alibaba did not publish MMLU-Pro or SWE-bench Verified. Apache 2.0. GGUF Q8_0 file size."
+  },
+  {
+    "id": "ornith-1.5-9b-q4",
+    "name": "Ornith 1.5 9B",
+    "params_b": 9.65,
+    "quantization": "Q4_K_M",
+    "weight_gb": 5.38,
+    "kv_per_1k_gb": 0.031,
+    "max_context_k": 256,
+    "layers": 32,
+    "mmlu_score": null,
+    "swe_bench_score": 70.6,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense model trained with a self-improvement loop. 32 layers, 8 full-attention (4 KV heads, head_dim 256), 24 linear-attention. 262K context. SWE-bench Verified 70.6, Terminal-Bench 2.1 46.2. MIT license. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "ornith-1.5-9b-q8",
+    "name": "Ornith 1.5 9B",
+    "params_b": 9.65,
+    "quantization": "Q8_0",
+    "weight_gb": 9.11,
+    "kv_per_1k_gb": 0.031,
+    "max_context_k": 256,
+    "layers": 32,
+    "mmlu_score": null,
+    "swe_bench_score": 70.6,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense model trained with a self-improvement loop. 32 layers, 8 full-attention (4 KV heads, head_dim 256), 24 linear-attention. 262K context. SWE-bench Verified 70.6, Terminal-Bench 2.1 46.2. MIT license. GGUF Q8_0 file size."
+  },
+  {
+    "id": "ornith-1.5-35b-a3b-q4",
+    "name": "Ornith 1.5 35B A3B",
+    "params_b": 35.95,
+    "quantization": "Q4_K_M",
+    "weight_gb": 20.22,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": null,
+    "swe_bench_score": 79.0,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE (256 experts, 8 routed per token, ~3B active). 40 layers, 10 full-attention (2 KV heads, head_dim 256), 30 linear-attention. 262K context. SWE-bench Verified 79.0, Terminal-Bench 2.1 67.8. MIT license. GGUF Q4_K_M file size.",
+    "active_weight_gb": 1.69
+  },
+  {
+    "id": "ornith-1.5-35b-a3b-q8",
+    "name": "Ornith 1.5 35B A3B",
+    "params_b": 35.95,
+    "quantization": "Q8_0",
+    "weight_gb": 35.21,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": null,
+    "swe_bench_score": 79.0,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE (256 experts, 8 routed per token, ~3B active). 40 layers, 10 full-attention (2 KV heads, head_dim 256), 30 linear-attention. 262K context. SWE-bench Verified 79.0, Terminal-Bench 2.1 67.8. MIT license. GGUF Q8_0 file size.",
+    "active_weight_gb": 2.94
+  },
+  {
+    "id": "ornith-1.5-397b-q4",
+    "name": "Ornith 1.5 397B",
+    "params_b": 403.4,
+    "quantization": "Q4_K_M",
+    "weight_gb": 227.53,
+    "kv_per_1k_gb": 0.029,
+    "max_context_k": 256,
+    "layers": 60,
+    "mmlu_score": null,
+    "swe_bench_score": 86.0,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE (512 experts, 10 routed per token, ~16B active). 60 layers, 15 full-attention (2 KV heads, head_dim 256), 45 linear-attention. 262K context. SWE-bench Verified 86.0, Terminal-Bench 2.1 86.1, WideSearch 80.8 - competitive with frontier closed models on agentic coding. MIT license. GGUF Q4_K_M file size.",
+    "active_weight_gb": 9.02
+  },
+  {
+    "id": "ornith-1.5-397b-q8",
+    "name": "Ornith 1.5 397B",
+    "params_b": 403.4,
+    "quantization": "Q8_0",
+    "weight_gb": 399.09,
+    "kv_per_1k_gb": 0.029,
+    "max_context_k": 256,
+    "layers": 60,
+    "mmlu_score": null,
+    "swe_bench_score": 86.0,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE (512 experts, 10 routed per token, ~16B active). 60 layers, 15 full-attention (2 KV heads, head_dim 256), 45 linear-attention. 262K context. SWE-bench Verified 86.0, Terminal-Bench 2.1 86.1, WideSearch 80.8 - competitive with frontier closed models on agentic coding. MIT license. GGUF Q8_0 file size.",
+    "active_weight_gb": 15.83
+  },
+  {
+    "id": "muse-glimmer-30b-q4",
+    "name": "Muse Glimmer 30B",
+    "params_b": 29.78,
+    "quantization": "Q4_K_M",
+    "weight_gb": 15.61,
+    "kv_per_1k_gb": 0.012,
+    "max_context_k": 128,
+    "layers": 52,
+    "mmlu_score": null,
+    "swe_bench_score": 76.0,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Meta's first open-weight release since Llama 4, distilled from Muse Spark. Dense multimodal: 27.8B language model plus a 1.8B frozen ViT vision encoder. 52 layers, 13 full-attention (2 KV heads, head_dim 128), 39 sliding-window (2048). 128K context. Weight excludes the separate mmproj vision projector file. SWE-bench Verified 76.0, SWE-bench Pro 51.2, AIME 2026 94.7, AA-GPQA Diamond 83.5. Apache 2.0. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "muse-glimmer-30b-q8",
+    "name": "Muse Glimmer 30B",
+    "params_b": 29.78,
+    "quantization": "Q8_0",
+    "weight_gb": 27.58,
+    "kv_per_1k_gb": 0.012,
+    "max_context_k": 128,
+    "layers": 52,
+    "mmlu_score": null,
+    "swe_bench_score": 76.0,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Meta's first open-weight release since Llama 4, distilled from Muse Spark. Dense multimodal: 27.8B language model plus a 1.8B frozen ViT vision encoder. 52 layers, 13 full-attention (2 KV heads, head_dim 128), 39 sliding-window (2048). 128K context. Weight excludes the separate mmproj vision projector file. SWE-bench Verified 76.0, SWE-bench Pro 51.2, AIME 2026 94.7, AA-GPQA Diamond 83.5. Apache 2.0. GGUF Q8_0 file size."
+  },
+  {
+    "id": "gemma-4-12b-q4",
+    "name": "Gemma 4 12B",
+    "params_b": 11.96,
+    "quantization": "Q4_K_M",
+    "weight_gb": 6.63,
+    "kv_per_1k_gb": 0.061,
+    "max_context_k": 256,
+    "layers": 48,
+    "mmlu_score": 77.2,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model. 48 layers, 8 full-attention (8 KV heads, head_dim 256), 40 sliding-window (1024). 256K context. MMLU-Pro 77.2, ahead of Gemma 3 27B (67.6) at under half the VRAM. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "gemma-4-12b-q8",
+    "name": "Gemma 4 12B",
+    "params_b": 11.96,
+    "quantization": "Q8_0",
+    "weight_gb": 11.8,
+    "kv_per_1k_gb": 0.061,
+    "max_context_k": 256,
+    "layers": 48,
+    "mmlu_score": 77.2,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model. 48 layers, 8 full-attention (8 KV heads, head_dim 256), 40 sliding-window (1024). 256K context. MMLU-Pro 77.2, ahead of Gemma 3 27B (67.6) at under half the VRAM. GGUF Q8_0 file size."
+  },
+  {
+    "id": "laguna-xs-2.1-q4",
+    "name": "Laguna XS 2.1",
+    "params_b": 33.44,
+    "quantization": "Q4_K_M",
+    "weight_gb": 19.14,
+    "kv_per_1k_gb": 0.038,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": null,
+    "swe_bench_score": 70.9,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Agentic long-horizon coding model from poolside. Sparse MoE (256 experts, 8 routed per token, ~3B active). 40 layers, 10 full-attention (8 KV heads, head_dim 128), 30 sliding-window (512). 262K context. SWE-bench Verified 70.9. GGUF Q4_K_M file size.",
+    "active_weight_gb": 1.72
+  },
+  {
+    "id": "laguna-xs-2.1-q8",
+    "name": "Laguna XS 2.1",
+    "params_b": 33.44,
+    "quantization": "Q8_0",
+    "weight_gb": 33.15,
+    "kv_per_1k_gb": 0.038,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": null,
+    "swe_bench_score": 70.9,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Agentic long-horizon coding model from poolside. Sparse MoE (256 experts, 8 routed per token, ~3B active). 40 layers, 10 full-attention (8 KV heads, head_dim 128), 30 sliding-window (512). 262K context. SWE-bench Verified 70.9. GGUF Q8_0 file size.",
+    "active_weight_gb": 2.97
+  },
+  {
+    "id": "qwen3.8-flash-next-q4",
+    "name": "Qwen3.8 Flash Next",
+    "params_b": 180.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 111.39,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 256,
+    "layers": 48,
+    "mmlu_score": 73.23,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Preview of the Qwen4 architecture. ~180B total on disk: a 125B MoE backbone (512 experts, 10 routed plus 1 shared, ~6B active per token) with a 51B n-gram embedding table and a 4B MTP head. 48 layers, 12 full-attention (2 KV heads, head_dim 256), 36 linear-attention. 262K context. MMLU-Pro 73.23, SWE-bench Pro 62.5, LiveCodeBench v6 91.9, GPQA 91.7. Weight excludes the separate MTP and mmproj files. GGUF Q4_K_M file size.",
+    "active_weight_gb": 3.71
+  },
+  {
+    "id": "qwen3.8-flash-next-q8",
+    "name": "Qwen3.8 Flash Next",
+    "params_b": 180.0,
+    "quantization": "Q8_0",
+    "weight_gb": 175.33,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 256,
+    "layers": 48,
+    "mmlu_score": 73.23,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Preview of the Qwen4 architecture. ~180B total on disk: a 125B MoE backbone (512 experts, 10 routed plus 1 shared, ~6B active per token) with a 51B n-gram embedding table and a 4B MTP head. 48 layers, 12 full-attention (2 KV heads, head_dim 256), 36 linear-attention. 262K context. MMLU-Pro 73.23, SWE-bench Pro 62.5, LiveCodeBench v6 91.9, GPQA 91.7. Weight excludes the separate MTP and mmproj files. GGUF Q8_0 file size.",
+    "active_weight_gb": 5.84
+  },
+  {
+    "id": "glm-5.3-flash-q4",
+    "name": "GLM 5.3 Flash",
+    "params_b": 321.32,
+    "quantization": "Q4_K_M",
+    "weight_gb": 176.02,
+    "kv_per_1k_gb": 0.01,
+    "max_context_k": 1024,
+    "layers": 45,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE (288 routed experts, 8 per token, plus 1 shared). 45 layers using Multi-head Latent Attention with kv_lora_rank 512: only 11 layers run DeepSeek-style sparse attention and cache a compressed latent, the other 34 are linear-attention, so KV cost per 1K tokens is unusually low for the size. Native 1M context. Terminal-Bench 2.1 84.3, DeepSWE v1.1 63.4. Z.ai did not publish MMLU-Pro or SWE-bench Verified. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "glm-5.3-flash-q8",
+    "name": "GLM 5.3 Flash",
+    "params_b": 321.32,
+    "quantization": "Q8_0",
+    "weight_gb": 310.41,
+    "kv_per_1k_gb": 0.01,
+    "max_context_k": 1024,
+    "layers": 45,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE (288 routed experts, 8 per token, plus 1 shared). 45 layers using Multi-head Latent Attention with kv_lora_rank 512: only 11 layers run DeepSeek-style sparse attention and cache a compressed latent, the other 34 are linear-attention, so KV cost per 1K tokens is unusually low for the size. Native 1M context. Terminal-Bench 2.1 84.3, DeepSWE v1.1 63.4. Z.ai did not publish MMLU-Pro or SWE-bench Verified. GGUF Q8_0 file size."
+  },
+  {
+    "id": "lfm2.5-2.6b-q4",
+    "name": "LFM2.5 2.6B",
+    "params_b": 2.7,
+    "quantization": "Q4_K_M",
+    "weight_gb": 1.56,
+    "kv_per_1k_gb": 0.015,
+    "max_context_k": 128,
+    "layers": 30,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use"
+    ],
+    "notes": "On-device agentic model. 30 layers, 8 full-attention (8 KV heads, head_dim 64) and 22 short-convolution layers, giving a very small KV footprint. 128K context. Strong instruction-following and tool-use scores for its size; MMLU not published for this release. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "lfm2.5-2.6b-q8",
+    "name": "LFM2.5 2.6B",
+    "params_b": 2.7,
+    "quantization": "Q8_0",
+    "weight_gb": 2.68,
+    "kv_per_1k_gb": 0.015,
+    "max_context_k": 128,
+    "layers": 30,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use"
+    ],
+    "notes": "On-device agentic model. 30 layers, 8 full-attention (8 KV heads, head_dim 64) and 22 short-convolution layers, giving a very small KV footprint. 128K context. Strong instruction-following and tool-use scores for its size; MMLU not published for this release. GGUF Q8_0 file size."
+  },
+  {
+    "id": "mistral-large-3-675b-q4",
+    "name": "Mistral Large 3 675B",
+    "params_b": 673.42,
+    "quantization": "Q4_K_M",
+    "weight_gb": 379.04,
+    "kv_per_1k_gb": 0.065,
+    "max_context_k": 288,
+    "layers": 61,
+    "mmlu_score": 73.11,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Granular MoE, 673B total with ~41B active per token, plus a 2.5B vision encoder. deepseek2 architecture: 61 layers of Multi-head Latent Attention (kv_lora_rank 512 plus 64 RoPE dims), so KV per 1K matches DeepSeek R1 despite the size. 288K context (294,912). Architecture read from the GGUF header; config.json is not published. MMLU-Pro 73.11, GPQA Diamond 67.17. Apache 2.0. GGUF Q4_K_M file size.",
+    "active_weight_gb": 23.08
+  },
+  {
+    "id": "mistral-large-3-675b-q8",
+    "name": "Mistral Large 3 675B",
+    "params_b": 673.42,
+    "quantization": "Q8_0",
+    "weight_gb": 666.53,
+    "kv_per_1k_gb": 0.065,
+    "max_context_k": 288,
+    "layers": 61,
+    "mmlu_score": 73.11,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Granular MoE, 673B total with ~41B active per token, plus a 2.5B vision encoder. deepseek2 architecture: 61 layers of Multi-head Latent Attention (kv_lora_rank 512 plus 64 RoPE dims), so KV per 1K matches DeepSeek R1 despite the size. 288K context (294,912). Architecture read from the GGUF header; config.json is not published. MMLU-Pro 73.11, GPQA Diamond 67.17. Apache 2.0. GGUF Q8_0 file size.",
+    "active_weight_gb": 40.58
+  },
+  {
+    "id": "qwen3.5-397b-a17b-q4",
+    "name": "Qwen3.5 397B A17B",
+    "params_b": 397.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 227.33,
+    "kv_per_1k_gb": 0.029,
+    "max_context_k": 256,
+    "layers": 60,
+    "mmlu_score": 87.0,
+    "swe_bench_score": 76.2,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE, 397B total with ~17B active per token. 60 layers, 15 full-attention (2 KV heads, head_dim 256), 45 linear-attention. Native 262K context. Multimodal (separate mmproj vision projector, not counted in the weight). SWE-bench Verified 76.2. GGUF Q4_K_M file size.",
+    "active_weight_gb": 9.73
+  },
+  {
+    "id": "qwen3.5-397b-a17b-q8",
+    "name": "Qwen3.5 397B A17B",
+    "params_b": 397.0,
+    "quantization": "Q8_0",
+    "weight_gb": 392.56,
+    "kv_per_1k_gb": 0.029,
+    "max_context_k": 256,
+    "layers": 60,
+    "mmlu_score": 87.0,
+    "swe_bench_score": 76.2,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE, 397B total with ~17B active per token. 60 layers, 15 full-attention (2 KV heads, head_dim 256), 45 linear-attention. Native 262K context. Multimodal (separate mmproj vision projector, not counted in the weight). SWE-bench Verified 76.2. GGUF Q8_0 file size.",
+    "active_weight_gb": 16.81
+  },
+  {
+    "id": "qwen3.5-122b-a10b-q4",
+    "name": "Qwen3.5 122B A10B",
+    "params_b": 122.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 71.28,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 256,
+    "layers": 48,
+    "mmlu_score": 85.0,
+    "swe_bench_score": 72.0,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE, 122B total with ~10B active per token. 48 layers, 12 full-attention (2 KV heads, head_dim 256), 36 linear-attention. Native 262K context. Multimodal (separate mmproj vision projector, not counted in the weight). SWE-bench Verified 72.0. GGUF Q4_K_M file size.",
+    "active_weight_gb": 5.84
+  },
+  {
+    "id": "qwen3.5-122b-a10b-q8",
+    "name": "Qwen3.5 122B A10B",
+    "params_b": 122.0,
+    "quantization": "Q8_0",
+    "weight_gb": 120.95,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 256,
+    "layers": 48,
+    "mmlu_score": 85.0,
+    "swe_bench_score": 72.0,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE, 122B total with ~10B active per token. 48 layers, 12 full-attention (2 KV heads, head_dim 256), 36 linear-attention. Native 262K context. Multimodal (separate mmproj vision projector, not counted in the weight). SWE-bench Verified 72.0. GGUF Q8_0 file size.",
+    "active_weight_gb": 9.91
+  },
+  {
+    "id": "minimax-m2.5-q4",
+    "name": "MiniMax M2.5",
+    "params_b": 228.7,
+    "quantization": "Q4_K_M",
+    "weight_gb": 128.84,
+    "kv_per_1k_gb": 0.237,
+    "max_context_k": 192,
+    "layers": 62,
+    "mmlu_score": 82.0,
+    "swe_bench_score": null,
+    "features": [
+      "reasoning",
+      "tool_use"
+    ],
+    "notes": "Sparse MoE, 228.7B total, 8 experts routed per token. 62 layers of full attention (8 KV heads, head_dim 128), so the KV cache is large relative to the newer hybrid-attention models. 192K context. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "minimax-m2.5-q8",
+    "name": "MiniMax M2.5",
+    "params_b": 228.7,
+    "quantization": "Q8_0",
+    "weight_gb": 226.44,
+    "kv_per_1k_gb": 0.237,
+    "max_context_k": 192,
+    "layers": 62,
+    "mmlu_score": 82.0,
+    "swe_bench_score": null,
+    "features": [
+      "reasoning",
+      "tool_use"
+    ],
+    "notes": "Sparse MoE, 228.7B total, 8 experts routed per token. 62 layers of full attention (8 KV heads, head_dim 128), so the KV cache is large relative to the newer hybrid-attention models. 192K context. GGUF Q8_0 file size."
+  },
+  {
+    "id": "glm-5-q4",
+    "name": "GLM 5",
+    "params_b": 753.86,
+    "quantization": "Q4_K_M",
+    "weight_gb": 424.57,
+    "kv_per_1k_gb": 0.084,
+    "max_context_k": 198,
+    "layers": 78,
+    "mmlu_score": 83.0,
+    "swe_bench_score": 77.8,
+    "features": [
+      "tool_use"
+    ],
+    "notes": "Sparse MoE, 754B total (256 routed experts, 8 per token). 78 layers of Multi-head Latent Attention (kv_lora_rank 512 plus 64 RoPE dims). 198K context. SWE-bench Verified 77.8. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "glm-5-q8",
+    "name": "GLM 5",
+    "params_b": 753.86,
+    "quantization": "Q8_0",
+    "weight_gb": 746.31,
+    "kv_per_1k_gb": 0.084,
+    "max_context_k": 198,
+    "layers": 78,
+    "mmlu_score": 83.0,
+    "swe_bench_score": 77.8,
+    "features": [
+      "tool_use"
+    ],
+    "notes": "Sparse MoE, 754B total (256 routed experts, 8 per token). 78 layers of Multi-head Latent Attention (kv_lora_rank 512 plus 64 RoPE dims). 198K context. SWE-bench Verified 77.8. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3.5-0.8b-q4",
+    "name": "Qwen3.5 0.8B",
+    "params_b": 0.8,
+    "quantization": "Q4_K_M",
+    "weight_gb": 0.5,
+    "kv_per_1k_gb": 0.011,
+    "max_context_k": 256,
+    "layers": 24,
+    "mmlu_score": 29.7,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "qwen3.5-0.8b-q8",
+    "name": "Qwen3.5 0.8B",
+    "params_b": 0.8,
+    "quantization": "Q8_0",
+    "weight_gb": 0.76,
+    "kv_per_1k_gb": 0.011,
+    "max_context_k": 256,
+    "layers": 24,
+    "mmlu_score": 29.7,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3.5-2b-q4",
+    "name": "Qwen3.5 2B",
+    "params_b": 2.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 1.19,
+    "kv_per_1k_gb": 0.011,
+    "max_context_k": 256,
+    "layers": 24,
+    "mmlu_score": 55.3,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "qwen3.5-2b-q8",
+    "name": "Qwen3.5 2B",
+    "params_b": 2.0,
+    "quantization": "Q8_0",
+    "weight_gb": 1.87,
+    "kv_per_1k_gb": 0.011,
+    "max_context_k": 256,
+    "layers": 24,
+    "mmlu_score": 55.3,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3.5-4b-q4",
+    "name": "Qwen3.5 4B",
+    "params_b": 4.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 2.55,
+    "kv_per_1k_gb": 0.031,
+    "max_context_k": 256,
+    "layers": 32,
+    "mmlu_score": 79.1,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "qwen3.5-4b-q8",
+    "name": "Qwen3.5 4B",
+    "params_b": 4.0,
+    "quantization": "Q8_0",
+    "weight_gb": 4.17,
+    "kv_per_1k_gb": 0.031,
+    "max_context_k": 256,
+    "layers": 32,
+    "mmlu_score": 79.1,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3.5-9b-q4",
+    "name": "Qwen3.5 9B",
+    "params_b": 9.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 5.29,
+    "kv_per_1k_gb": 0.031,
+    "max_context_k": 256,
+    "layers": 32,
+    "mmlu_score": 82.5,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "qwen3.5-9b-q8",
+    "name": "Qwen3.5 9B",
+    "params_b": 9.0,
+    "quantization": "Q8_0",
+    "weight_gb": 8.87,
+    "kv_per_1k_gb": 0.031,
+    "max_context_k": 256,
+    "layers": 32,
+    "mmlu_score": 82.5,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3.5-27b-q4",
+    "name": "Qwen3.5 27B",
+    "params_b": 27.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 15.59,
+    "kv_per_1k_gb": 0.061,
+    "max_context_k": 256,
+    "layers": 64,
+    "mmlu_score": 86.1,
+    "swe_bench_score": 72.4,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "qwen3.5-27b-q8",
+    "name": "Qwen3.5 27B",
+    "params_b": 27.0,
+    "quantization": "Q8_0",
+    "weight_gb": 26.63,
+    "kv_per_1k_gb": 0.061,
+    "max_context_k": 256,
+    "layers": 64,
+    "mmlu_score": 86.1,
+    "swe_bench_score": 72.4,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Dense multimodal model with hybrid attention: most layers are linear-attention with fixed-size recurrent state, so only the full-attention layers contribute a growing KV cache. Native 262K context. Apache 2.0. GGUF Q8_0 file size."
+  },
+  {
+    "id": "qwen3.5-35b-a3b-q4",
+    "name": "Qwen3.5 35B A3B",
+    "params_b": 35.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 20.5,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": 85.3,
+    "swe_bench_score": 69.2,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE, 35B total with ~3B active per token. Hybrid attention: only the full-attention layers hold a growing KV cache. Native 262K context. Apache 2.0. GGUF Q4_K_M file size.",
+    "active_weight_gb": 1.76
+  },
+  {
+    "id": "qwen3.5-35b-a3b-q8",
+    "name": "Qwen3.5 35B A3B",
+    "params_b": 35.0,
+    "quantization": "Q8_0",
+    "weight_gb": 34.37,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": 85.3,
+    "swe_bench_score": 69.2,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE, 35B total with ~3B active per token. Hybrid attention: only the full-attention layers hold a growing KV cache. Native 262K context. Apache 2.0. GGUF Q8_0 file size.",
+    "active_weight_gb": 2.95
   }
 ]

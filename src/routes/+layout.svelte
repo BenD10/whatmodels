@@ -33,7 +33,7 @@
 
   <footer>
     <p>
-      Data last updated June 2026.
+      Data last updated September 2026.
       <a href="https://github.com/BenD10/whatmodels" target="_blank" rel="noopener">&#9829; GitHub</a> ·
       <a href="https://github.com/BenD10/whatmodels/issues" target="_blank" rel="noopener">Report an issue</a> ·
       <a href="{base}/privacy">Privacy Policy</a>

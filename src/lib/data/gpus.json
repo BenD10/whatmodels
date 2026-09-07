@@ -1,5 +1,12 @@
 [
   {
+    "id": "rtx-pro-4500",
+    "name": "RTX PRO 4500 Blackwell",
+    "manufacturer": "NVIDIA",
+    "vram_gb": 32,
+    "bandwidth_gbps": 896
+  },
+  {
     "id": "dgx-spark-gb-10",
     "name": "DGX Spark (GB 10)",
     "manufacturer": "NVIDIA",
@@ -497,6 +504,13 @@
     "bandwidth_gbps": 900
   },
   {
+    "id": "radeon-ai-pro-r9700",
+    "name": "Radeon AI PRO R9700",
+    "manufacturer": "AMD",
+    "vram_gb": 32,
+    "bandwidth_gbps": 640
+  },
+  {
     "id": "rx-9070-xt",
     "name": "Radeon RX 9070 XT",
     "manufacturer": "AMD",
@@ -702,6 +716,13 @@
     ]
   },
   {
+    "id": "arc-pro-b70",
+    "name": "Arc Pro B70",
+    "manufacturer": "Intel",
+    "vram_gb": 32,
+    "bandwidth_gbps": 608
+  },
+  {
     "id": "arc-b580",
     "name": "Arc B580",
     "manufacturer": "Intel",
@@ -742,6 +763,63 @@
     "manufacturer": "Intel",
     "vram_gb": 8,
     "bandwidth_gbps": 512
+  },
+  {
+    "id": "m3-ultra",
+    "name": "M3 Ultra",
+    "manufacturer": "Apple",
+    "vram_options": [
+      {
+        "vram_gb": 96,
+        "bandwidth_gbps": 819
+      },
+      {
+        "vram_gb": 256,
+        "bandwidth_gbps": 819
+      },
+      {
+        "vram_gb": 512,
+        "bandwidth_gbps": 819
+      }
+    ]
+  },
+  {
+    "id": "m6",
+    "name": "M6",
+    "manufacturer": "Apple",
+    "vram_options": [
+      {
+        "vram_gb": 16,
+        "bandwidth_gbps": 170
+      },
+      {
+        "vram_gb": 24,
+        "bandwidth_gbps": 170
+      },
+      {
+        "vram_gb": 32,
+        "bandwidth_gbps": 170
+      }
+    ]
+  },
+  {
+    "id": "m5-ultra",
+    "name": "M5 Ultra",
+    "manufacturer": "Apple",
+    "vram_options": [
+      {
+        "vram_gb": 96,
+        "bandwidth_gbps": 1200
+      },
+      {
+        "vram_gb": 256,
+        "bandwidth_gbps": 1200
+      },
+      {
+        "vram_gb": 512,
+        "bandwidth_gbps": 1200
+      }
+    ]
   },
   {
     "id": "m5-max",
@@ -858,17 +936,6 @@
       {
         "vram_gb": 32,
         "bandwidth_gbps": 120
-      }
-    ]
-  },
-  {
-    "id": "m3-ultra",
-    "name": "M3 Ultra",
-    "manufacturer": "Apple",
-    "vram_options": [
-      {
-        "vram_gb": 192,
-        "bandwidth_gbps": 800
       }
     ]
   },
