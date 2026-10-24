@@ -4,6 +4,7 @@
   import { bucketModels, contextLabel, gpuConfigs, groupVariants, tokLabel, topModelsByScore } from '$lib/calculations.js';
   import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, modelSlug, toolQuery } from '$lib/pages.js';
   import ModelResults from '$lib/components/ModelResults.svelte';
+  import NotifySignup from '$lib/components/NotifySignup.svelte';
 
   let { data } = $props();
 
@@ -138,7 +139,11 @@
 
   <section>
     <h3 class="section-title">Every model on the {shortName}{#if configs.length > 1}{' '}({config.vram} GB){/if}</h3>
-    <ModelResults vram={config.vram} bandwidth={config.bandwidth} bind:sortBy />
+    <ModelResults vram={config.vram} bandwidth={config.bandwidth} bind:sortBy>
+      {#snippet beforeNoFit()}
+        <NotifySignup vram={config.vram} gpuId={gpu.id} gpuName={shortName} pageType="gpu" />
+      {/snippet}
+    </ModelResults>
   </section>
 </article>
 

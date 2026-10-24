@@ -1,9 +1,13 @@
 <script>
   import { base } from '$app/paths';
   import { page } from '$app/stores';
+  import { afterNavigate } from '$app/navigation';
+  import { resetPageView } from '$lib/analytics.js';
   import '../app.css';
 
   let { children } = $props();
+
+  afterNavigate(resetPageView);
 </script>
 
 <div class="shell">

@@ -5,7 +5,7 @@
   import { trackFilterChanged } from '$lib/analytics.js';
   import { modelSlug } from '$lib/pages.js';
 
-  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {} } = $props();
+  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {}, beforeNoFit = null } = $props();
 
   function onSortByChange(e) {
     sortBy = e.target.value;
@@ -193,6 +193,9 @@
         </ul>
       </div>
     {/if}
+
+    <!-- Optional content between the tight-fit and doesn't-fit groups (e.g. the email signup) -->
+    {@render beforeNoFit?.()}
 
     {#if groupedNoFit.length > 0}
       <div class="group no-fit">
