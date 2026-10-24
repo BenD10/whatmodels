@@ -7,7 +7,10 @@ const CACHE_NAME = `whatmodels-${version}`;
  * All assets to pre-cache: the built app chunks + static files.
  * This gives full offline support since the site has no runtime API calls.
  */
-const ASSETS = [...build, ...files];
+const ASSETS = [...build, ...files.filter((f) => !f.split('/').pop().startsWith('.'))]; // skip .nojekyll etc.
+
+// Hashed build output and static files never change within a version
+const IMMUTABLE = new Set(ASSETS);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -35,25 +38,30 @@ self.addEventListener('fetch', (event) => {
   // Don't cache analytics or external requests
   if (url.origin !== self.location.origin) return;
 
+  // Cache-first for hashed build assets and static files
+  if (IMMUTABLE.has(url.pathname)) {
+    event.respondWith(caches.match(event.request).then((cached) => cached ?? fetch(event.request)));
+    return;
+  }
+
+  // Network-first for pages and everything else, so a new deploy shows up on
+  // the next visit (and its HTML never references chunks that were deleted).
+  // The cached copy is only used offline.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      // Cache-first for hashed build assets (immutable), network-first for HTML
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          // Cache successful responses for future offline use
-          if (response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => {
-          // Offline fallback: try to return the cached root page for navigation
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
-          }
-        });
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        // Offline fallback for an uncached page: the cached root page
+        if (event.request.mode === 'navigate') return caches.match('/');
+        return Response.error();
+      })
   );
 });
