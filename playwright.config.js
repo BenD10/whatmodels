@@ -24,7 +24,9 @@ export default defineConfig({
   webServer: externalServer
     ? undefined
     : {
-        command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
+        // Bind IPv4 explicitly: on CI runners `localhost` can resolve to ::1 only,
+        // and the readiness check below polls 127.0.0.1
+        command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${PORT} --strictPort`,
         url: `http://127.0.0.1:${PORT}`,
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
