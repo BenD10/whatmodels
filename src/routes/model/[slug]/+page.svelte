@@ -1,7 +1,8 @@
 <script>
   import { base } from '$app/paths';
   import gpus from '$lib/data/gpus.json';
-  import { TIGHT_FIT_CONTEXT_K, calcVramForContext, contextLabel, gpusForModel, tokLabel } from '$lib/calculations.js';
+  import { TIGHT_FIT_CONTEXT_K, calcVramForContext, cheapestGpusFor, contextLabel, gpusForModel, tokLabel } from '$lib/calculations.js';
+  import CheapestGpus from '$lib/components/CheapestGpus.svelte';
   import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, jsonLdScript } from '$lib/pages.js';
 
   let { data } = $props();
@@ -16,6 +17,7 @@
   let showMidContext = $derived(model.max_context_k > MID_CONTEXT_K);
 
   let runners = $derived(gpusForModel(variants, gpus));
+  let cheapestToBuy = $derived(cheapestGpusFor(variants, gpus));
   let runnersWell = $derived(runners.filter((r) => r.status === 'fits'));
   let cheapest = $derived(
     runnersWell.reduce((best, r) => (best == null || r.config.vram < best.config.vram ? r : best), null)
@@ -144,6 +146,17 @@
     </div>
     <p class="note">Weights plus fp16 KV cache. Leave ~1 GB headroom for the inference engine.</p>
   </section>
+
+  {#if cheapestToBuy.length > 0}
+    <section>
+      <h3>Cheapest GPUs that can run {model.name}</h3>
+      <p class="note">
+        Lowest launch MSRP among GPUs that run its smallest quantization ({smallest.quantization}) well, with at least
+        {contextLabel(TIGHT_FIT_CONTEXT_K)} context.
+      </p>
+      <CheapestGpus picks={cheapestToBuy} pageType="model" placement="model_cheapest" />
+    </section>
+  {/if}
 
   <section>
     <h3>GPUs that can run {model.name}</h3>

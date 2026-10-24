@@ -43,6 +43,16 @@
     header in your browser, or by using an ad blocker.
   </p>
 
+  <h3>Affiliate links</h3>
+  <p>
+    Some pages have "Check price on Amazon" links. These are affiliate links: as an Amazon Associate,
+    I earn from qualifying purchases, at no extra cost to you. They go to amazon.ca if your browser's
+    time zone is Canadian and to amazon.com otherwise; the time zone is checked in your browser and
+    isn't sent anywhere. When you click one, the site's analytics record that an affiliate link was
+    clicked (which GPU, which store, and where on the page). What you do on Amazon is covered by
+    Amazon's privacy policy, not this one. Prices shown on this site are launch MSRPs, not Amazon prices.
+  </p>
+
   <h3>Third-party links</h3>
   <p>
     The site links to GitHub and HuggingFace. Those sites have their own privacy policies and

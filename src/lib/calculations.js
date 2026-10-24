@@ -638,3 +638,67 @@ export function summarizeResults({ fits, tight, noFit }) {
     fastest: pickMax(fits.filter((e) => e.tokPerSec != null && e.mmlu_score >= GOOD_QUALITY_MMLU), 'tokPerSec'),
   };
 }
+
+/** GPUs we can suggest buying: discrete, with a known launch MSRP (Apple Silicon isn't sold as a GPU). */
+function isBuyableGpu(gpu) {
+  return gpu.manufacturer !== 'Apple' && gpu.msrp_usd != null && gpu.vram_gb != null;
+}
+
+/**
+ * The cheapest GPUs (by launch MSRP) that run a model well at its smallest
+ * quantization, i.e. in bucketModels' "fits" bucket, with at least 4K context.
+ *
+ * @param {Array} variants  All quantization variants of one model
+ * @param {Array} gpus  GPU objects from gpus.json
+ * @param {{ limit?: number, minVramExclusive?: number }} [options]
+ *   minVramExclusive: only GPUs with more VRAM than this (to suggest upgrades)
+ * @returns {Array<{ gpu: object, quantization: string, tokPerSec: number|null, maxCtxK: number }>}
+ *   cheapest first; speed and context are for the smallest quantization
+ */
+export function cheapestGpusFor(variants, gpus, { limit = 3, minVramExclusive = 0 } = {}) {
+  if (variants.length === 0) return [];
+  const smallest = variants.reduce((a, b) => (b.weight_gb < a.weight_gb ? b : a));
+  const out = [];
+  for (const gpu of gpus) {
+    if (!isBuyableGpu(gpu) || gpu.vram_gb <= minVramExclusive) continue;
+    const { fits } = bucketModels([smallest], gpu.vram_gb, gpu.bandwidth_gbps, null, null);
+    if (fits.length > 0) {
+      out.push({ gpu, quantization: smallest.quantization, tokPerSec: fits[0].tokPerSec, maxCtxK: fits[0].maxCtxK });
+    }
+  }
+  return out
+    .sort((a, b) => a.gpu.msrp_usd - b.gpu.msrp_usd || b.gpu.vram_gb - a.gpu.vram_gb || b.gpu.bandwidth_gbps - a.gpu.bandwidth_gbps)
+    .slice(0, limit);
+}
+
+/** An upgrade must add at least this much VRAM to be worth suggesting (8 GB → 10 GB isn't). */
+export const MIN_UPGRADE_VRAM_GB = 4;
+
+/**
+ * Upgrade options for a GPU: the cheapest buyable GPU at each of the next VRAM
+ * tiers, at least MIN_UPGRADE_VRAM_GB above its largest memory option (ties:
+ * more bandwidth). A tier is skipped when a GPU with even more VRAM costs the
+ * same or less, since that one is the better buy.
+ *
+ * @param {object} gpu  The current GPU
+ * @param {Array} gpus  GPU objects from gpus.json
+ * @param {number} limit
+ * @returns {Array<object>} GPUs, smallest VRAM first
+ */
+export function upgradeOptionsFor(gpu, gpus, limit = 2) {
+  const current = Math.max(...gpuConfigs(gpu).map((c) => c.vram));
+  const candidates = gpus.filter((g) => isBuyableGpu(g) && g.vram_gb >= current + MIN_UPGRADE_VRAM_GB);
+
+  const cheapestPerTier = new Map();
+  for (const g of candidates) {
+    const best = cheapestPerTier.get(g.vram_gb);
+    if (!best || g.msrp_usd < best.msrp_usd || (g.msrp_usd === best.msrp_usd && g.bandwidth_gbps > best.bandwidth_gbps)) {
+      cheapestPerTier.set(g.vram_gb, g);
+    }
+  }
+
+  return [...cheapestPerTier.values()]
+    .filter((pick) => !candidates.some((g) => g.vram_gb > pick.vram_gb && g.msrp_usd <= pick.msrp_usd))
+    .sort((a, b) => a.vram_gb - b.vram_gb)
+    .slice(0, limit);
+}
