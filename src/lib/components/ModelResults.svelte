@@ -2,7 +2,7 @@
   import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
   import gpus from '$lib/data/gpus.json';
-  import { contextLabel, tokLabel, bucketModels, cheapestGpusFor, groupByBestStatus, summarizeResults } from '$lib/calculations.js';
+  import { TIGHT_FIT_CONTEXT_K, contextLabel, tokLabel, bucketModels, cheapestGpusFor, groupByBestStatus, summarizeResults } from '$lib/calculations.js';
   import { trackFilterChanged } from '$lib/analytics.js';
   import { modelSlug } from '$lib/pages.js';
   import ResultsSummary from '$lib/components/ResultsSummary.svelte';
@@ -170,8 +170,8 @@
       {/if}
       {#if !v.meetsMinCtx && v.fitsAtAll && !v.offloadInfo}
         <p class="reason variant-reason">Only {contextLabel(v.maxCtxK)} context — below your {contextLabel(minContextK)} minimum</p>
-      {:else if v.maxCtxK < 4 && !v.offloadInfo}
-        <p class="reason variant-reason">Very limited context window ({contextLabel(v.maxCtxK)})</p>
+      {:else if v.maxCtxK < TIGHT_FIT_CONTEXT_K && !v.offloadInfo}
+        <p class="reason variant-reason">Only {v.maxCtxK > 0 ? contextLabel(v.maxCtxK) : 'minimal'} context — under the {contextLabel(TIGHT_FIT_CONTEXT_K)} needed to be practical</p>
       {/if}
       {#if !v.meetsMinSpeed && v.tokPerSec != null && !v.offloadInfo}
         <p class="reason variant-reason">~{v.tokPerSec} tok/s — below your {minTokPerSec} tok/s minimum</p>
