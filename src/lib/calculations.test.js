@@ -17,6 +17,9 @@ import {
   topModelsByScore,
   bestVariantFor,
   gpusForModel,
+  summarizeResults,
+  groupByBestStatus,
+  GOOD_QUALITY_MMLU,
   INFERENCE_OVERHEAD_GB,
   TIGHT_FIT_CONTEXT_K,
   MAX_OFFLOAD_RATIO,
@@ -972,5 +975,76 @@ describe('gpusForModel', () => {
     const apple = gpusForModel([mediumModel, mediumQ4], gpus).find((r) => r.gpu.id === 'apple');
     expect(apple.config.memIdx).toBe(0);
     expect(apple.status).toBe('fits');
+  });
+});
+
+describe('summarizeResults', () => {
+  it('counts each model once, at its best status', () => {
+    // 8 GB: mediumQ4 (4.9 GB) fits but mediumModel Q8 (8.99 GB) does not, so
+    // Test Medium counts only as fits; largeModel does not fit
+    const r = bucketModels([smallModel, mediumModel, mediumQ4, largeModel], 8, 500, null, null);
+    const s = summarizeResults(r);
+    expect(s.counts).toEqual({ fits: 2, tight: 0, noFit: 1 });
+    expect(s.total).toBe(3);
+  });
+
+  it('picks highlights from models that run well', () => {
+    const r = bucketModels([smallModel, mediumModel, mediumQ4, largeModel], 64, 1000, null, null);
+    const s = summarizeResults(r);
+    expect(s.bestGeneral.name).toBe('Test Large');
+    expect(s.bestCoding.name).toBe('Test Large');
+    expect(s.largest.name).toBe('Test Large');
+    // Highest-precision variant of Test Medium is the Q8
+    expect(summarizeResults(bucketModels([mediumModel, mediumQ4], 24, 1000, null, null)).largest.id).toBe('test-medium');
+  });
+
+  it('uses the fastest variant for fastest', () => {
+    // Both Test Medium variants run well at 24 GB; Q4 (4.9 GB) is faster than Q8
+    expect(summarizeResults(bucketModels([mediumModel, mediumQ4], 24, 1000, null, null)).fastest.id).toBe('test-medium-q4');
+  });
+
+  it('only considers good-quality models for fastest', () => {
+    // smallModel (MMLU 49.3) is faster but below the Good tier
+    expect(smallModel.mmlu_score).toBeLessThan(GOOD_QUALITY_MMLU);
+    const s = summarizeResults(bucketModels([smallModel, mediumQ4], 24, 1000, null, null));
+    expect(s.fastest.name).toBe('Test Medium');
+  });
+
+  it('returns null highlights when nothing runs well', () => {
+    const s = summarizeResults(bucketModels([largeModel], 8, 500, null, null));
+    expect(s).toMatchObject({ counts: { fits: 0, tight: 0, noFit: 1 }, bestGeneral: null, largest: null, fastest: null });
+  });
+
+  it('leaves fastest null without bandwidth', () => {
+    expect(summarizeResults(bucketModels([mediumModel], 24, null, null, null)).fastest).toBeNull();
+  });
+});
+
+describe('groupByBestStatus', () => {
+  it('lists each model once, under its best status', () => {
+    // 8 GB: Test Medium Q4 fits, its Q8 does not; Test Large does not fit at all
+    const g = groupByBestStatus(bucketModels([smallModel, mediumModel, mediumQ4, largeModel], 8, 500, null, null));
+    expect(g.fits.map((m) => m.name).sort()).toEqual(['Test Medium', 'Test Small']);
+    expect(g.tight).toEqual([]);
+    expect(g.noFit.map((m) => m.name)).toEqual(['Test Large']);
+  });
+
+  it('keeps worse variants on the card as otherVariants, tagged with their status', () => {
+    const g = groupByBestStatus(bucketModels([mediumModel, mediumQ4], 8, 500, null, null));
+    const medium = g.fits[0];
+    expect(medium.variants.map((v) => v.id)).toEqual(['test-medium-q4']);
+    expect(medium.otherVariants.map((v) => [v.id, v.status])).toEqual([['test-medium', 'noFit']]);
+  });
+
+  it('tags tight variants of a model that runs well', () => {
+    // 9.5 GB: Q4 (4.9 GB) leaves 4.6 / 0.25 = 18K → fits; Q8 (8.99 GB) leaves 0.51 / 0.25 = 2K → tight
+    const g = groupByBestStatus(bucketModels([mediumModel, mediumQ4], 9.5, 500, null, null));
+    expect(g.fits[0].otherVariants.map((v) => [v.id, v.status])).toEqual([['test-medium', 'tight']]);
+    expect(g.tight).toEqual([]);
+  });
+
+  it('gives models with a single status no otherVariants', () => {
+    const g = groupByBestStatus(bucketModels([smallModel], 8, 500, null, null));
+    expect(g.fits[0].otherVariants).toEqual([]);
   });
 });
