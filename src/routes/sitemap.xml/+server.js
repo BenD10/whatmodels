@@ -9,7 +9,6 @@ const pages = [
   { path: '/gpus',    priority: '0.8', changefreq: 'weekly'  },
   { path: '/models',  priority: '0.8', changefreq: 'weekly'  },
   { path: '/primer',  priority: '0.8', changefreq: 'monthly' },
-  { path: '/about',   priority: '0.5', changefreq: 'monthly' },
   { path: '/privacy', priority: '0.3', changefreq: 'yearly'  },
   ...gpus.map((g) => ({ path: `/gpu/${g.id}`, priority: '0.7', changefreq: 'monthly' })),
   ...modelPages(allModels).map((m) => ({ path: `/model/${m.slug}`, priority: '0.7', changefreq: 'monthly' })),
