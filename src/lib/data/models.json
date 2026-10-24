@@ -1103,7 +1103,7 @@
     "max_context_k": 128,
     "layers": 47,
     "mmlu_score": 82.0,
-    "swe_bench_score": null,
+    "swe_bench_score": 59.2,
     "features": [
       "reasoning",
       "tool_use"
@@ -1120,7 +1120,7 @@
     "max_context_k": 128,
     "layers": 47,
     "mmlu_score": 82.0,
-    "swe_bench_score": null,
+    "swe_bench_score": 59.2,
     "features": [
       "reasoning",
       "tool_use"
@@ -1499,7 +1499,7 @@
     "max_context_k": 128,
     "layers": 24,
     "mmlu_score": 75.0,
-    "swe_bench_score": null,
+    "swe_bench_score": 60.7,
     "features": [
       "reasoning",
       "tool_use"
@@ -1516,7 +1516,7 @@
     "max_context_k": 128,
     "layers": 24,
     "mmlu_score": 75.0,
-    "swe_bench_score": null,
+    "swe_bench_score": 60.7,
     "features": [
       "reasoning",
       "tool_use"
@@ -1815,7 +1815,7 @@
     "max_context_k": 256,
     "layers": 52,
     "mmlu_score": 79.8,
-    "swe_bench_score": null,
+    "swe_bench_score": 50.2,
     "active_weight_gb": 3.13,
     "features": [
       "reasoning",
@@ -1833,7 +1833,7 @@
     "max_context_k": 256,
     "layers": 52,
     "mmlu_score": 79.8,
-    "swe_bench_score": null,
+    "swe_bench_score": 50.2,
     "active_weight_gb": 2.3,
     "features": [
       "reasoning",
@@ -2156,7 +2156,7 @@
     "kv_per_1k_gb": 0.065,
     "max_context_k": 1024,
     "layers": 61,
-    "mmlu_score": null,
+    "mmlu_score": 87.5,
     "swe_bench_score": 80.6,
     "features": [
       "tool_use",
@@ -2173,7 +2173,7 @@
     "kv_per_1k_gb": 0.065,
     "max_context_k": 1024,
     "layers": 61,
-    "mmlu_score": null,
+    "mmlu_score": 87.5,
     "swe_bench_score": 80.6,
     "features": [
       "tool_use",
@@ -2659,7 +2659,7 @@
     "max_context_k": 192,
     "layers": 62,
     "mmlu_score": 82.0,
-    "swe_bench_score": null,
+    "swe_bench_score": 80.2,
     "features": [
       "reasoning",
       "tool_use"
@@ -2676,7 +2676,7 @@
     "max_context_k": 192,
     "layers": 62,
     "mmlu_score": 82.0,
-    "swe_bench_score": null,
+    "swe_bench_score": 80.2,
     "features": [
       "reasoning",
       "tool_use"
@@ -2932,5 +2932,440 @@
     ],
     "notes": "Sparse MoE, 35B total with ~3B active per token. Hybrid attention: only the full-attention layers hold a growing KV cache. Native 262K context. Apache 2.0. GGUF Q8_0 file size.",
     "active_weight_gb": 2.95
+  },
+  {
+    "id": "nemotron-3.5-lightning-30b-a3b-q4",
+    "name": "Nemotron 3.5 Lightning 30B A3B",
+    "params_b": 31.58,
+    "quantization": "Q4_K_M",
+    "weight_gb": 23.73,
+    "kv_per_1k_gb": 0.006,
+    "max_context_k": 256,
+    "layers": 52,
+    "mmlu_score": 81.94,
+    "swe_bench_score": 51.56,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Hybrid Mamba-Transformer MoE (6 attention + 23 Mamba-2 + 23 MoE layers, 128 routed experts, 6 active, ~3B active per token). 2 KV heads, head_dim 128 on the attention layers only; Mamba layers hold fixed-size state. Config ships 262K context (up to 1M validated on large GPUs). MMLU-Pro 81.94, SWE-bench Verified 51.56. Weight excludes the separate MTP file. GGUF Q4_K_M file size.",
+    "active_weight_gb": 2.25
+  },
+  {
+    "id": "nemotron-3.5-lightning-30b-a3b-q8",
+    "name": "Nemotron 3.5 Lightning 30B A3B",
+    "params_b": 31.58,
+    "quantization": "Q8_0",
+    "weight_gb": 32.6,
+    "kv_per_1k_gb": 0.006,
+    "max_context_k": 256,
+    "layers": 52,
+    "mmlu_score": 81.94,
+    "swe_bench_score": 51.56,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Hybrid Mamba-Transformer MoE (6 attention + 23 Mamba-2 + 23 MoE layers, 128 routed experts, 6 active, ~3B active per token). 2 KV heads, head_dim 128 on the attention layers only; Mamba layers hold fixed-size state. Config ships 262K context (up to 1M validated on large GPUs). MMLU-Pro 81.94, SWE-bench Verified 51.56. Weight excludes the separate MTP file. GGUF Q8_0 file size.",
+    "active_weight_gb": 3.1
+  },
+  {
+    "id": "nemotron-3.5-super-vl-120b-a12b-q4",
+    "name": "Nemotron 3.5 Super VL 120B A12B",
+    "params_b": 124.45,
+    "quantization": "Q4_K_M",
+    "weight_gb": 65.29,
+    "kv_per_1k_gb": 0.008,
+    "max_context_k": 1024,
+    "layers": 88,
+    "mmlu_score": null,
+    "swe_bench_score": 71.1,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Hybrid Mamba-Transformer MoE vision-language model: 88 layers (40 Mamba-2, 40 MoE with 512 experts / 22 active, 8 attention), ~12B active per token, plus a C-RADIO vision encoder. 2 KV heads, head_dim 128 on the 8 attention layers only, so the KV cache is very small. Up to 1M context. SWE-bench Verified 71.1, SWE-bench Pro 51.78, GPQA Diamond 89.5. Weight excludes the separate mmproj and MTP files. OpenMDW-1.1 license. GGUF Q4_K_M file size.",
+    "active_weight_gb": 6.3
+  },
+  {
+    "id": "nemotron-3.5-super-vl-120b-a12b-q8",
+    "name": "Nemotron 3.5 Super VL 120B A12B",
+    "params_b": 124.45,
+    "quantization": "Q8_0",
+    "weight_gb": 119.65,
+    "kv_per_1k_gb": 0.008,
+    "max_context_k": 1024,
+    "layers": 88,
+    "mmlu_score": null,
+    "swe_bench_score": 71.1,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Hybrid Mamba-Transformer MoE vision-language model: 88 layers (40 Mamba-2, 40 MoE with 512 experts / 22 active, 8 attention), ~12B active per token, plus a C-RADIO vision encoder. 2 KV heads, head_dim 128 on the 8 attention layers only, so the KV cache is very small. Up to 1M context. SWE-bench Verified 71.1, SWE-bench Pro 51.78, GPQA Diamond 89.5. Weight excludes the separate mmproj and MTP files. OpenMDW-1.1 license. GGUF Q8_0 file size.",
+    "active_weight_gb": 11.54
+  },
+  {
+    "id": "nemotron-3.5-bolt-74b-a9b-q8",
+    "name": "Nemotron 3.5 Bolt 74B A9B",
+    "params_b": 74.89,
+    "quantization": "Q8_0",
+    "weight_gb": 73.44,
+    "kv_per_1k_gb": 0.008,
+    "max_context_k": 256,
+    "layers": 88,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Compressed (Puzzle/Star Elastic) derivative of Nemotron 3.5 Super VL: hybrid Mamba-Transformer MoE, 88 layers (40 Mamba-2, 40 MoE with top-9 routing, 8 attention), ~9B active per token, with the C-RADIO vision encoder. 2 KV heads, head_dim 128 on the 8 attention layers only. 256K context. NVIDIA's recommended local build is the official 24GB IQ2_XXS GGUF (22 GB); no standard Q4_K_M from a major quantizer yet. GPQA Diamond 88.8, Terminal-Bench 2.1 53.9. MMLU-Pro and SWE-bench Verified not published. Weight excludes the separate mmproj file. OpenMDW-1.1 license. GGUF Q8_0 file size.",
+    "active_weight_gb": 8.83
+  },
+  {
+    "id": "ornith-1.5-122b-q4",
+    "name": "Ornith 1.5 122B",
+    "params_b": 125.09,
+    "quantization": "Q4_K_M",
+    "weight_gb": 70.64,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 256,
+    "layers": 48,
+    "mmlu_score": null,
+    "swe_bench_score": 84.5,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE on the Qwen3.5-122B architecture (256 experts, 8 routed per token plus 1 shared, ~10B active). 48 layers, 12 full-attention (2 KV heads, head_dim 256), 36 linear-attention. 262K context. SWE-bench Verified 84.5 (OpenHands, anti-hack), SWE-bench Pro 76.9. MMLU-Pro not published. MIT license. Official ornith-ai GGUF. GGUF Q4_K_M file size.",
+    "active_weight_gb": 5.65
+  },
+  {
+    "id": "ornith-1.5-122b-q8",
+    "name": "Ornith 1.5 122B",
+    "params_b": 125.09,
+    "quantization": "Q8_0",
+    "weight_gb": 123.45,
+    "kv_per_1k_gb": 0.023,
+    "max_context_k": 256,
+    "layers": 48,
+    "mmlu_score": null,
+    "swe_bench_score": 84.5,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Sparse MoE on the Qwen3.5-122B architecture (256 experts, 8 routed per token plus 1 shared, ~10B active). 48 layers, 12 full-attention (2 KV heads, head_dim 256), 36 linear-attention. 262K context. SWE-bench Verified 84.5 (OpenHands, anti-hack), SWE-bench Pro 76.9. MMLU-Pro not published. MIT license. Official ornith-ai GGUF. GGUF Q8_0 file size.",
+    "active_weight_gb": 9.87
+  },
+  {
+    "id": "lfm2.5-24b-a2b-q4",
+    "name": "LFM2.5 24B A2B",
+    "params_b": 23.97,
+    "quantization": "Q4_K_M",
+    "weight_gb": 13.53,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 128,
+    "layers": 40,
+    "mmlu_score": null,
+    "swe_bench_score": 51.0,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Liquid AI's largest LFM2.5 model: sparse MoE (64 experts, 4 per token, 2.45B active) built for on-device agents. 40 layers: 30 short-convolution blocks plus 10 GQA attention layers (8 KV heads, head_dim 64), so only the attention layers hold a growing KV cache. 131K context. Always reasons before answering. SWE-bench Verified 51.0 (OpenCode harness). MMLU-Pro not published. Official LiquidAI GGUF. GGUF Q4_K_M file size.",
+    "active_weight_gb": 1.38
+  },
+  {
+    "id": "lfm2.5-24b-a2b-q8",
+    "name": "LFM2.5 24B A2B",
+    "params_b": 23.97,
+    "quantization": "Q8_0",
+    "weight_gb": 23.74,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 128,
+    "layers": 40,
+    "mmlu_score": null,
+    "swe_bench_score": 51.0,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Liquid AI's largest LFM2.5 model: sparse MoE (64 experts, 4 per token, 2.45B active) built for on-device agents. 40 layers: 30 short-convolution blocks plus 10 GQA attention layers (8 KV heads, head_dim 64), so only the attention layers hold a growing KV cache. 131K context. Always reasons before answering. SWE-bench Verified 51.0 (OpenCode harness). MMLU-Pro not published. Official LiquidAI GGUF. GGUF Q8_0 file size.",
+    "active_weight_gb": 2.43
+  },
+  {
+    "id": "flint-40b-a2.5b-q4",
+    "name": "Flint 40B A2.5B",
+    "params_b": 39.79,
+    "quantization": "Q4_K_M",
+    "weight_gb": 23.61,
+    "kv_per_1k_gb": 0.027,
+    "max_context_k": 256,
+    "layers": 49,
+    "mmlu_score": null,
+    "swe_bench_score": 74.2,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Recursive's coding-agent MoE: 39.8B total, ~2.5B active (256 experts, 6 per token, plus shared expert). 49 layers: 14 full-attention (4 KV heads, head_dim 128, no positional encoding) and 35 sliding-window (513 tokens), so only the full-attention layers grow the KV cache. 262K context. SWE-bench Verified 74.2 (mini-swe-agent), Terminal-Bench 2.1 54.9. MMLU-Pro not published. Apache 2.0. GGUF Q4_K_M file size.",
+    "active_weight_gb": 1.48
+  },
+  {
+    "id": "flint-40b-a2.5b-q8",
+    "name": "Flint 40B A2.5B",
+    "params_b": 39.79,
+    "quantization": "Q8_0",
+    "weight_gb": 39.44,
+    "kv_per_1k_gb": 0.027,
+    "max_context_k": 256,
+    "layers": 49,
+    "mmlu_score": null,
+    "swe_bench_score": 74.2,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Recursive's coding-agent MoE: 39.8B total, ~2.5B active (256 experts, 6 per token, plus shared expert). 49 layers: 14 full-attention (4 KV heads, head_dim 128, no positional encoding) and 35 sliding-window (513 tokens), so only the full-attention layers grow the KV cache. 262K context. SWE-bench Verified 74.2 (mini-swe-agent), Terminal-Bench 2.1 54.9. MMLU-Pro not published. Apache 2.0. GGUF Q8_0 file size.",
+    "active_weight_gb": 2.48
+  },
+  {
+    "id": "minicpm-v-4.7-35b-a3b-q4",
+    "name": "MiniCPM-V 4.7 35B A3B",
+    "params_b": 35.21,
+    "quantization": "Q4_K_M",
+    "weight_gb": 19.71,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "OpenBMB vision-language model on a Qwen3.5/3.6-35B-A3B MoE backbone (256 experts, 8 routed, ~3B active) with an early-compression ViT supporting mixed 4x/16x visual token compression. 40 layers, 10 full-attention (2 KV heads, head_dim 256), 30 linear-attention. 262K context. Instruct and thinking modes, tool calling. MMLU-Pro and SWE-bench Verified not published. Weight excludes the separate mmproj file. Apache 2.0. Official openbmb GGUF. GGUF Q4_K_M file size.",
+    "active_weight_gb": 1.68
+  },
+  {
+    "id": "minicpm-v-4.7-35b-a3b-q8",
+    "name": "MiniCPM-V 4.7 35B A3B",
+    "params_b": 35.21,
+    "quantization": "Q8_0",
+    "weight_gb": 34.37,
+    "kv_per_1k_gb": 0.019,
+    "max_context_k": 256,
+    "layers": 40,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "OpenBMB vision-language model on a Qwen3.5/3.6-35B-A3B MoE backbone (256 experts, 8 routed, ~3B active) with an early-compression ViT supporting mixed 4x/16x visual token compression. 40 layers, 10 full-attention (2 KV heads, head_dim 256), 30 linear-attention. 262K context. Instruct and thinking modes, tool calling. MMLU-Pro and SWE-bench Verified not published. Weight excludes the separate mmproj file. Apache 2.0. Official openbmb GGUF. GGUF Q8_0 file size.",
+    "active_weight_gb": 2.93
+  },
+  {
+    "id": "mimo-v2.6-distill-qwen-9b-q4",
+    "name": "MiMo V2.6 Distill Qwen 9B",
+    "params_b": 9.41,
+    "quantization": "Q4_K_M",
+    "weight_gb": 5.44,
+    "kv_per_1k_gb": 0.031,
+    "max_context_k": 256,
+    "layers": 32,
+    "mmlu_score": null,
+    "swe_bench_score": 61.1,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Xiaomi MiMo's agentic SFT of Qwen3.5-9B on MiMo-V2.6-generated data, covering coding, general agent tasks and visual coding. Dense, 32 layers: 8 full-attention (4 KV heads, head_dim 256) and 24 linear-attention, so only the full-attention layers grow the KV cache. 262K context. SWE-bench Verified 61.1 (avg@3), SWE-bench Pro 44.6, Terminal-Bench 2.1 37.1. MMLU-Pro not published. Weight excludes the separate mmproj file. MIT license. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "mimo-v2.6-distill-qwen-9b-q8",
+    "name": "MiMo V2.6 Distill Qwen 9B",
+    "params_b": 9.41,
+    "quantization": "Q8_0",
+    "weight_gb": 8.89,
+    "kv_per_1k_gb": 0.031,
+    "max_context_k": 256,
+    "layers": 32,
+    "mmlu_score": null,
+    "swe_bench_score": 61.1,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Xiaomi MiMo's agentic SFT of Qwen3.5-9B on MiMo-V2.6-generated data, covering coding, general agent tasks and visual coding. Dense, 32 layers: 8 full-attention (4 KV heads, head_dim 256) and 24 linear-attention, so only the full-attention layers grow the KV cache. 262K context. SWE-bench Verified 61.1 (avg@3), SWE-bench Pro 44.6, Terminal-Bench 2.1 37.1. MMLU-Pro not published. Weight excludes the separate mmproj file. MIT license. GGUF Q8_0 file size."
+  },
+  {
+    "id": "beam-1.0-501b-a23b-q4",
+    "name": "Beam 1.0 501B A23B",
+    "params_b": 501.27,
+    "quantization": "Q4_K_M",
+    "weight_gb": 292.93,
+    "kv_per_1k_gb": 0.034,
+    "max_context_k": 1024,
+    "layers": 52,
+    "mmlu_score": null,
+    "swe_bench_score": 81.6,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Reflection AI's first open model: sparse MoE, 501.3B total, 23.4B active (256 experts, 8 per token). 52 layers (3 dense + 49 MoE): 9 full-attention gated-GQA layers (8 KV heads, head_dim 128) and 43 sliding-window (512) layers, so only the full-attention layers grow the KV cache. 1M context. Text only. SWE-bench Verified 81.6 (BF16), SWE-bench Multilingual 78.3. MMLU-Pro not published. Apache 2.0. GGUF Q4_K_M file size.",
+    "active_weight_gb": 13.67
+  },
+  {
+    "id": "beam-1.0-501b-a23b-q8",
+    "name": "Beam 1.0 501B A23B",
+    "params_b": 501.27,
+    "quantization": "Q8_0",
+    "weight_gb": 496.2,
+    "kv_per_1k_gb": 0.034,
+    "max_context_k": 1024,
+    "layers": 52,
+    "mmlu_score": null,
+    "swe_bench_score": 81.6,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Reflection AI's first open model: sparse MoE, 501.3B total, 23.4B active (256 experts, 8 per token). 52 layers (3 dense + 49 MoE): 9 full-attention gated-GQA layers (8 KV heads, head_dim 128) and 43 sliding-window (512) layers, so only the full-attention layers grow the KV cache. 1M context. Text only. SWE-bench Verified 81.6 (BF16), SWE-bench Multilingual 78.3. MMLU-Pro not published. Apache 2.0. GGUF Q8_0 file size.",
+    "active_weight_gb": 23.16
+  },
+  {
+    "id": "muse-spark-open-816b-a42b-q8",
+    "name": "Muse Spark Open 816B A42B",
+    "params_b": 822.04,
+    "quantization": "Q8_0",
+    "weight_gb": 811.79,
+    "kv_per_1k_gb": 0.061,
+    "max_context_k": 1024,
+    "layers": 62,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Meta's open-weight release of Muse Spark: natively multimodal MoE (256 experts, 8 per token, ~42B active) with a 1.8B Perception Encoder for image, video and audio input. 62 layers: 16 full-attention (16 KV heads, head_dim 64) and 46 sliding-window (2048) layers, so only the full-attention layers grow the KV cache. 1M context. Terminal-Bench 2.1 76.4, GPQA Diamond 89.0, DeepSWE 1.1 60. Meta did not publish MMLU-Pro or SWE-bench Verified. Q8_0 from ggml-org; Q4_K_M from DevQuasar (no standard Q4_K_M from unsloth or bartowski). Weight excludes the separate mmproj file. Muse Model License. GGUF Q8_0 file size.",
+    "active_weight_gb": 41.48
+  },
+  {
+    "id": "muse-spark-open-816b-a42b-q4",
+    "name": "Muse Spark Open 816B A42B",
+    "params_b": 822.04,
+    "quantization": "Q4_K_M",
+    "weight_gb": 465.28,
+    "kv_per_1k_gb": 0.061,
+    "max_context_k": 1024,
+    "layers": 62,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "vision",
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Meta's open-weight release of Muse Spark: natively multimodal MoE (256 experts, 8 per token, ~42B active) with a 1.8B Perception Encoder for image, video and audio input. 62 layers: 16 full-attention (16 KV heads, head_dim 64) and 46 sliding-window (2048) layers, so only the full-attention layers grow the KV cache. 1M context. Terminal-Bench 2.1 76.4, GPQA Diamond 89.0, DeepSWE 1.1 60. Meta did not publish MMLU-Pro or SWE-bench Verified. Q8_0 from ggml-org; Q4_K_M from DevQuasar (no standard Q4_K_M from unsloth or bartowski). Weight excludes the separate mmproj file. Muse Model License. GGUF Q4_K_M file size.",
+    "active_weight_gb": 23.77
+  },
+  {
+    "id": "nemotron-3.5-bolt-e4b-q4",
+    "name": "Nemotron 3.5 Bolt E4B",
+    "params_b": 8.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 5.76,
+    "kv_per_1k_gb": 0.015,
+    "max_context_k": 64,
+    "layers": 42,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "NVIDIA post-train of Gemma 4 E4B for on-device assistants (text in, text out). 8.0B parameters stored including per-layer embeddings (~4B effective). 42 layers: 35 sliding-window (512) and 7 full-attention (2 KV heads, global head_dim 512); the last 18 layers reuse earlier KV caches, so only 4 full-attention layers grow the cache. 64K context. Thinking mode via chat template. Leads Gemma 4 E4B on MultiChallenge, IFBench and BFCL-v3. MMLU-Pro and SWE-bench Verified not published. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "nemotron-3.5-bolt-e4b-q8",
+    "name": "Nemotron 3.5 Bolt E4B",
+    "params_b": 8.0,
+    "quantization": "Q8_0",
+    "weight_gb": 7.48,
+    "kv_per_1k_gb": 0.015,
+    "max_context_k": 64,
+    "layers": 42,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "NVIDIA post-train of Gemma 4 E4B for on-device assistants (text in, text out). 8.0B parameters stored including per-layer embeddings (~4B effective). 42 layers: 35 sliding-window (512) and 7 full-attention (2 KV heads, global head_dim 512); the last 18 layers reuse earlier KV caches, so only 4 full-attention layers grow the cache. 64K context. Thinking mode via chat template. Leads Gemma 4 E4B on MultiChallenge, IFBench and BFCL-v3. MMLU-Pro and SWE-bench Verified not published. GGUF Q8_0 file size."
+  },
+  {
+    "id": "glm-5.3-q8",
+    "name": "GLM 5.3",
+    "params_b": 753.33,
+    "quantization": "Q8_0",
+    "weight_gb": 746.32,
+    "kv_per_1k_gb": 0.084,
+    "max_context_k": 1024,
+    "layers": 78,
+    "mmlu_score": null,
+    "swe_bench_score": null,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "Z.ai flagship sparse MoE on the GLM-5 architecture: 753B total (256 routed experts, 8 per token, plus 1 shared, ~40B active). 78 layers of Multi-head Latent Attention with DeepSeek-style sparse attention (kv_lora_rank 512 plus 64 RoPE dims, one latent per token per layer). 1M context. DeepSWE v1.1 66.9, FrontierSWE 78.1. Z.ai did not publish MMLU-Pro or SWE-bench Verified. Only Q8_0 listed: no standard Q4_K_M from unsloth, bartowski or Z.ai (unsloth ships UD dynamic quants). GGUF Q8_0 file size.",
+    "active_weight_gb": 39.63
+  },
+  {
+    "id": "k2-horizon-7b-q4",
+    "name": "K2-Horizon 7B",
+    "params_b": 9.0,
+    "quantization": "Q4_K_M",
+    "weight_gb": 5.21,
+    "kv_per_1k_gb": 0.137,
+    "max_context_k": 512,
+    "layers": 36,
+    "mmlu_score": null,
+    "swe_bench_score": 70.6,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "IFM (MBZUAI) dense reasoning model, the medium member of the K2-Horizon family: 9.0B stored parameters around a 7B core. 36 full-attention layers (8 KV heads, head_dim 128), so KV cost grows quickly at its native 512K context. SWE-bench Verified 70.6, Terminal-Bench 2.1 39.1, BrowseComp 59.0, HMMT Feb 2026 73.3. MMLU-Pro not published. Apache 2.0. Official IFM GGUF. GGUF Q4_K_M file size."
+  },
+  {
+    "id": "k2-horizon-7b-q8",
+    "name": "K2-Horizon 7B",
+    "params_b": 9.0,
+    "quantization": "Q8_0",
+    "weight_gb": 8.92,
+    "kv_per_1k_gb": 0.137,
+    "max_context_k": 512,
+    "layers": 36,
+    "mmlu_score": null,
+    "swe_bench_score": 70.6,
+    "features": [
+      "tool_use",
+      "reasoning"
+    ],
+    "notes": "IFM (MBZUAI) dense reasoning model, the medium member of the K2-Horizon family: 9.0B stored parameters around a 7B core. 36 full-attention layers (8 KV heads, head_dim 128), so KV cost grows quickly at its native 512K context. SWE-bench Verified 70.6, Terminal-Bench 2.1 39.1, BrowseComp 59.0, HMMT Feb 2026 73.3. MMLU-Pro not published. Apache 2.0. Official IFM GGUF. GGUF Q8_0 file size."
   }
 ]
