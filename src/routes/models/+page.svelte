@@ -1,7 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
-  import { TIGHT_FIT_CONTEXT_K, calcVramForContext } from '$lib/calculations.js';
+  import { TIGHT_FIT_CONTEXT_K, calcVramForContext, contextLabel } from '$lib/calculations.js';
   import { SITE_NAME, SITE_URL, jsonLdScript, modelPages } from '$lib/pages.js';
 
   const models = modelPages(allModels);
@@ -36,7 +36,7 @@
 
 <div class="page">
   <h2>Browse by model</h2>
-  <p class="intro">Pick a model to see the VRAM it needs and which GPUs can run it. Minimum VRAM is for the smallest quantization with 4K context.</p>
+  <p class="intro">Pick a model to see the VRAM it needs and which GPUs can run it. Minimum VRAM is for the smallest quantization with {contextLabel(TIGHT_FIT_CONTEXT_K)} context.</p>
 
   <ul>
     {#each models as m}

@@ -414,7 +414,7 @@ describe('bucketModels', () => {
   });
 
   it('uses TIGHT_FIT_CONTEXT_K threshold', () => {
-    expect(TIGHT_FIT_CONTEXT_K).toBe(4);
+    expect(TIGHT_FIT_CONTEXT_K).toBe(16);
   });
 
   // Feature filtering tests
@@ -942,15 +942,15 @@ describe('topModelsByScore', () => {
 
 describe('bestVariantFor', () => {
   it('picks the highest-precision variant that runs well', () => {
-    // 12 GB: Q8 (8.99 GB) leaves 3.01 / 0.25 = 12K context → fits
-    const best = bestVariantFor([mediumModel, mediumQ4], 12, 500);
+    // 14 GB: Q8 (8.99 GB) leaves 5.01 / 0.25 = 20K context → fits
+    const best = bestVariantFor([mediumModel, mediumQ4], 14, 500);
     expect(best.status).toBe('fits');
     expect(best.variant.id).toBe('test-medium');
   });
 
   it('falls back to a smaller variant when the larger does not fit', () => {
-    // 8 GB: Q8 (8.99 GB) does not fit, Q4 (4.9 GB) → 12K context
-    expect(bestVariantFor([mediumModel, mediumQ4], 8, 500).variant.id).toBe('test-medium-q4');
+    // 10 GB: Q8 (8.99 GB) leaves 1.01 / 0.25 = 4K → only tight; Q4 (4.9 GB) → 20K → fits
+    expect(bestVariantFor([mediumModel, mediumQ4], 10, 500).variant.id).toBe('test-medium-q4');
   });
 
   it('reports tight when only a tight fit exists', () => {
@@ -975,17 +975,18 @@ describe('gpusForModel', () => {
   });
 
   it('uses the smallest memory config that runs the model well', () => {
+    // 8 GB gives Q4 only 3.1 / 0.25 = 12K (tight); 16 GB gives 44K
     const apple = gpusForModel([mediumModel, mediumQ4], gpus).find((r) => r.gpu.id === 'apple');
-    expect(apple.config.memIdx).toBe(0);
+    expect(apple.config.memIdx).toBe(1);
     expect(apple.status).toBe('fits');
   });
 });
 
 describe('summarizeResults', () => {
   it('counts each model once, at its best status', () => {
-    // 8 GB: mediumQ4 (4.9 GB) fits but mediumModel Q8 (8.99 GB) does not, so
+    // 10 GB: mediumQ4 runs well (20K) but mediumModel Q8 gets only 4K (tight), so
     // Test Medium counts only as fits; largeModel does not fit
-    const r = bucketModels([smallModel, mediumModel, mediumQ4, largeModel], 8, 500, null, null);
+    const r = bucketModels([smallModel, mediumModel, mediumQ4, largeModel], 10, 500, null, null);
     const s = summarizeResults(r);
     expect(s.counts).toEqual({ fits: 2, tight: 0, noFit: 1 });
     expect(s.total).toBe(3);
@@ -1025,15 +1026,16 @@ describe('summarizeResults', () => {
 
 describe('groupByBestStatus', () => {
   it('lists each model once, under its best status', () => {
-    // 8 GB: Test Medium Q4 fits, its Q8 does not; Test Large does not fit at all
-    const g = groupByBestStatus(bucketModels([smallModel, mediumModel, mediumQ4, largeModel], 8, 500, null, null));
+    // 10 GB: Test Medium Q4 runs well, its Q8 is only tight; Test Large does not fit at all
+    const g = groupByBestStatus(bucketModels([smallModel, mediumModel, mediumQ4, largeModel], 10, 500, null, null));
     expect(g.fits.map((m) => m.name).sort()).toEqual(['Test Medium', 'Test Small']);
     expect(g.tight).toEqual([]);
     expect(g.noFit.map((m) => m.name)).toEqual(['Test Large']);
   });
 
   it('keeps worse variants on the card as otherVariants, tagged with their status', () => {
-    const g = groupByBestStatus(bucketModels([mediumModel, mediumQ4], 8, 500, null, null));
+    // 9 GB: Q4 leaves 4.1 / 0.25 = 16K → fits; Q8 needs 9.24 GB → doesn't fit
+    const g = groupByBestStatus(bucketModels([mediumModel, mediumQ4], 9, 500, null, null));
     const medium = g.fits[0];
     expect(medium.variants.map((v) => v.id)).toEqual(['test-medium-q4']);
     expect(medium.otherVariants.map((v) => [v.id, v.status])).toEqual([['test-medium', 'noFit']]);
@@ -1068,11 +1070,11 @@ const shopGpus = [
 
 describe('cheapestGpusFor', () => {
   it('ranks buyable GPUs that run the smallest quantization well by MSRP', () => {
-    // Test Medium Q4 (4.9 GB): 8 GB leaves 3.1 / 0.25 = 12K context → runs well everywhere
+    // Test Medium Q4 (4.9 GB): 8 GB leaves 3.1 / 0.25 = 12K (only tight); 12 GB leaves 28K
     const picks = cheapestGpusFor([mediumModel, mediumQ4], shopGpus);
-    expect(picks.map((p) => p.gpu.id)).toEqual(['cheap-8', 'mid-12', 'mid-12-pricey']);
-    // tok/s is for the smallest quantization: round(400 / (4.9 + 1.0)) = 68
-    expect(picks[0].tokPerSec).toBe(68);
+    expect(picks.map((p) => p.gpu.id)).toEqual(['mid-12', 'mid-12-pricey', 'big-16']);
+    // tok/s is for the smallest quantization: round(456 / (4.9 + 1.0)) = 77
+    expect(picks[0].tokPerSec).toBe(77);
   });
 
   it('skips Apple, GPUs without an MSRP, and GPUs that only fit tightly', () => {

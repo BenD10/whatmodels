@@ -13,10 +13,11 @@
 export const INFERENCE_OVERHEAD_GB = 1.0;
 
 /**
- * Models with less than this context (in K tokens) are considered a
- * "tight fit" regardless of other criteria.
+ * Models with less than this usable context (in K tokens) are a "tight fit"
+ * regardless of other criteria: below 16K, chat history, documents and code
+ * barely fit, so the model isn't practical to use.
  */
-export const TIGHT_FIT_CONTEXT_K = 4;
+export const TIGHT_FIT_CONTEXT_K = 16;
 
 /**
  * Calculate effective VRAM and bandwidth for multi-GPU setups.
@@ -397,7 +398,7 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
     } else if (!e.meetsMinCtx || !e.meetsMinSpeed || !e.meetsFeatures) {
       tight.push(e);
     } else if (e.maxCtxK < TIGHT_FIT_CONTEXT_K) {
-      // Less than 4K context is a tight fit regardless
+      // Less than TIGHT_FIT_CONTEXT_K of context is a tight fit regardless
       tight.push(e);
     } else {
       fits.push(e);
@@ -646,7 +647,7 @@ function isBuyableGpu(gpu) {
 
 /**
  * The cheapest GPUs (by launch MSRP) that run a model well at its smallest
- * quantization, i.e. in bucketModels' "fits" bucket, with at least 4K context.
+ * quantization, i.e. in bucketModels' "fits" bucket, with at least TIGHT_FIT_CONTEXT_K context.
  *
  * @param {Array} variants  All quantization variants of one model
  * @param {Array} gpus  GPU objects from gpus.json

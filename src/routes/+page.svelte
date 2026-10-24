@@ -2,7 +2,7 @@
   import { browser } from '$app/environment';
   import { replaceState } from '$app/navigation';
   import gpus from '$lib/data/gpus.json';
-  import { calcMultiGpuResources } from '$lib/calculations.js';
+  import { TIGHT_FIT_CONTEXT_K, calcMultiGpuResources } from '$lib/calculations.js';
   import GpuInput from '$lib/components/GpuInput.svelte';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
@@ -40,11 +40,12 @@
       }
     }
 
-    // Validate context — must be a positive number
+    // Validate context — must be a positive number. Values under the
+    // TIGHT_FIT_CONTEXT_K floor (old 2K/4K/8K links) add nothing, so they mean "Any".
     const rawCtx = params.get('ctx') ?? '';
     if (rawCtx !== '') {
       const val = Number(rawCtx);
-      if (!Number.isNaN(val) && val > 0) {
+      if (!Number.isNaN(val) && val >= TIGHT_FIT_CONTEXT_K) {
         contextK = rawCtx;
       }
     }

@@ -25,7 +25,7 @@ tok/s = round(bandwidth / (weight_gb + 1.0))                [1.0 GB overhead con
 ```
 
 - `INFERENCE_OVERHEAD_GB = 1.0` — empirically calibrated, do not change without benchmarks
-- `TIGHT_FIT_CONTEXT_K = 4` — models below 4K context are always "tight fit"
+- `TIGHT_FIT_CONTEXT_K = 16` — models below 16K usable context are always "tight fit" (under 16K isn't practical)
 
 ## Testing
 

@@ -16,9 +16,6 @@
 
   const CONTEXT_OPTIONS = [
     { value: null, label: 'Any' },
-    { value: 2, label: '2K' },
-    { value: 4, label: '4K' },
-    { value: 8, label: '8K' },
     { value: 16, label: '16K' },
     { value: 32, label: '32K' },
     { value: 64, label: '64K' },
