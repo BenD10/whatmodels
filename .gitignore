@@ -5,3 +5,5 @@ build
 .env.*
 !.env.example
 vite.config.js.timestamp-*
+
+__pycache__/

@@ -1,5 +1,53 @@
 [
   {
+    "id": "rtx-spark",
+    "name": "RTX Spark",
+    "manufacturer": "NVIDIA",
+    "vram_options": [
+      {
+        "vram_gb": 24,
+        "bandwidth_gbps": 300
+      },
+      {
+        "vram_gb": 32,
+        "bandwidth_gbps": 300
+      },
+      {
+        "vram_gb": 48,
+        "bandwidth_gbps": 300
+      },
+      {
+        "vram_gb": 64,
+        "bandwidth_gbps": 300
+      },
+      {
+        "vram_gb": 128,
+        "bandwidth_gbps": 300
+      }
+    ]
+  },
+  {
+    "id": "rtx-pro-5500",
+    "name": "RTX PRO 5500 Blackwell",
+    "manufacturer": "NVIDIA",
+    "vram_gb": 84,
+    "bandwidth_gbps": 1398
+  },
+  {
+    "id": "rtx-pro-4000",
+    "name": "RTX PRO 4000 Blackwell",
+    "manufacturer": "NVIDIA",
+    "vram_gb": 24,
+    "bandwidth_gbps": 672
+  },
+  {
+    "id": "rtx-5080",
+    "name": "GeForce RTX 5080",
+    "manufacturer": "NVIDIA",
+    "vram_gb": 16,
+    "bandwidth_gbps": 960
+  },
+  {
     "id": "rtx-pro-4500",
     "name": "RTX PRO 4500 Blackwell",
     "manufacturer": "NVIDIA",
@@ -19,13 +67,6 @@
     "manufacturer": "NVIDIA",
     "vram_gb": 32,
     "bandwidth_gbps": 1792
-  },
-  {
-    "id": "rtx-5080",
-    "name": "GeForce RTX 5080",
-    "manufacturer": "NVIDIA",
-    "vram_gb": 16,
-    "bandwidth_gbps": 896
   },
   {
     "id": "rtx-5070-ti",
@@ -357,13 +398,6 @@
     "bandwidth_gbps": 1344
   },
   {
-    "id": "rtx-pro-4000",
-    "name": "RTX PRO 4000 Blackwell",
-    "manufacturer": "NVIDIA",
-    "vram_gb": 24,
-    "bandwidth_gbps": 432
-  },
-  {
     "id": "rtx-6000-ada",
     "name": "RTX 6000 Ada",
     "manufacturer": "NVIDIA",
@@ -504,6 +538,32 @@
     "bandwidth_gbps": 900
   },
   {
+    "id": "ryzen-ai-max-400",
+    "name": "Ryzen AI Max 400 (Gorgon Halo)",
+    "manufacturer": "AMD",
+    "vram_options": [
+      {
+        "vram_gb": 64,
+        "bandwidth_gbps": 273
+      },
+      {
+        "vram_gb": 128,
+        "bandwidth_gbps": 273
+      },
+      {
+        "vram_gb": 192,
+        "bandwidth_gbps": 273
+      }
+    ]
+  },
+  {
+    "id": "rx-9070-gre",
+    "name": "Radeon RX 9070 GRE",
+    "manufacturer": "AMD",
+    "vram_gb": 12,
+    "bandwidth_gbps": 432
+  },
+  {
     "id": "radeon-ai-pro-r9700",
     "name": "Radeon AI PRO R9700",
     "manufacturer": "AMD",
@@ -523,13 +583,6 @@
     "manufacturer": "AMD",
     "vram_gb": 16,
     "bandwidth_gbps": 640
-  },
-  {
-    "id": "rx-9070-gre",
-    "name": "Radeon RX 9070 GRE",
-    "manufacturer": "AMD",
-    "vram_gb": 16,
-    "bandwidth_gbps": 576
   },
   {
     "id": "rx-9060-xt-16gb",
@@ -716,6 +769,13 @@
     ]
   },
   {
+    "id": "arc-pro-b65",
+    "name": "Arc Pro B65",
+    "manufacturer": "Intel",
+    "vram_gb": 32,
+    "bandwidth_gbps": 608
+  },
+  {
     "id": "arc-pro-b70",
     "name": "Arc Pro B70",
     "manufacturer": "Intel",
@@ -765,6 +825,44 @@
     "bandwidth_gbps": 512
   },
   {
+    "id": "m5",
+    "name": "M5",
+    "manufacturer": "Apple",
+    "vram_options": [
+      {
+        "vram_gb": 16,
+        "bandwidth_gbps": 153
+      },
+      {
+        "vram_gb": 24,
+        "bandwidth_gbps": 153
+      },
+      {
+        "vram_gb": 32,
+        "bandwidth_gbps": 153
+      }
+    ]
+  },
+  {
+    "id": "m6",
+    "name": "M6",
+    "manufacturer": "Apple",
+    "vram_options": [
+      {
+        "vram_gb": 16,
+        "bandwidth_gbps": 153
+      },
+      {
+        "vram_gb": 24,
+        "bandwidth_gbps": 170
+      },
+      {
+        "vram_gb": 32,
+        "bandwidth_gbps": 170
+      }
+    ]
+  },
+  {
     "id": "m3-ultra",
     "name": "M3 Ultra",
     "manufacturer": "Apple",
@@ -780,25 +878,6 @@
       {
         "vram_gb": 512,
         "bandwidth_gbps": 819
-      }
-    ]
-  },
-  {
-    "id": "m6",
-    "name": "M6",
-    "manufacturer": "Apple",
-    "vram_options": [
-      {
-        "vram_gb": 16,
-        "bandwidth_gbps": 170
-      },
-      {
-        "vram_gb": 24,
-        "bandwidth_gbps": 170
-      },
-      {
-        "vram_gb": 32,
-        "bandwidth_gbps": 170
       }
     ]
   },
@@ -860,25 +939,6 @@
       {
         "vram_gb": 64,
         "bandwidth_gbps": 307
-      }
-    ]
-  },
-  {
-    "id": "m5",
-    "name": "M5",
-    "manufacturer": "Apple",
-    "vram_options": [
-      {
-        "vram_gb": 16,
-        "bandwidth_gbps": 154
-      },
-      {
-        "vram_gb": 24,
-        "bandwidth_gbps": 154
-      },
-      {
-        "vram_gb": 32,
-        "bandwidth_gbps": 154
       }
     ]
   },
