@@ -60,13 +60,14 @@
     onstatechange = () => {},
   } = $props();
 
-  let selectedGpuId = $state(initialGpuId);
-  let manualVram = $state(initialManualVram);
-  let contextSelection = $state(initialContextK !== '' ? Number(initialContextK) : '');
-  let speedSelection = $state(initialSpeed !== '' ? Number(initialSpeed) : '');
-  let selectedMemoryIdx = $state(initialMemIdx !== '' ? Number(initialMemIdx) : '');
-  let featureSelection = $state(initialFeatures.length > 0 ? [...initialFeatures] : []);
-  let systemRamInput = $state(initialSystemRam);
+  // Seeded once from the URL-derived initial* props; after that the user owns these
+  let selectedGpuId = $state(untrack(() => initialGpuId));
+  let manualVram = $state(untrack(() => initialManualVram));
+  let contextSelection = $state(untrack(() => (initialContextK !== '' ? Number(initialContextK) : '')));
+  let speedSelection = $state(untrack(() => (initialSpeed !== '' ? Number(initialSpeed) : '')));
+  let selectedMemoryIdx = $state(untrack(() => (initialMemIdx !== '' ? Number(initialMemIdx) : '')));
+  let featureSelection = $state(untrack(() => (initialFeatures.length > 0 ? [...initialFeatures] : [])));
+  let systemRamInput = $state(untrack(() => initialSystemRam));
   let gpuQuantity = $state(untrack(() => initialGpuQuantity !== '' ? Number(initialGpuQuantity) : 1));
 
   // Track per-GPU base VRAM/bandwidth so we can recalculate when quantity changes
