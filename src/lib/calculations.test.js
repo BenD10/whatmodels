@@ -19,6 +19,9 @@ import {
   gpusForModel,
   summarizeResults,
   groupByBestStatus,
+  cheapestGpusFor,
+  upgradeOptionsFor,
+  MIN_UPGRADE_VRAM_GB,
   GOOD_QUALITY_MMLU,
   INFERENCE_OVERHEAD_GB,
   TIGHT_FIT_CONTEXT_K,
@@ -1046,5 +1049,65 @@ describe('groupByBestStatus', () => {
   it('gives models with a single status no otherVariants', () => {
     const g = groupByBestStatus(bucketModels([smallModel], 8, 500, null, null));
     expect(g.fits[0].otherVariants).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Upgrade suggestions
+// ---------------------------------------------------------------------------
+
+const shopGpus = [
+  { id: 'cheap-8', manufacturer: 'Intel', vram_gb: 8, bandwidth_gbps: 400, msrp_usd: 179 },
+  { id: 'mid-12', manufacturer: 'Intel', vram_gb: 12, bandwidth_gbps: 456, msrp_usd: 249 },
+  { id: 'mid-12-pricey', manufacturer: 'NVIDIA', vram_gb: 12, bandwidth_gbps: 504, msrp_usd: 549 },
+  { id: 'big-16', manufacturer: 'AMD', vram_gb: 16, bandwidth_gbps: 640, msrp_usd: 599 },
+  { id: 'huge-24', manufacturer: 'NVIDIA', vram_gb: 24, bandwidth_gbps: 1008, msrp_usd: 1599 },
+  { id: 'no-price', manufacturer: 'NVIDIA', vram_gb: 48, bandwidth_gbps: 960, msrp_usd: null },
+  { id: 'mac', manufacturer: 'Apple', vram_options: [{ vram_gb: 64, bandwidth_gbps: 400 }], msrp_usd: 1999 },
+];
+
+describe('cheapestGpusFor', () => {
+  it('ranks buyable GPUs that run the smallest quantization well by MSRP', () => {
+    // Test Medium Q4 (4.9 GB): 8 GB leaves 3.1 / 0.25 = 12K context → runs well everywhere
+    const picks = cheapestGpusFor([mediumModel, mediumQ4], shopGpus);
+    expect(picks.map((p) => p.gpu.id)).toEqual(['cheap-8', 'mid-12', 'mid-12-pricey']);
+    // tok/s is for the smallest quantization: round(400 / (4.9 + 1.0)) = 68
+    expect(picks[0].tokPerSec).toBe(68);
+  });
+
+  it('skips Apple, GPUs without an MSRP, and GPUs that only fit tightly', () => {
+    // Test Large (43.5 GB) fits nothing here except the unpriced 48 GB card and the Mac
+    expect(cheapestGpusFor([largeModel], shopGpus)).toEqual([]);
+  });
+
+  it('only suggests GPUs with more VRAM than the current one when asked', () => {
+    const picks = cheapestGpusFor([mediumQ4], shopGpus, { minVramExclusive: 12 });
+    expect(picks.map((p) => p.gpu.id)).toEqual(['big-16', 'huge-24']);
+  });
+
+  it('respects the limit', () => {
+    expect(cheapestGpusFor([smallModel], shopGpus, { limit: 1 })).toHaveLength(1);
+  });
+});
+
+describe('upgradeOptionsFor', () => {
+  it('picks the cheapest GPU at each of the next VRAM tiers', () => {
+    const from8 = upgradeOptionsFor(shopGpus[0], shopGpus);
+    expect(from8.map((g) => g.id)).toEqual(['mid-12', 'big-16']);
+  });
+
+  it('needs at least MIN_UPGRADE_VRAM_GB more VRAM', () => {
+    const gpus = [...shopGpus, { id: 'side-10', manufacturer: 'Intel', vram_gb: 8 + MIN_UPGRADE_VRAM_GB - 2, bandwidth_gbps: 380, msrp_usd: 199 }];
+    expect(upgradeOptionsFor(shopGpus[0], gpus).map((g) => g.id)).not.toContain('side-10');
+  });
+
+  it('skips a tier when more VRAM costs the same or less', () => {
+    const gpus = [...shopGpus, { id: 'bargain-20', manufacturer: 'AMD', vram_gb: 20, bandwidth_gbps: 800, msrp_usd: 549 }];
+    // big-16 at $599 is beaten by bargain-20 at $549
+    expect(upgradeOptionsFor(shopGpus[0], gpus).map((g) => g.id)).toEqual(['mid-12', 'bargain-20']);
+  });
+
+  it('measures from the largest memory option of multi-config chips', () => {
+    expect(upgradeOptionsFor(shopGpus.at(-1), shopGpus)).toEqual([]);
   });
 });

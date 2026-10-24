@@ -1,10 +1,13 @@
 <script>
   import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
-  import { bucketModels, contextLabel, gpuConfigs, groupVariants, summarizeResults, tokLabel, topModelsByScore } from '$lib/calculations.js';
+  import { bucketModels, contextLabel, gpuConfigs, groupVariants, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
+  import gpus from '$lib/data/gpus.json';
   import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, modelSlug, toolQuery } from '$lib/pages.js';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
+  import AmazonButton from '$lib/components/AmazonButton.svelte';
+  import AffiliateDisclosure from '$lib/components/AffiliateDisclosure.svelte';
 
   let { data } = $props();
 
@@ -22,6 +25,14 @@
   // One status per model, so "N more are a tight fit" never recounts models that run well
   let counts = $derived(summarizeResults(results).counts);
   let runsWell = $derived(counts.fits);
+
+  // Next GPUs up by VRAM, with how many models each runs well
+  let upgrades = $derived(
+    upgradeOptionsFor(gpu, gpus).map((g) => ({
+      gpu: g,
+      runsWell: summarizeResults(bucketModels(allModels, g.vram_gb, g.bandwidth_gbps, null, null)).counts.fits,
+    }))
+  );
   let runsTight = $derived(counts.tight);
   let bestGeneral = $derived(topModelsByScore(results.fits, 'mmlu_score'));
   let bestCoding = $derived(topModelsByScore(results.fits, 'swe_bench_score'));
@@ -122,9 +133,17 @@
     </div>
   {/if}
 
-  <a class="cta" href="{base}/{toolQuery(gpu, config.memIdx)}">
-    Fine-tune for your setup (context, speed, system RAM, multiple GPUs) →
-  </a>
+  <div class="cta-row">
+    <a class="cta" href="{base}/{toolQuery(gpu, config.memIdx)}">
+      Fine-tune for your setup (context, speed, system RAM, multiple GPUs) →
+    </a>
+    {#if gpu.amazon_search}
+      <AmazonButton {gpu} pageType="gpu" placement="gpu_header" />
+    {/if}
+  </div>
+  {#if gpu.amazon_search}
+    <AffiliateDisclosure />
+  {/if}
 
   <section class="picks">
     <div class="pick-card">
@@ -139,9 +158,31 @@
     </div>
   </section>
 
+  {#if upgrades.length > 0}
+    <section class="upgrades">
+      <h3 class="section-title">Upgrade options</h3>
+      <p class="muted">The cheapest GPUs with more VRAM than the {shortName}, by launch MSRP.</p>
+      <ul class="upgrade-list">
+        {#each upgrades as u (u.gpu.id)}
+          <li>
+            <div class="upgrade-info">
+              <a class="pick-name" href="{base}/gpu/{u.gpu.id}">{gpuShortName(u.gpu)}</a>
+              <span class="pick-meta">
+                {u.gpu.vram_gb} GB · Launch MSRP ${u.gpu.msrp_usd.toLocaleString('en-US')} ·
+                {u.runsWell} models run well{#if u.runsWell > runsWell}{' '}(+{u.runsWell - runsWell}){/if}
+              </span>
+            </div>
+            <AmazonButton gpu={u.gpu} pageType="gpu" placement="gpu_upgrade" compact />
+          </li>
+        {/each}
+      </ul>
+      <AffiliateDisclosure />
+    </section>
+  {/if}
+
   <section>
     <h3 class="section-title">Every model on the {shortName}{#if configs.length > 1}{' '}({config.vram} GB){/if}</h3>
-    <ModelResults vram={config.vram} bandwidth={config.bandwidth} bind:sortBy showTopPicks={false}>
+    <ModelResults vram={config.vram} bandwidth={config.bandwidth} bind:sortBy showTopPicks={false} pageType="gpu">
       {#snippet beforeNoFit()}
         <NotifySignup vram={config.vram} gpuId={gpu.id} gpuName={shortName} pageType="gpu" />
       {/snippet}
@@ -220,6 +261,43 @@
     border-color: var(--accent);
     color: var(--accent);
     font-weight: 600;
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .cta-row + :global(.disclosure) {
+    margin-top: -1.1rem;
+  }
+
+  .upgrade-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .upgrade-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .upgrade-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
 
   .cta {
@@ -311,6 +389,16 @@
     .cta {
       align-self: stretch;
       text-align: center;
+    }
+
+    .cta-row > :global(*) {
+      flex: 1 1 100%;
+      text-align: center;
+    }
+
+    .upgrade-list li {
+      flex-direction: column;
+      align-items: stretch;
     }
   }
 </style>

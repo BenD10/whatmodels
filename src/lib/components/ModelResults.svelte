@@ -1,12 +1,14 @@
 <script>
   import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
-  import { contextLabel, tokLabel, bucketModels, groupByBestStatus, summarizeResults } from '$lib/calculations.js';
+  import gpus from '$lib/data/gpus.json';
+  import { contextLabel, tokLabel, bucketModels, cheapestGpusFor, groupByBestStatus, summarizeResults } from '$lib/calculations.js';
   import { trackFilterChanged } from '$lib/analytics.js';
   import { modelSlug } from '$lib/pages.js';
   import ResultsSummary from '$lib/components/ResultsSummary.svelte';
+  import CheapestGpus from '$lib/components/CheapestGpus.svelte';
 
-  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {}, beforeNoFit = null, showTopPicks = true } = $props();
+  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {}, beforeNoFit = null, showTopPicks = true, pageType = 'home' } = $props();
 
   function onSortByChange(e) {
     sortBy = e.target.value;
@@ -26,6 +28,24 @@
   let groupedFits = $derived(byStatus.fits);
   let groupedTight = $derived(byStatus.tight);
   let groupedNoFit = $derived(byStatus.noFit);
+
+  // All quantizations of each model, for upgrade suggestions
+  const variantsByName = new Map();
+  for (const m of allModels) {
+    if (!variantsByName.has(m.name)) variantsByName.set(m.name, []);
+    variantsByName.get(m.name).push(m);
+  }
+
+  // Models that don't run well here: the cheapest GPUs with more VRAM that run them well
+  let upgradeSuggestions = $derived.by(() => {
+    const out = new Map();
+    if (vram == null) return out;
+    for (const g of [...groupedTight, ...groupedNoFit]) {
+      const picks = cheapestGpusFor(variantsByName.get(g.name), gpus, { minVramExclusive: vram });
+      if (picks.length > 0) out.set(g.name, picks);
+    }
+    return out;
+  });
 
   /** Why a quantization is worse than the model's listed status, for the dimmed row. */
   function otherVariantNote(v) {
@@ -197,6 +217,12 @@
         <span class="variant-need">{otherVariantNote(v)}</span>
       </div>
     {/each}
+    {#if key !== 'fits' && upgradeSuggestions.has(g.name)}
+      <details class="upgrade">
+        <summary>GPUs that can run this</summary>
+        <CheapestGpus picks={upgradeSuggestions.get(g.name)} {pageType} placement="results_upgrade" />
+      </details>
+    {/if}
   </li>
 {/snippet}
 
@@ -750,6 +776,25 @@
     display: flex;
     gap: 1rem;
     margin-left: auto;
+  }
+
+  /* Upgrade suggestions under tight / doesn't-fit models */
+  .upgrade {
+    margin-top: 0.45rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .upgrade summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .upgrade:not([open]) summary {
+    margin-bottom: 0;
   }
 
   /* A quantization that does worse than the model's listed status */

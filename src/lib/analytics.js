@@ -42,3 +42,7 @@ export function trackNotifyFormViewed(vramTier, pageType) {
 export function trackNotifyFormSubmitted(vramTier, pageType) {
   capture('notify_form_submitted', { vram_tier: vramTier, page_type: pageType });
 }
+
+export function trackAffiliateClick(gpuId, pageType, placement, marketplace) {
+  capture('affiliate_click', { gpu_id: gpuId, page_type: pageType, placement, marketplace });
+}
