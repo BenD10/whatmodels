@@ -24,3 +24,21 @@ export function trackManualVram(vramGb) {
 export function trackFilterChanged(filterName, value) {
   capture('filter_changed', { filter_name: filterName, value });
 }
+
+// Events that should fire at most once per page view. Cleared on every
+// client-side navigation by resetPageView() (called from +layout.svelte).
+const firedThisPageView = new Set();
+
+export function resetPageView() {
+  firedThisPageView.clear();
+}
+
+export function trackNotifyFormViewed(vramTier, pageType) {
+  if (firedThisPageView.has('notify_form_viewed')) return;
+  firedThisPageView.add('notify_form_viewed');
+  capture('notify_form_viewed', { vram_tier: vramTier, page_type: pageType });
+}
+
+export function trackNotifyFormSubmitted(vramTier, pageType) {
+  capture('notify_form_submitted', { vram_tier: vramTier, page_type: pageType });
+}

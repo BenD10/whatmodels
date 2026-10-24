@@ -5,6 +5,7 @@
   import { calcMultiGpuResources } from '$lib/calculations.js';
   import GpuInput from '$lib/components/GpuInput.svelte';
   import ModelResults from '$lib/components/ModelResults.svelte';
+  import NotifySignup from '$lib/components/NotifySignup.svelte';
 
   /** Validate and sanitize URL query parameters */
   function parseUrlParams(params) {
@@ -134,6 +135,8 @@
   let requiredFeatures = $state(urlParams.features.length > 0 ? [...urlParams.features] : []);
   let systemRamGB = $state(urlParams.systemRam !== '' ? parseFloat(urlParams.systemRam) : null);
   let sortBy = $state(urlParams.sortBy);
+  let gpuId = $state(urlParams.gpuId);
+  let gpuName = $derived(gpus.find((g) => g.id === gpuId)?.name ?? null);
 
   // Initial values passed to GpuInput (constant after parse, no need for $state)
   const initialGpuId = urlParams.gpuId;
@@ -160,6 +163,7 @@
 
   function onStateChange(state) {
     if (!browser) return;
+    gpuId = state.gpuId || '';
     updateUrl({
       gpu: state.gpuId || null,
       mem: state.memIdx !== '' ? state.memIdx : null,
@@ -236,7 +240,11 @@
 
   <section class="results-section">
     <h2>Results</h2>
-    <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} {systemRamGB} bind:sortBy onsortchange={onSortChange} />
+    <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} {systemRamGB} bind:sortBy onsortchange={onSortChange}>
+      {#snippet beforeNoFit()}
+        <NotifySignup {vram} gpuId={gpuId || null} {gpuName} pageType="home" />
+      {/snippet}
+    </ModelResults>
   </section>
 
 </div>
