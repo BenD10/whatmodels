@@ -4,7 +4,9 @@
     "name": "RTX PRO 2000 Blackwell",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX PRO 2000 Blackwell"
   },
   {
     "id": "rtx-spark",
@@ -31,518 +33,666 @@
         "vram_gb": 128,
         "bandwidth_gbps": 300
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX Spark laptop"
   },
   {
     "id": "rtx-pro-5500",
     "name": "RTX PRO 5500 Blackwell",
     "manufacturer": "NVIDIA",
     "vram_gb": 84,
-    "bandwidth_gbps": 1398
+    "bandwidth_gbps": 1398,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX PRO 5500 Blackwell"
   },
   {
     "id": "rtx-pro-4000",
     "name": "RTX PRO 4000 Blackwell",
     "manufacturer": "NVIDIA",
     "vram_gb": 24,
-    "bandwidth_gbps": 672
+    "bandwidth_gbps": 672,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX PRO 4000 Blackwell"
   },
   {
     "id": "rtx-5080",
     "name": "GeForce RTX 5080",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 960
+    "bandwidth_gbps": 960,
+    "msrp_usd": 999,
+    "amazon_search": "RTX 5080"
   },
   {
     "id": "rtx-pro-4500",
     "name": "RTX PRO 4500 Blackwell",
     "manufacturer": "NVIDIA",
     "vram_gb": 32,
-    "bandwidth_gbps": 896
+    "bandwidth_gbps": 896,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX PRO 4500 Blackwell"
   },
   {
     "id": "dgx-spark-gb-10",
     "name": "DGX Spark (GB 10)",
     "manufacturer": "NVIDIA",
     "vram_gb": 128,
-    "bandwidth_gbps": 273
+    "bandwidth_gbps": 273,
+    "msrp_usd": 3999,
+    "amazon_search": "NVIDIA DGX Spark"
   },
   {
     "id": "rtx-5090",
     "name": "GeForce RTX 5090",
     "manufacturer": "NVIDIA",
     "vram_gb": 32,
-    "bandwidth_gbps": 1792
+    "bandwidth_gbps": 1792,
+    "msrp_usd": 1999,
+    "amazon_search": "RTX 5090"
   },
   {
     "id": "rtx-5070-ti",
     "name": "GeForce RTX 5070 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 896
+    "bandwidth_gbps": 896,
+    "msrp_usd": 749,
+    "amazon_search": "RTX 5070 Ti"
   },
   {
     "id": "rtx-5070",
     "name": "GeForce RTX 5070",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 672
+    "bandwidth_gbps": 672,
+    "msrp_usd": 549,
+    "amazon_search": "RTX 5070"
   },
   {
     "id": "rtx-5060-ti-16gb",
     "name": "GeForce RTX 5060 Ti 16GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": 429,
+    "amazon_search": "RTX 5060 Ti 16GB"
   },
   {
     "id": "rtx-5060-ti",
     "name": "GeForce RTX 5060 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": 379,
+    "amazon_search": "RTX 5060 Ti"
   },
   {
     "id": "rtx-5060",
     "name": "GeForce RTX 5060",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": 299,
+    "amazon_search": "RTX 5060"
   },
   {
     "id": "rtx-5050",
     "name": "GeForce RTX 5050",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 320
+    "bandwidth_gbps": 320,
+    "msrp_usd": 249,
+    "amazon_search": "RTX 5050"
   },
   {
     "id": "rtx-4090",
     "name": "GeForce RTX 4090",
     "manufacturer": "NVIDIA",
     "vram_gb": 24,
-    "bandwidth_gbps": 1008
+    "bandwidth_gbps": 1008,
+    "msrp_usd": 1599,
+    "amazon_search": "RTX 4090"
   },
   {
     "id": "rtx-4080-super",
     "name": "GeForce RTX 4080 SUPER",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 736
+    "bandwidth_gbps": 736,
+    "msrp_usd": 999,
+    "amazon_search": "RTX 4080 SUPER"
   },
   {
     "id": "rtx-4080",
     "name": "GeForce RTX 4080",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 717
+    "bandwidth_gbps": 717,
+    "msrp_usd": 1199,
+    "amazon_search": "RTX 4080"
   },
   {
     "id": "rtx-4070-ti-super",
     "name": "GeForce RTX 4070 Ti SUPER",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 672
+    "bandwidth_gbps": 672,
+    "msrp_usd": 799,
+    "amazon_search": "RTX 4070 Ti SUPER"
   },
   {
     "id": "rtx-4070-ti",
     "name": "GeForce RTX 4070 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 504
+    "bandwidth_gbps": 504,
+    "msrp_usd": 799,
+    "amazon_search": "RTX 4070 Ti"
   },
   {
     "id": "rtx-4070-super",
     "name": "GeForce RTX 4070 SUPER",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 504
+    "bandwidth_gbps": 504,
+    "msrp_usd": 599,
+    "amazon_search": "RTX 4070 SUPER"
   },
   {
     "id": "rtx-4070",
     "name": "GeForce RTX 4070",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 504
+    "bandwidth_gbps": 504,
+    "msrp_usd": 599,
+    "amazon_search": "RTX 4070"
   },
   {
     "id": "rtx-4060-ti-16gb",
     "name": "GeForce RTX 4060 Ti 16GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": 499,
+    "amazon_search": "RTX 4060 Ti 16GB"
   },
   {
     "id": "rtx-4060-ti",
     "name": "GeForce RTX 4060 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": 399,
+    "amazon_search": "RTX 4060 Ti"
   },
   {
     "id": "rtx-4060",
     "name": "GeForce RTX 4060",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 272
+    "bandwidth_gbps": 272,
+    "msrp_usd": 299,
+    "amazon_search": "RTX 4060"
   },
   {
     "id": "rtx-3090-ti",
     "name": "GeForce RTX 3090 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 24,
-    "bandwidth_gbps": 1008
+    "bandwidth_gbps": 1008,
+    "msrp_usd": 1999,
+    "amazon_search": "RTX 3090 Ti"
   },
   {
     "id": "rtx-3090",
     "name": "GeForce RTX 3090",
     "manufacturer": "NVIDIA",
     "vram_gb": 24,
-    "bandwidth_gbps": 936
+    "bandwidth_gbps": 936,
+    "msrp_usd": 1499,
+    "amazon_search": "RTX 3090"
   },
   {
     "id": "rtx-3080-ti",
     "name": "GeForce RTX 3080 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 912
+    "bandwidth_gbps": 912,
+    "msrp_usd": 1199,
+    "amazon_search": "RTX 3080 Ti"
   },
   {
     "id": "rtx-3080-12gb",
     "name": "GeForce RTX 3080 12GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 912
+    "bandwidth_gbps": 912,
+    "msrp_usd": null,
+    "amazon_search": "RTX 3080 12GB"
   },
   {
     "id": "rtx-3080",
     "name": "GeForce RTX 3080",
     "manufacturer": "NVIDIA",
     "vram_gb": 10,
-    "bandwidth_gbps": 760
+    "bandwidth_gbps": 760,
+    "msrp_usd": 699,
+    "amazon_search": "RTX 3080"
   },
   {
     "id": "rtx-3070-ti",
     "name": "GeForce RTX 3070 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 608
+    "bandwidth_gbps": 608,
+    "msrp_usd": 599,
+    "amazon_search": "RTX 3070 Ti"
   },
   {
     "id": "rtx-3070",
     "name": "GeForce RTX 3070",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": 499,
+    "amazon_search": "RTX 3070"
   },
   {
     "id": "rtx-3060-ti-gddr6x",
     "name": "GeForce RTX 3060 Ti GDDR6X",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 608
+    "bandwidth_gbps": 608,
+    "msrp_usd": null,
+    "amazon_search": "RTX 3060 Ti GDDR6X"
   },
   {
     "id": "rtx-3060-ti",
     "name": "GeForce RTX 3060 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": 399,
+    "amazon_search": "RTX 3060 Ti"
   },
   {
     "id": "rtx-3060",
     "name": "GeForce RTX 3060",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 360
+    "bandwidth_gbps": 360,
+    "msrp_usd": 329,
+    "amazon_search": "RTX 3060"
   },
   {
     "id": "rtx-3050",
     "name": "GeForce RTX 3050",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 224
+    "bandwidth_gbps": 224,
+    "msrp_usd": 249,
+    "amazon_search": "RTX 3050"
   },
   {
     "id": "rtx-3050-6gb",
     "name": "GeForce RTX 3050 6GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 6,
-    "bandwidth_gbps": 168
+    "bandwidth_gbps": 168,
+    "msrp_usd": null,
+    "amazon_search": "RTX 3050 6GB"
   },
   {
     "id": "rtx-2080-ti",
     "name": "GeForce RTX 2080 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 11,
-    "bandwidth_gbps": 616
+    "bandwidth_gbps": 616,
+    "msrp_usd": null,
+    "amazon_search": "RTX 2080 Ti"
   },
   {
     "id": "rtx-2080-super",
     "name": "GeForce RTX 2080 SUPER",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 496
+    "bandwidth_gbps": 496,
+    "msrp_usd": null,
+    "amazon_search": "RTX 2080 SUPER"
   },
   {
     "id": "rtx-2080",
     "name": "GeForce RTX 2080",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": null,
+    "amazon_search": "RTX 2080"
   },
   {
     "id": "rtx-2070-super",
     "name": "GeForce RTX 2070 SUPER",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": null,
+    "amazon_search": "RTX 2070 SUPER"
   },
   {
     "id": "rtx-2070",
     "name": "GeForce RTX 2070",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": null,
+    "amazon_search": "RTX 2070"
   },
   {
     "id": "rtx-2060-super",
     "name": "GeForce RTX 2060 SUPER",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": null,
+    "amazon_search": "RTX 2060 SUPER"
   },
   {
     "id": "rtx-2060-12gb",
     "name": "GeForce RTX 2060 12GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 336
+    "bandwidth_gbps": 336,
+    "msrp_usd": null,
+    "amazon_search": "RTX 2060 12GB"
   },
   {
     "id": "rtx-2060",
     "name": "GeForce RTX 2060",
     "manufacturer": "NVIDIA",
     "vram_gb": 6,
-    "bandwidth_gbps": 336
+    "bandwidth_gbps": 336,
+    "msrp_usd": null,
+    "amazon_search": "RTX 2060"
   },
   {
     "id": "gtx-1660-super",
     "name": "GeForce GTX 1660 SUPER",
     "manufacturer": "NVIDIA",
     "vram_gb": 6,
-    "bandwidth_gbps": 336
+    "bandwidth_gbps": 336,
+    "msrp_usd": null,
+    "amazon_search": "GTX 1660 SUPER"
   },
   {
     "id": "gtx-1660-ti",
     "name": "GeForce GTX 1660 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 6,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": null,
+    "amazon_search": "GTX 1660 Ti"
   },
   {
     "id": "gtx-1660",
     "name": "GeForce GTX 1660",
     "manufacturer": "NVIDIA",
     "vram_gb": 6,
-    "bandwidth_gbps": 192
+    "bandwidth_gbps": 192,
+    "msrp_usd": null,
+    "amazon_search": "GTX 1660"
   },
   {
     "id": "gtx-1080-ti",
     "name": "GeForce GTX 1080 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 11,
-    "bandwidth_gbps": 484
+    "bandwidth_gbps": 484,
+    "msrp_usd": null,
+    "amazon_search": "GTX 1080 Ti"
   },
   {
     "id": "gtx-1080",
     "name": "GeForce GTX 1080",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 320
+    "bandwidth_gbps": 320,
+    "msrp_usd": null,
+    "amazon_search": "GTX 1080"
   },
   {
     "id": "gtx-1070-ti",
     "name": "GeForce GTX 1070 Ti",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 256
+    "bandwidth_gbps": 256,
+    "msrp_usd": null,
+    "amazon_search": "GTX 1070 Ti"
   },
   {
     "id": "gtx-1070",
     "name": "GeForce GTX 1070",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 256
+    "bandwidth_gbps": 256,
+    "msrp_usd": null,
+    "amazon_search": "GTX 1070"
   },
   {
     "id": "gtx-1060",
     "name": "GeForce GTX 1060 6GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 6,
-    "bandwidth_gbps": 192
+    "bandwidth_gbps": 192,
+    "msrp_usd": null,
+    "amazon_search": "GTX 1060 6GB"
   },
   {
     "id": "rtx-pro-6000",
     "name": "RTX PRO 6000 Blackwell",
     "manufacturer": "NVIDIA",
     "vram_gb": 96,
-    "bandwidth_gbps": 1792
+    "bandwidth_gbps": 1792,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX PRO 6000 Blackwell"
   },
   {
     "id": "rtx-pro-5000-72gb",
     "name": "RTX PRO 5000 Blackwell 72GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 72,
-    "bandwidth_gbps": 1344
+    "bandwidth_gbps": 1344,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX PRO 5000 Blackwell 72GB"
   },
   {
     "id": "rtx-pro-5000",
     "name": "RTX PRO 5000 Blackwell",
     "manufacturer": "NVIDIA",
     "vram_gb": 48,
-    "bandwidth_gbps": 1344
+    "bandwidth_gbps": 1344,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX PRO 5000 Blackwell"
   },
   {
     "id": "rtx-6000-ada",
     "name": "RTX 6000 Ada",
     "manufacturer": "NVIDIA",
     "vram_gb": 48,
-    "bandwidth_gbps": 960
+    "bandwidth_gbps": 960,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX 6000 Ada"
   },
   {
     "id": "rtx-5000-ada",
     "name": "RTX 5000 Ada",
     "manufacturer": "NVIDIA",
     "vram_gb": 32,
-    "bandwidth_gbps": 576
+    "bandwidth_gbps": 576,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX 5000 Ada"
   },
   {
     "id": "rtx-4500-ada",
     "name": "RTX 4500 Ada",
     "manufacturer": "NVIDIA",
     "vram_gb": 24,
-    "bandwidth_gbps": 432
+    "bandwidth_gbps": 432,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX 4500 Ada"
   },
   {
     "id": "rtx-4000-ada",
     "name": "RTX 4000 Ada",
     "manufacturer": "NVIDIA",
     "vram_gb": 20,
-    "bandwidth_gbps": 360
+    "bandwidth_gbps": 360,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX 4000 Ada"
   },
   {
     "id": "rtx-2000-ada",
     "name": "RTX 2000 Ada",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 224
+    "bandwidth_gbps": 224,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX 2000 Ada"
   },
   {
     "id": "rtx-a6000",
     "name": "RTX A6000",
     "manufacturer": "NVIDIA",
     "vram_gb": 48,
-    "bandwidth_gbps": 768
+    "bandwidth_gbps": 768,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX A6000"
   },
   {
     "id": "rtx-a5000",
     "name": "RTX A5000",
     "manufacturer": "NVIDIA",
     "vram_gb": 24,
-    "bandwidth_gbps": 768
+    "bandwidth_gbps": 768,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX A5000"
   },
   {
     "id": "rtx-a4000",
     "name": "RTX A4000",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX A4000"
   },
   {
     "id": "rtx-a2000-12gb",
     "name": "RTX A2000 12GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 12,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX A2000 12GB"
   },
   {
     "id": "rtx-a2000",
     "name": "RTX A2000",
     "manufacturer": "NVIDIA",
     "vram_gb": 6,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA RTX A2000"
   },
   {
     "id": "t1000-8gb",
     "name": "T1000 8GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 8,
-    "bandwidth_gbps": 160
+    "bandwidth_gbps": 160,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA T1000 8GB"
   },
   {
     "id": "t1000",
     "name": "T1000",
     "manufacturer": "NVIDIA",
     "vram_gb": 4,
-    "bandwidth_gbps": 160
+    "bandwidth_gbps": 160,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA T1000"
   },
   {
     "id": "t600",
     "name": "T600",
     "manufacturer": "NVIDIA",
     "vram_gb": 4,
-    "bandwidth_gbps": 160
+    "bandwidth_gbps": 160,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA T600"
   },
   {
     "id": "t400-4gb",
     "name": "T400 4GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 4,
-    "bandwidth_gbps": 80
+    "bandwidth_gbps": 80,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA T400 4GB"
   },
   {
     "id": "t400",
     "name": "T400",
     "manufacturer": "NVIDIA",
     "vram_gb": 2,
-    "bandwidth_gbps": 80
+    "bandwidth_gbps": 80,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA T400"
   },
   {
     "id": "l40s",
     "name": "L40S",
     "manufacturer": "NVIDIA",
     "vram_gb": 48,
-    "bandwidth_gbps": 864
+    "bandwidth_gbps": 864,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA L40S"
   },
   {
     "id": "tesla-p40",
     "name": "Tesla P40",
     "manufacturer": "NVIDIA",
     "vram_gb": 24,
-    "bandwidth_gbps": 346
+    "bandwidth_gbps": 346,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA Tesla P40"
   },
   {
     "id": "tesla-t4",
     "name": "Tesla T4",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 320
+    "bandwidth_gbps": 320,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA Tesla T4"
   },
   {
     "id": "tesla-v100-16gb",
     "name": "Tesla V100 16GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 16,
-    "bandwidth_gbps": 900
+    "bandwidth_gbps": 900,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA Tesla V100 16GB"
   },
   {
     "id": "tesla-v100-32gb",
     "name": "Tesla V100 32GB",
     "manufacturer": "NVIDIA",
     "vram_gb": 32,
-    "bandwidth_gbps": 900
+    "bandwidth_gbps": 900,
+    "msrp_usd": null,
+    "amazon_search": "NVIDIA Tesla V100 32GB"
   },
   {
     "id": "ryzen-ai-max-400",
@@ -561,196 +711,252 @@
         "vram_gb": 192,
         "bandwidth_gbps": 273
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "AMD Ryzen AI Max 400 mini PC"
   },
   {
     "id": "rx-9070-gre",
     "name": "Radeon RX 9070 GRE",
     "manufacturer": "AMD",
     "vram_gb": 12,
-    "bandwidth_gbps": 432
+    "bandwidth_gbps": 432,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 9070 GRE"
   },
   {
     "id": "radeon-ai-pro-r9700",
     "name": "Radeon AI PRO R9700",
     "manufacturer": "AMD",
     "vram_gb": 32,
-    "bandwidth_gbps": 640
+    "bandwidth_gbps": 640,
+    "msrp_usd": null,
+    "amazon_search": "Radeon AI PRO R9700"
   },
   {
     "id": "rx-9070-xt",
     "name": "Radeon RX 9070 XT",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 640
+    "bandwidth_gbps": 640,
+    "msrp_usd": 599,
+    "amazon_search": "Radeon RX 9070 XT"
   },
   {
     "id": "rx-9070",
     "name": "Radeon RX 9070",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 640
+    "bandwidth_gbps": 640,
+    "msrp_usd": 549,
+    "amazon_search": "Radeon RX 9070"
   },
   {
     "id": "rx-9060-xt-16gb",
     "name": "Radeon RX 9060 XT 16GB",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 320
+    "bandwidth_gbps": 320,
+    "msrp_usd": 349,
+    "amazon_search": "Radeon RX 9060 XT 16GB"
   },
   {
     "id": "rx-9060-xt",
     "name": "Radeon RX 9060 XT",
     "manufacturer": "AMD",
     "vram_gb": 8,
-    "bandwidth_gbps": 320
+    "bandwidth_gbps": 320,
+    "msrp_usd": 299,
+    "amazon_search": "Radeon RX 9060 XT"
   },
   {
     "id": "rx-9060",
     "name": "Radeon RX 9060",
     "manufacturer": "AMD",
     "vram_gb": 8,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 9060"
   },
   {
     "id": "rx-7900-xtx",
     "name": "Radeon RX 7900 XTX",
     "manufacturer": "AMD",
     "vram_gb": 24,
-    "bandwidth_gbps": 960
+    "bandwidth_gbps": 960,
+    "msrp_usd": 999,
+    "amazon_search": "Radeon RX 7900 XTX"
   },
   {
     "id": "rx-7900-xt",
     "name": "Radeon RX 7900 XT",
     "manufacturer": "AMD",
     "vram_gb": 20,
-    "bandwidth_gbps": 800
+    "bandwidth_gbps": 800,
+    "msrp_usd": 899,
+    "amazon_search": "Radeon RX 7900 XT"
   },
   {
     "id": "rx-7900-gre",
     "name": "Radeon RX 7900 GRE",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 576
+    "bandwidth_gbps": 576,
+    "msrp_usd": 549,
+    "amazon_search": "Radeon RX 7900 GRE"
   },
   {
     "id": "rx-7800-xt",
     "name": "Radeon RX 7800 XT",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 624
+    "bandwidth_gbps": 624,
+    "msrp_usd": 499,
+    "amazon_search": "Radeon RX 7800 XT"
   },
   {
     "id": "rx-7700-xt",
     "name": "Radeon RX 7700 XT",
     "manufacturer": "AMD",
     "vram_gb": 12,
-    "bandwidth_gbps": 432
+    "bandwidth_gbps": 432,
+    "msrp_usd": 449,
+    "amazon_search": "Radeon RX 7700 XT"
   },
   {
     "id": "rx-7600-xt",
     "name": "Radeon RX 7600 XT",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": 329,
+    "amazon_search": "Radeon RX 7600 XT"
   },
   {
     "id": "rx-7600",
     "name": "Radeon RX 7600",
     "manufacturer": "AMD",
     "vram_gb": 8,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": 269,
+    "amazon_search": "Radeon RX 7600"
   },
   {
     "id": "rx-6950-xt",
     "name": "Radeon RX 6950 XT",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 576
+    "bandwidth_gbps": 576,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6950 XT"
   },
   {
     "id": "rx-6900-xt",
     "name": "Radeon RX 6900 XT",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 512
+    "bandwidth_gbps": 512,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6900 XT"
   },
   {
     "id": "rx-6800-xt",
     "name": "Radeon RX 6800 XT",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 512
+    "bandwidth_gbps": 512,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6800 XT"
   },
   {
     "id": "rx-6800",
     "name": "Radeon RX 6800",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 512
+    "bandwidth_gbps": 512,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6800"
   },
   {
     "id": "rx-6750-xt",
     "name": "Radeon RX 6750 XT",
     "manufacturer": "AMD",
     "vram_gb": 12,
-    "bandwidth_gbps": 432
+    "bandwidth_gbps": 432,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6750 XT"
   },
   {
     "id": "rx-6700-xt",
     "name": "Radeon RX 6700 XT",
     "manufacturer": "AMD",
     "vram_gb": 12,
-    "bandwidth_gbps": 384
+    "bandwidth_gbps": 384,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6700 XT"
   },
   {
     "id": "rx-6650-xt",
     "name": "Radeon RX 6650 XT",
     "manufacturer": "AMD",
     "vram_gb": 8,
-    "bandwidth_gbps": 280
+    "bandwidth_gbps": 280,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6650 XT"
   },
   {
     "id": "rx-6600-xt",
     "name": "Radeon RX 6600 XT",
     "manufacturer": "AMD",
     "vram_gb": 8,
-    "bandwidth_gbps": 256
+    "bandwidth_gbps": 256,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6600 XT"
   },
   {
     "id": "rx-6600",
     "name": "Radeon RX 6600",
     "manufacturer": "AMD",
     "vram_gb": 8,
-    "bandwidth_gbps": 224
+    "bandwidth_gbps": 224,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 6600"
   },
   {
     "id": "rx-5700-xt",
     "name": "Radeon RX 5700 XT",
     "manufacturer": "AMD",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 5700 XT"
   },
   {
     "id": "rx-5700",
     "name": "Radeon RX 5700",
     "manufacturer": "AMD",
     "vram_gb": 8,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 5700"
   },
   {
     "id": "rx-5600-xt",
     "name": "Radeon RX 5600 XT",
     "manufacturer": "AMD",
     "vram_gb": 6,
-    "bandwidth_gbps": 288
+    "bandwidth_gbps": 288,
+    "msrp_usd": null,
+    "amazon_search": "Radeon RX 5600 XT"
   },
   {
     "id": "amd-bc250",
     "name": "AMD BC-250",
     "manufacturer": "AMD",
     "vram_gb": 16,
-    "bandwidth_gbps": 448
+    "bandwidth_gbps": 448,
+    "msrp_usd": null,
+    "amazon_search": "AMD BC-250"
   },
   {
     "id": "ryzen-ai-max",
@@ -773,63 +979,81 @@
         "vram_gb": 128,
         "bandwidth_gbps": 256
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "AMD Ryzen AI Max+ 395 mini PC"
   },
   {
     "id": "arc-pro-b65",
     "name": "Arc Pro B65",
     "manufacturer": "Intel",
     "vram_gb": 32,
-    "bandwidth_gbps": 608
+    "bandwidth_gbps": 608,
+    "msrp_usd": null,
+    "amazon_search": "Intel Arc Pro B65"
   },
   {
     "id": "arc-pro-b70",
     "name": "Arc Pro B70",
     "manufacturer": "Intel",
     "vram_gb": 32,
-    "bandwidth_gbps": 608
+    "bandwidth_gbps": 608,
+    "msrp_usd": null,
+    "amazon_search": "Intel Arc Pro B70"
   },
   {
     "id": "arc-b580",
     "name": "Arc B580",
     "manufacturer": "Intel",
     "vram_gb": 12,
-    "bandwidth_gbps": 456
+    "bandwidth_gbps": 456,
+    "msrp_usd": 249,
+    "amazon_search": "Intel Arc B580"
   },
   {
     "id": "arc-b570",
     "name": "Arc B570",
     "manufacturer": "Intel",
     "vram_gb": 10,
-    "bandwidth_gbps": 380
+    "bandwidth_gbps": 380,
+    "msrp_usd": 219,
+    "amazon_search": "Intel Arc B570"
   },
   {
     "id": "arc-a770",
     "name": "Arc A770 16GB",
     "manufacturer": "Intel",
     "vram_gb": 16,
-    "bandwidth_gbps": 560
+    "bandwidth_gbps": 560,
+    "msrp_usd": 349,
+    "amazon_search": "Intel Arc A770 16GB"
   },
   {
     "id": "arc-a770-8gb",
     "name": "Arc A770 8GB",
     "manufacturer": "Intel",
     "vram_gb": 8,
-    "bandwidth_gbps": 512
+    "bandwidth_gbps": 512,
+    "msrp_usd": 329,
+    "amazon_search": "Intel Arc A770 8GB"
   },
   {
     "id": "arc-a750",
     "name": "Arc A750",
     "manufacturer": "Intel",
     "vram_gb": 8,
-    "bandwidth_gbps": 512
+    "bandwidth_gbps": 512,
+    "msrp_usd": 289,
+    "amazon_search": "Intel Arc A750"
   },
   {
     "id": "arc-a580",
     "name": "Arc A580",
     "manufacturer": "Intel",
     "vram_gb": 8,
-    "bandwidth_gbps": 512
+    "bandwidth_gbps": 512,
+    "msrp_usd": 179,
+    "amazon_search": "Intel Arc A580"
   },
   {
     "id": "m4-pro",
@@ -848,7 +1072,9 @@
         "vram_gb": 64,
         "bandwidth_gbps": 273
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M4 Pro"
   },
   {
     "id": "m3-max",
@@ -875,7 +1101,9 @@
         "vram_gb": 128,
         "bandwidth_gbps": 400
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M3 Max"
   },
   {
     "id": "m5",
@@ -894,7 +1122,9 @@
         "vram_gb": 32,
         "bandwidth_gbps": 153
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Air M5"
   },
   {
     "id": "m6",
@@ -913,7 +1143,9 @@
         "vram_gb": 32,
         "bandwidth_gbps": 170
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Air M6"
   },
   {
     "id": "m3-ultra",
@@ -932,7 +1164,9 @@
         "vram_gb": 512,
         "bandwidth_gbps": 819
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "Mac Studio M3 Ultra"
   },
   {
     "id": "m5-ultra",
@@ -951,7 +1185,9 @@
         "vram_gb": 512,
         "bandwidth_gbps": 1200
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "Mac Studio M5 Ultra"
   },
   {
     "id": "m5-max",
@@ -974,7 +1210,9 @@
         "vram_gb": 128,
         "bandwidth_gbps": 614
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M5 Max"
   },
   {
     "id": "m5-pro",
@@ -993,7 +1231,9 @@
         "vram_gb": 64,
         "bandwidth_gbps": 307
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M5 Pro"
   },
   {
     "id": "m4-max",
@@ -1016,7 +1256,9 @@
         "vram_gb": 128,
         "bandwidth_gbps": 546
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M4 Max"
   },
   {
     "id": "m4",
@@ -1035,7 +1277,9 @@
         "vram_gb": 32,
         "bandwidth_gbps": 120
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Air M4"
   },
   {
     "id": "m3-pro",
@@ -1050,7 +1294,9 @@
         "vram_gb": 36,
         "bandwidth_gbps": 150
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M3 Pro"
   },
   {
     "id": "m3",
@@ -1069,7 +1315,9 @@
         "vram_gb": 24,
         "bandwidth_gbps": 100
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Air M3"
   },
   {
     "id": "m2-ultra",
@@ -1088,7 +1336,9 @@
         "vram_gb": 192,
         "bandwidth_gbps": 800
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "Mac Studio M2 Ultra"
   },
   {
     "id": "m2-max",
@@ -1107,7 +1357,9 @@
         "vram_gb": 96,
         "bandwidth_gbps": 400
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M2 Max"
   },
   {
     "id": "m2-pro",
@@ -1122,7 +1374,9 @@
         "vram_gb": 32,
         "bandwidth_gbps": 200
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M2 Pro"
   },
   {
     "id": "m2",
@@ -1141,7 +1395,9 @@
         "vram_gb": 24,
         "bandwidth_gbps": 100
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Air M2"
   },
   {
     "id": "m1-ultra",
@@ -1156,7 +1412,9 @@
         "vram_gb": 128,
         "bandwidth_gbps": 800
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "Mac Studio M1 Ultra"
   },
   {
     "id": "m1-max",
@@ -1171,7 +1429,9 @@
         "vram_gb": 64,
         "bandwidth_gbps": 400
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M1 Max"
   },
   {
     "id": "m1-pro",
@@ -1186,7 +1446,9 @@
         "vram_gb": 32,
         "bandwidth_gbps": 200
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Pro M1 Pro"
   },
   {
     "id": "m1",
@@ -1201,6 +1463,8 @@
         "vram_gb": 16,
         "bandwidth_gbps": 68
       }
-    ]
+    ],
+    "msrp_usd": null,
+    "amazon_search": "MacBook Air M1"
   }
 ]

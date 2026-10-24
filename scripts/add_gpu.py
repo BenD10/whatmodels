@@ -19,6 +19,7 @@ from gpu_script_utils import (
     normalize_number,
     normalize_options,
     insert_gpu_with_order,
+    default_amazon_search,
 )
 
 
@@ -56,6 +57,11 @@ def build_entry(args: argparse.Namespace) -> dict:
     else:
         entry["vram_gb"] = normalize_number(args.vram)
         entry["bandwidth_gbps"] = normalize_number(args.bandwidth)
+    entry["msrp_usd"] = normalize_number(args.msrp_usd) if args.msrp_usd is not None else None
+    if args.no_amazon:
+        entry["amazon_search"] = None
+    else:
+        entry["amazon_search"] = args.amazon_search or default_amazon_search(entry["name"], args.manufacturer)
     return entry
 
 
@@ -91,6 +97,23 @@ def main() -> None:
         action="append",
         type=parse_option,
         help="Unified-memory option in format VRAM:BANDWIDTH (repeatable).",
+    )
+    parser.add_argument(
+        "--msrp-usd",
+        type=float,
+        default=None,
+        help="Launch MSRP in US dollars. Leave out when unknown (stored as null).",
+    )
+    parser.add_argument(
+        "--amazon-search",
+        type=str,
+        default=None,
+        help="Amazon search phrase. Default: derived from the name (e.g. 'RTX 4060 Ti 16GB').",
+    )
+    parser.add_argument(
+        "--no-amazon",
+        action="store_true",
+        help="Store amazon_search as null (GPU not sold to consumers).",
     )
     parser.add_argument(
         "--yes",

@@ -104,7 +104,44 @@ def validate_gpu_entry(entry: dict, existing_ids: set[str] | None = None, allow_
     else:
         errors.extend(_validate_discrete(entry))
 
+    errors.extend(_validate_shopping(entry))
     return errors
+
+
+def _validate_shopping(entry: dict) -> list[str]:
+    """msrp_usd and amazon_search are required keys; either may be null."""
+    errors = []
+    if "msrp_usd" not in entry:
+        errors.append("'msrp_usd' is required (use null when unknown).")
+    else:
+        msrp = entry["msrp_usd"]
+        if msrp is not None and (isinstance(msrp, bool) or not isinstance(msrp, (int, float)) or not 0 < msrp <= 50000):
+            errors.append("'msrp_usd' must be null or a positive number of US dollars (at most 50000).")
+    if "amazon_search" not in entry:
+        errors.append("'amazon_search' is required (use null when the GPU isn't sold).")
+    else:
+        query = entry["amazon_search"]
+        if query is not None and (not isinstance(query, str) or not query.strip()):
+            errors.append("'amazon_search' must be null or a non-empty search phrase.")
+        elif isinstance(query, str) and ("://" in query or "tag=" in query):
+            errors.append("'amazon_search' must be a plain search phrase, not a URL or affiliate tag.")
+    return errors
+
+
+def default_amazon_search(name: str, manufacturer: str) -> str:
+    """A sensible Amazon search phrase for a GPU: 'GeForce RTX 4060' -> 'RTX 4060'."""
+    name = name.strip()
+    if manufacturer == "Apple":
+        # Apple chips aren't sold alone; search for the machines that carry them
+        family = "Mac Studio" if "Ultra" in name else "MacBook Pro" if ("Max" in name or "Pro" in name) else "MacBook Air"
+        return f"{family} {name}"
+    if manufacturer == "NVIDIA":
+        return name.removeprefix("GeForce ") if name.startswith("GeForce ") else f"NVIDIA {name}"
+    if manufacturer == "Intel":
+        return f"Intel {name}"
+    if manufacturer == "AMD" and not name.startswith(("Radeon", "AMD")):
+        return f"AMD {name}"
+    return name
 
 
 def normalize_number(value: float | int) -> float | int:
