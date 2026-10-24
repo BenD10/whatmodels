@@ -59,11 +59,27 @@ python3 scripts/models/update_model_stats.py --report   # what is still missing
   180B model ends up recorded as 4.37 GB.
 - **`UD-Q4_K_XL` is not `Q4_K_M`.** Unsloth dynamic quants are a separate
   quantization at a different size, and are deliberately not matched.
-- **Hybrid attention.** Most 2026 models interleave linear/conv/sliding layers that
-  hold no growing KV cache. Only full-attention (and DeepSeek sparse-attention)
+- **Hybrid attention.** Most 2026 models interleave linear/conv/sliding/Mamba layers
+  that hold no growing KV cache. Only full-attention (and DeepSeek sparse-attention)
   layers count toward `kv_per_1k_gb`; counting all layers overstates it several-fold.
+  The layer list comes from whichever field the config uses: `layer_types`,
+  Nemotron-H's `layers_block_type` or `hybrid_override_pattern`, or Gemma 2/3's
+  implicit "one full layer every N" (`sliding_window_pattern`).
+- **Only short sliding windows are left out.** Sliding layers count as cache-free
+  when the window is under 4K tokens (Gemma 3/4, GPT-OSS). Wider windows (Gemma 2's
+  4K, Ministral's 32K, Llama 4's 8K chunks) grow like full attention at everyday
+  context lengths, so they stay in.
+- **Nested configs.** Multimodal models keep the language model's settings under
+  `text_config` (Gemma) or `llm_config` (Nemotron VL); the top level has none.
+- **Gemma 4 global layers differ from local ones.** Full-attention layers use
+  `num_global_key_value_heads` and `global_head_dim`, not the sliding layers' values.
+- **Shared KV (Gemma 3n/4 "E" models).** The last `num_kv_shared_layers` layers reuse
+  earlier layers' cache and allocate none of their own.
 - **MLA models** (DeepSeek, GLM-5.x, Mistral Large 3) cache one compressed latent
   per token per layer, so there is no ×2 for K+V.
+
+`scripts/tests/` pins these rules with trimmed real configs; run
+`python3 -m unittest discover -s scripts/tests` after touching the KV logic.
 
 A plausibility check warns when `weight_gb` is far from what the parameter count and
 quantization imply — that almost always means a missing shard or an auxiliary file.

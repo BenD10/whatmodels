@@ -1,0 +1,13 @@
+{
+ "architectures": [
+  "DeepseekV3ForCausalLM"
+ ],
+ "hidden_size": 7168,
+ "kv_lora_rank": 512,
+ "max_position_embeddings": 163840,
+ "model_type": "deepseek_v3",
+ "num_attention_heads": 128,
+ "num_hidden_layers": 61,
+ "num_key_value_heads": 128,
+ "qk_rope_head_dim": 64
+}

@@ -164,31 +164,95 @@ NON_KV_LAYER_TYPES = frozenset({
     "conv",
     "recurrent",
     "mamba",
+    "moe",  # Nemotron-H: MoE feed-forward block, no attention
+    "mlp",  # Nemotron-H: dense feed-forward block, no attention
 })
+
+# Sliding windows shorter than this (in tokens) hold a small fixed-size cache,
+# so those layers are left out of kv_per_1k_gb. See count_attention_layers.
+SHORT_SLIDING_WINDOW = 4096
+
+# Nemotron-H's older hybrid_override_pattern: one character per layer.
+_NEMOTRON_PATTERN = {"*": "attention", "M": "mamba", "E": "moe", "-": "mlp"}
+
+# Multimodal configs nest the language model's settings under one of these.
+_TEXT_CONFIG_KEYS = ("text_config", "llm_config", "language_config")
+
+
+def text_config_of(config: dict) -> dict:
+    """Return the language model's config, unwrapping multimodal wrappers.
+
+    Gemma 4 nests it under text_config and Nemotron VL under llm_config; the
+    top level of those configs has no attention settings at all.
+    """
+    for key in _TEXT_CONFIG_KEYS:
+        sub = config.get(key)
+        if isinstance(sub, dict) and (
+            sub.get("num_attention_heads") or sub.get("layer_types") or sub.get("layers_block_type")
+        ):
+            return sub
+    return config
+
+
+# Interleaved sliding-window models whose configs may omit layer_types: one
+# full-attention layer every N layers (Transformers' own defaults).
+_DEFAULT_SLIDING_PATTERN = {"gemma2": 2, "gemma3": 6, "gemma3_text": 6}
+
+
+def layer_kinds(config: dict) -> list[str] | None:
+    """Per-layer type names, from whichever field this architecture uses."""
+    kinds = config.get("layer_types") or config.get("layers_block_type")
+    if isinstance(kinds, list) and kinds:
+        return kinds
+    pattern = config.get("hybrid_override_pattern")
+    if isinstance(pattern, str) and pattern:
+        return [_NEMOTRON_PATTERN.get(c, c) for c in pattern]
+    # Gemma 2/3: layer i is full attention when (i + 1) is a multiple of the pattern
+    every = config.get("sliding_window_pattern") or _DEFAULT_SLIDING_PATTERN.get(config.get("model_type"))
+    layers = config.get("num_hidden_layers")
+    if every and layers and config.get("sliding_window"):
+        return ["full_attention" if (i + 1) % every == 0 else "sliding_attention" for i in range(layers)]
+    return None
 
 
 def count_attention_layers(config: dict) -> tuple[int, int]:
     """Return (total_layers, kv_caching_layers).
 
-    Hybrid models interleave linear/conv/sliding sublayers that do not hold a
-    growing KV cache. Only layers whose cache scales with context should be
+    Hybrid models interleave linear/conv/sliding/Mamba sublayers that do not hold
+    a growing KV cache. Only layers whose cache scales with context should be
     counted, so treating every layer as full attention overstates KV several-fold.
+
+    Sliding-window layers only count as cache-free when the window is short
+    (under SHORT_SLIDING_WINDOW tokens). Wider windows (Gemma 2's 4K, Ministral's
+    32K, Llama 4's 8K chunks) grow like full attention at everyday context lengths,
+    so leaving them out would understate memory.
+
+    Gemma 3n/4 "E" models also share KV: the last num_kv_shared_layers layers
+    reuse earlier layers' cache and allocate none of their own.
     """
-    total = config.get("num_hidden_layers") or 0
-    layer_types = config.get("layer_types")
-    if isinstance(layer_types, list) and layer_types:
-        caching = sum(1 for t in layer_types if t in KV_CACHING_LAYER_TYPES)
-        if caching:
-            return total, caching
-        # Unrecognised naming: fall back to "anything not known to be cache-free"
-        # rather than silently returning zero KV cost.
-        unknown = [t for t in layer_types if t not in NON_KV_LAYER_TYPES]
-        if unknown:
-            raise ValueError(
-                f"Unrecognised attention layer types {sorted(set(unknown))}; "
-                f"add them to KV_CACHING_LAYER_TYPES or pass --kv explicitly."
-            )
-    return total, total
+    config = text_config_of(config)
+    kinds = layer_kinds(config)
+    total = config.get("num_hidden_layers") or (len(kinds) if kinds else 0)
+    if not kinds:
+        return total, total
+
+    window = config.get("sliding_window") or 0
+    caching_types = KV_CACHING_LAYER_TYPES
+    if window >= SHORT_SLIDING_WINDOW:
+        caching_types = caching_types | {"sliding_attention"}
+
+    own_cache = len(kinds) - (config.get("num_kv_shared_layers") or 0)
+    caching = sum(1 for t in kinds[:own_cache] if t in caching_types)
+    if caching:
+        return total, caching
+    # Unrecognised naming: fail loudly rather than silently returning zero KV cost.
+    unknown = [t for t in kinds if t not in NON_KV_LAYER_TYPES]
+    if unknown:
+        raise ValueError(
+            f"Unrecognised attention layer types {sorted(set(unknown))}; "
+            f"add them to KV_CACHING_LAYER_TYPES or pass --kv explicitly."
+        )
+    return total, 0
 
 
 def calc_kv_per_1k_gb(layers: int, kv_heads: int, head_dim: int) -> float:
@@ -207,11 +271,27 @@ def calc_kv_per_1k_gb_mla(layers: int, kv_lora_rank: int, qk_rope_head_dim: int 
 
 
 def is_mla(config: dict) -> bool:
-    return bool(config.get("kv_lora_rank"))
+    return bool(text_config_of(config).get("kv_lora_rank"))
+
+
+def kv_heads_of(config: dict) -> int | None:
+    """KV heads on the context-scaling layers.
+
+    Gemma 4 gives full-attention layers their own head count
+    (num_global_key_value_heads); null there means "same as local".
+    """
+    config = text_config_of(config)
+    return (
+        config.get("num_global_key_value_heads")
+        or config.get("num_key_value_heads")
+        or config.get("num_attention_heads")
+    )
 
 
 def head_dim_of(config: dict) -> int | None:
-    head_dim = config.get("head_dim")
+    """Head dim on the context-scaling layers (Gemma 4: global_head_dim)."""
+    config = text_config_of(config)
+    head_dim = config.get("global_head_dim") or config.get("head_dim")
     if head_dim:
         return head_dim
     hidden = config.get("hidden_size")

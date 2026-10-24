@@ -47,6 +47,8 @@ from model_script_utils import (
     fetch_repo_info,
     head_dim_of,
     is_mla,
+    kv_heads_of,
+    text_config_of,
     load_models,
     plausibility_warnings,
     read_gguf_metadata,
@@ -85,16 +87,17 @@ def parse_features(value: str) -> list[str]:
 def derive_architecture(config: dict) -> dict:
     """Work out layer counts and KV-cache cost from a model config."""
     total_layers, attention_layers = count_attention_layers(config)
+    text = text_config_of(config)
 
     if is_mla(config):
         kv = calc_kv_per_1k_gb_mla(
             attention_layers,
-            config.get("kv_lora_rank", 0),
-            config.get("qk_rope_head_dim", 0) or 0,
+            text.get("kv_lora_rank", 0),
+            text.get("qk_rope_head_dim", 0) or 0,
         )
-        style = f"MLA (kv_lora_rank {config.get('kv_lora_rank')})"
+        style = f"MLA (kv_lora_rank {text.get('kv_lora_rank')})"
     else:
-        kv_heads = config.get("num_key_value_heads") or config.get("num_attention_heads")
+        kv_heads = kv_heads_of(config)
         head_dim = head_dim_of(config)
         if not (kv_heads and head_dim):
             return {"layers": total_layers or None, "kv_per_1k_gb": None, "style": "unknown"}
@@ -110,7 +113,7 @@ def derive_architecture(config: dict) -> dict:
 
 
 def context_k_from(config: dict, gguf_meta: dict | None) -> int | None:
-    context = config.get("max_position_embeddings")
+    context = text_config_of(config).get("max_position_embeddings")
     if not context and gguf_meta:
         context = next(
             (v for k, v in gguf_meta.items() if k.endswith(".context_length")), None
@@ -200,7 +203,7 @@ def main() -> None:
 
     # --- context / params ---------------------------------------------------
     gguf_meta = None
-    if args.context_k is None and not config.get("max_position_embeddings"):
+    if args.context_k is None and not text_config_of(config).get("max_position_embeddings"):
         first_repo = sizes[args.quant[0]]["repo"]
         info = fetch_repo_info(first_repo)
         first_file = sorted(
