@@ -7,3 +7,7 @@ build
 vite.config.js.timestamp-*
 
 __pycache__/
+
+# Playwright
+test-results/
+playwright-report/

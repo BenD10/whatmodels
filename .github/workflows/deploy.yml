@@ -37,6 +37,12 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e
+
       - name: Build
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
