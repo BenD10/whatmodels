@@ -1,7 +1,9 @@
 <script>
+  import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
   import { contextLabel, tokLabel, bucketModels, groupVariants } from '$lib/calculations.js';
   import { trackFilterChanged } from '$lib/analytics.js';
+  import { modelSlug } from '$lib/pages.js';
 
   let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {} } = $props();
 
@@ -48,7 +50,7 @@
 {#snippet modelHeader(g)}
   <div class="model-row">
     <div class="model-info">
-      <span class="model-name">{g.name}</span>
+      <a class="model-name" href="{base}/model/{modelSlug(g.name)}">{g.name}</a>
       <span class="badge params">{g.params_b}B</span>
       <span class="badge quality {g.tier.cls}">{g.tier.label}</span>
       {#each g.features as feat}
@@ -435,6 +437,13 @@
 
   .model-name {
     font-weight: 600;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .model-name:hover {
+    color: var(--accent);
+    text-decoration: underline;
   }
 
   .badge {

@@ -184,6 +184,7 @@
 </script>
 
 <svelte:head>
+  <title>What Models? — Pick the right model for your GPU in seconds</title>
   <meta name="description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
 
   <!-- Open Graph -->

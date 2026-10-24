@@ -32,6 +32,10 @@
   </div>
 
   <footer>
+    <p class="browse">
+      <a href="{base}/gpus">Browse GPUs</a> ·
+      <a href="{base}/models">Browse models</a>
+    </p>
     <p>
       Data last updated October 2026.
       <a href="https://github.com/BenD10/whatmodels" target="_blank" rel="noopener">&#9829; GitHub</a> ·
@@ -141,6 +145,11 @@
     text-align: center;
     color: var(--text-muted);
     font-size: 0.8rem;
+  }
+
+  footer .browse {
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
   }
 
   footer a {
