@@ -1,12 +1,18 @@
-export const prerender = true;
+import gpus from '$lib/data/gpus.json';
+import allModels from '$lib/data/models.json';
+import { SITE_URL as SITE, modelPages } from '$lib/pages.js';
 
-const SITE = 'https://whatmodelscanirun.com';
+export const prerender = true;
 
 const pages = [
   { path: '/',        priority: '1.0', changefreq: 'weekly'  },
+  { path: '/gpus',    priority: '0.8', changefreq: 'weekly'  },
+  { path: '/models',  priority: '0.8', changefreq: 'weekly'  },
   { path: '/primer',  priority: '0.8', changefreq: 'monthly' },
   { path: '/about',   priority: '0.5', changefreq: 'monthly' },
   { path: '/privacy', priority: '0.3', changefreq: 'yearly'  },
+  ...gpus.map((g) => ({ path: `/gpu/${g.id}`, priority: '0.7', changefreq: 'monthly' })),
+  ...modelPages(allModels).map((m) => ({ path: `/model/${m.slug}`, priority: '0.7', changefreq: 'monthly' })),
 ];
 
 export function GET() {

@@ -458,3 +458,102 @@ export function groupVariants(models) {
 
   return groups;
 }
+
+/**
+ * VRAM needed to hold a model's weights plus KV cache for a given context.
+ * The context is capped at the model's trained max_context_k.
+ *
+ * @param {{ weight_gb: number, kv_per_1k_gb: number, max_context_k: number }} model
+ * @param {number} contextK  Context length in K tokens
+ * @returns {number} VRAM in GB
+ */
+export function calcVramForContext(model, contextK) {
+  return model.weight_gb + model.kv_per_1k_gb * Math.min(contextK, model.max_context_k);
+}
+
+/**
+ * Expand a GPU into its memory configurations, smallest first.
+ * Single-config GPUs return one entry with memIdx null; GPUs with
+ * vram_options (Apple Silicon, Strix Halo) return one per option, keeping
+ * the original index so it can be used as the `mem` URL param.
+ *
+ * @param {{ vram_gb?: number, bandwidth_gbps?: number, vram_options?: Array<{ vram_gb: number, bandwidth_gbps: number }> }} gpu
+ * @returns {Array<{ vram: number, bandwidth: number|null, memIdx: number|null }>}
+ */
+export function gpuConfigs(gpu) {
+  if (!gpu.vram_options) {
+    return [{ vram: gpu.vram_gb, bandwidth: gpu.bandwidth_gbps ?? null, memIdx: null }];
+  }
+  return gpu.vram_options
+    .map((o, memIdx) => ({ vram: o.vram_gb, bandwidth: o.bandwidth_gbps ?? null, memIdx }))
+    .sort((a, b) => a.vram - b.vram);
+}
+
+/** Pick the variant with the largest weights (highest-precision quantization). */
+function largestVariant(list) {
+  return list.reduce((best, v) => (best == null || v.weight_gb > best.weight_gb ? v : best), null);
+}
+
+/**
+ * Pick the top N distinct models from a bucket of enriched entries by a
+ * benchmark score. Models without a score are skipped. For each model the
+ * highest-precision variant in the bucket is returned.
+ *
+ * @param {Array} entries  Enriched entries (e.g. bucketModels().fits)
+ * @param {'mmlu_score'|'swe_bench_score'} scoreKey
+ * @param {number} n  Maximum number of models to return
+ * @returns {Array} Enriched entries, one per model name, best score first
+ */
+export function topModelsByScore(entries, scoreKey, n = 3) {
+  const byName = new Map();
+  for (const e of entries) {
+    if (e[scoreKey] == null) continue;
+    byName.set(e.name, largestVariant([byName.get(e.name), e].filter(Boolean)));
+  }
+  return [...byName.values()]
+    .sort((a, b) => b[scoreKey] - a[scoreKey] || a.name.localeCompare(b.name))
+    .slice(0, n);
+}
+
+/**
+ * Find the best way to run one model (all its quantization variants) on
+ * given hardware: the highest-precision variant that runs well, otherwise
+ * the highest-precision variant that is a tight fit.
+ *
+ * @param {Array} variants  Model objects sharing a name
+ * @param {number} vram
+ * @param {number|null} bandwidth
+ * @returns {{ status: 'fits'|'tight', variant: object }|null} null if no variant fits
+ */
+export function bestVariantFor(variants, vram, bandwidth) {
+  const { fits, tight } = bucketModels(variants, vram, bandwidth, null, null);
+  if (fits.length > 0) return { status: 'fits', variant: largestVariant(fits) };
+  if (tight.length > 0) return { status: 'tight', variant: largestVariant(tight) };
+  return null;
+}
+
+/**
+ * List the GPUs that can run a model. For GPUs with several memory
+ * configurations, the smallest configuration that runs it well is used
+ * (falling back to the smallest tight fit).
+ *
+ * @param {Array} variants  Model objects sharing a name
+ * @param {Array} gpus  GPU objects from gpus.json
+ * @returns {Array<{ gpu: object, config: object, status: 'fits'|'tight', variant: object }>}
+ *   In gpus.json order; GPUs that can't run any variant are omitted.
+ */
+export function gpusForModel(variants, gpus) {
+  const out = [];
+  for (const gpu of gpus) {
+    let tightMatch = null;
+    let match = null;
+    for (const config of gpuConfigs(gpu)) {
+      const best = bestVariantFor(variants, config.vram, config.bandwidth);
+      if (best?.status === 'fits') { match = { gpu, config, ...best }; break; }
+      if (best && !tightMatch) tightMatch = { gpu, config, ...best };
+    }
+    match ??= tightMatch;
+    if (match) out.push(match);
+  }
+  return out;
+}

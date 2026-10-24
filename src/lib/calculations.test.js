@@ -12,6 +12,11 @@ import {
   codingQualityTier,
   bucketModels,
   groupVariants,
+  calcVramForContext,
+  gpuConfigs,
+  topModelsByScore,
+  bestVariantFor,
+  gpusForModel,
   INFERENCE_OVERHEAD_GB,
   TIGHT_FIT_CONTEXT_K,
   MAX_OFFLOAD_RATIO,
@@ -876,5 +881,96 @@ describe('bucketModels with offloading', () => {
     const result = bucketModels([mediumModel], 8, 500, null, null, [], 'mmlu', 32);
     expect(result.fits.some((m) => m.id === 'test-medium')).toBe(false);
     expect(result.tight.some((m) => m.id === 'test-medium')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Landing-page helpers
+// ---------------------------------------------------------------------------
+
+describe('calcVramForContext', () => {
+  it('adds KV cache for the requested context', () => {
+    // 8.99 GB weights + 0.25 × 32K = 16.99 GB
+    expect(calcVramForContext(mediumModel, 32)).toBeCloseTo(16.99);
+  });
+
+  it('caps context at the model max', () => {
+    // 1.32 + 0.031 × 128 (not 1000) = 5.288 GB
+    expect(calcVramForContext(smallModel, 1000)).toBeCloseTo(5.288);
+  });
+});
+
+describe('gpuConfigs', () => {
+  it('returns a single config for fixed-VRAM GPUs', () => {
+    expect(gpuConfigs({ vram_gb: 8, bandwidth_gbps: 272 })).toEqual([{ vram: 8, bandwidth: 272, memIdx: null }]);
+  });
+
+  it('sorts vram_options ascending and keeps original indices', () => {
+    const gpu = { vram_options: [{ vram_gb: 64, bandwidth_gbps: 400 }, { vram_gb: 32, bandwidth_gbps: 400 }] };
+    expect(gpuConfigs(gpu)).toEqual([
+      { vram: 32, bandwidth: 400, memIdx: 1 },
+      { vram: 64, bandwidth: 400, memIdx: 0 },
+    ]);
+  });
+});
+
+const mediumQ4 = { ...mediumModel, id: 'test-medium-q4', quantization: 'Q4_K_M', weight_gb: 4.9 };
+
+describe('topModelsByScore', () => {
+  it('returns one variant per model, highest precision, best score first', () => {
+    const { fits } = bucketModels([smallModel, mediumModel, mediumQ4, largeModel], 64, 1000, null, null);
+    const top = topModelsByScore(fits, 'mmlu_score', 2);
+    expect(top.map((m) => m.name)).toEqual(['Test Large', 'Test Medium']);
+    expect(top[1].id).toBe('test-medium');
+  });
+
+  it('skips models without a score', () => {
+    const { fits } = bucketModels([smallModel, mediumModel], 24, 1000, null, null);
+    expect(topModelsByScore(fits, 'swe_bench_score').map((m) => m.name)).toEqual(['Test Medium']);
+  });
+
+  it('returns an empty list for an empty bucket', () => {
+    expect(topModelsByScore([], 'mmlu_score')).toEqual([]);
+  });
+});
+
+describe('bestVariantFor', () => {
+  it('picks the highest-precision variant that runs well', () => {
+    // 12 GB: Q8 (8.99 GB) leaves 3.01 / 0.25 = 12K context → fits
+    const best = bestVariantFor([mediumModel, mediumQ4], 12, 500);
+    expect(best.status).toBe('fits');
+    expect(best.variant.id).toBe('test-medium');
+  });
+
+  it('falls back to a smaller variant when the larger does not fit', () => {
+    // 8 GB: Q8 (8.99 GB) does not fit, Q4 (4.9 GB) → 12K context
+    expect(bestVariantFor([mediumModel, mediumQ4], 8, 500).variant.id).toBe('test-medium-q4');
+  });
+
+  it('reports tight when only a tight fit exists', () => {
+    // 5.5 GB: Q4 leaves 0.6 / 0.25 = 2K context → tight
+    expect(bestVariantFor([mediumModel, mediumQ4], 5.5, 500).status).toBe('tight');
+  });
+
+  it('returns null when nothing fits', () => {
+    expect(bestVariantFor([largeModel], 8, 500)).toBeNull();
+  });
+});
+
+describe('gpusForModel', () => {
+  const gpus = [
+    { id: 'small', vram_gb: 4, bandwidth_gbps: 200 },
+    { id: 'mid', vram_gb: 12, bandwidth_gbps: 500 },
+    { id: 'apple', vram_options: [{ vram_gb: 8, bandwidth_gbps: 100 }, { vram_gb: 16, bandwidth_gbps: 100 }] },
+  ];
+
+  it('omits GPUs that cannot run the model', () => {
+    expect(gpusForModel([mediumModel, mediumQ4], gpus).map((r) => r.gpu.id)).toEqual(['mid', 'apple']);
+  });
+
+  it('uses the smallest memory config that runs the model well', () => {
+    const apple = gpusForModel([mediumModel, mediumQ4], gpus).find((r) => r.gpu.id === 'apple');
+    expect(apple.config.memIdx).toBe(0);
+    expect(apple.status).toBe('fits');
   });
 });
