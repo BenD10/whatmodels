@@ -185,6 +185,25 @@ describe('gpus.json', () => {
       expect(VALID_MANUFACTURERS).toContain(gpu.manufacturer);
     });
 
+    it('has msrp_usd (null or a positive US dollar amount)', () => {
+      expect(gpu).toHaveProperty('msrp_usd');
+      if (gpu.msrp_usd !== null) {
+        expect(typeof gpu.msrp_usd).toBe('number');
+        expect(gpu.msrp_usd).toBeGreaterThan(0);
+        expect(gpu.msrp_usd).toBeLessThanOrEqual(50000);
+      }
+    });
+
+    it('has amazon_search (null or a plain search phrase)', () => {
+      expect(gpu).toHaveProperty('amazon_search');
+      if (gpu.amazon_search !== null) {
+        expect(typeof gpu.amazon_search).toBe('string');
+        expect(gpu.amazon_search.trim()).not.toBe('');
+        // The affiliate tag is added by src/lib/affiliate.js, never stored in the data
+        expect(gpu.amazon_search).not.toMatch(/:\/\/|tag=/);
+      }
+    });
+
     if (gpu.vram_options) {
       it('has vram_options array (unified memory GPU)', () => {
         expect(Array.isArray(gpu.vram_options)).toBe(true);

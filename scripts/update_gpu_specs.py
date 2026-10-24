@@ -70,6 +70,18 @@ def main() -> None:
         type=parse_option,
         help="Unified-memory option in format VRAM:BANDWIDTH. If provided, replaces options.",
     )
+    parser.add_argument(
+        "--msrp-usd",
+        type=str,
+        default=None,
+        help="Launch MSRP in US dollars, or 'none' to clear it.",
+    )
+    parser.add_argument(
+        "--amazon-search",
+        type=str,
+        default=None,
+        help="Amazon search phrase, or 'none' if the GPU isn't sold.",
+    )
     parser.add_argument("--yes", action="store_true", help="Skip confirmation prompt.")
     parser.add_argument("--dry-run", action="store_true", help="Preview changes without saving.")
     args = parser.parse_args()
@@ -102,6 +114,17 @@ def main() -> None:
         updated_gpu["vram_gb"] = normalize_number(args.vram)
         updated_gpu["bandwidth_gbps"] = normalize_number(args.bandwidth)
 
+    if args.msrp_usd is not None:
+        if args.msrp_usd.lower() == "none":
+            updated_gpu["msrp_usd"] = None
+        else:
+            try:
+                updated_gpu["msrp_usd"] = normalize_number(float(args.msrp_usd))
+            except ValueError:
+                parser.error("--msrp-usd must be a number or 'none'.")
+    if args.amazon_search is not None:
+        updated_gpu["amazon_search"] = None if args.amazon_search.lower() == "none" else args.amazon_search.strip()
+
     existing_ids = {gpu["id"] for gpu in gpus if gpu["id"] != args.gpu_id}
     errors = validate_gpu_entry(updated_gpu, existing_ids=existing_ids, allow_existing_id=False)
     if errors:
@@ -126,8 +149,11 @@ def main() -> None:
             print("Operation cancelled.")
             return
 
-    del gpus[target_idx]
-    gpus = insert_gpu_with_order(gpus, updated_gpu)
+    if updated_gpu["manufacturer"] == original_gpu["manufacturer"]:
+        gpus[target_idx] = updated_gpu  # keep its place in the list
+    else:
+        del gpus[target_idx]
+        gpus = insert_gpu_with_order(gpus, updated_gpu)
     save_gpus(gpus)
     print("Updated GPU entry in src/lib/data/gpus.json")
 
