@@ -2020,7 +2020,7 @@
     "kv_per_1k_gb": 0.084,
     "max_context_k": 198,
     "layers": 78,
-    "mmlu_score": 91.7,
+    "mmlu_score": 86.9,
     "swe_bench_score": null,
     "features": [
       "tool_use"
@@ -2036,7 +2036,7 @@
     "kv_per_1k_gb": 0.084,
     "max_context_k": 198,
     "layers": 78,
-    "mmlu_score": 91.7,
+    "mmlu_score": 86.9,
     "swe_bench_score": null,
     "features": [
       "tool_use"
