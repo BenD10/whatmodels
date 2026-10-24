@@ -1,7 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
-  import { bucketModels, contextLabel, gpuConfigs, groupVariants, tokLabel, topModelsByScore } from '$lib/calculations.js';
+  import { bucketModels, contextLabel, gpuConfigs, groupVariants, summarizeResults, tokLabel, topModelsByScore } from '$lib/calculations.js';
   import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, modelSlug, toolQuery } from '$lib/pages.js';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
@@ -19,8 +19,10 @@
   let sortBy = $state('mmlu');
 
   let results = $derived(bucketModels(allModels, config.vram, config.bandwidth, null, null));
-  let runsWell = $derived(groupVariants(results.fits).length);
-  let runsTight = $derived(groupVariants(results.tight).length);
+  // One status per model, so "N more are a tight fit" never recounts models that run well
+  let counts = $derived(summarizeResults(results).counts);
+  let runsWell = $derived(counts.fits);
+  let runsTight = $derived(counts.tight);
   let bestGeneral = $derived(topModelsByScore(results.fits, 'mmlu_score'));
   let bestCoding = $derived(topModelsByScore(results.fits, 'swe_bench_score'));
 
@@ -139,7 +141,7 @@
 
   <section>
     <h3 class="section-title">Every model on the {shortName}{#if configs.length > 1}{' '}({config.vram} GB){/if}</h3>
-    <ModelResults vram={config.vram} bandwidth={config.bandwidth} bind:sortBy>
+    <ModelResults vram={config.vram} bandwidth={config.bandwidth} bind:sortBy showTopPicks={false}>
       {#snippet beforeNoFit()}
         <NotifySignup vram={config.vram} gpuId={gpu.id} gpuName={shortName} pageType="gpu" />
       {/snippet}

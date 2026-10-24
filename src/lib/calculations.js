@@ -226,6 +226,9 @@ export function tokLabel(tps) {
   return `~${tps} tok/s`;
 }
 
+/** Minimum MMLU score for the "Good" quality tier. */
+export const GOOD_QUALITY_MMLU = 67;
+
 /**
  * Quality tier based on MMLU score.
  * @param {number} score  MMLU score
@@ -234,7 +237,7 @@ export function tokLabel(tps) {
 export function qualityTier(score) {
   if (score >= 83) return { label: 'Excellent', cls: 'tier-excellent' };
   if (score >= 75) return { label: 'Great', cls: 'tier-great' };
-  if (score >= 67) return { label: 'Good', cls: 'tier-good' };
+  if (score >= GOOD_QUALITY_MMLU) return { label: 'Good', cls: 'tier-good' };
   if (score >= 55) return { label: 'Fair', cls: 'tier-fair' };
   return { label: 'Basic', cls: 'tier-basic' };
 }
@@ -556,4 +559,82 @@ export function gpusForModel(variants, gpus) {
     if (match) out.push(match);
   }
   return out;
+}
+
+/**
+ * Group bucketModels() output so each model appears exactly once, under the
+ * best status any of its variants reaches (fits > tight > noFit).
+ *
+ * A model listed under "fits" keeps its fitting variants in `variants`; its
+ * variants from worse buckets move to `otherVariants`, each tagged with its
+ * own `status`, so the UI can still show them (dimmed) on the same card.
+ * Group order follows the sorted order of each bucket.
+ *
+ * @param {{ fits: Array, tight: Array, noFit: Array }} results
+ * @returns {{ fits: Array, tight: Array, noFit: Array }} groupVariants()-style
+ *   groups, each with an extra `otherVariants` array (smallest weights first)
+ */
+export function groupByBestStatus({ fits, tight, noFit }) {
+  const buckets = { fits, tight, noFit };
+  const best = new Map();
+  for (const [status, list] of Object.entries(buckets)) {
+    for (const e of list) if (!best.has(e.name)) best.set(e.name, status);
+  }
+
+  const others = new Map();
+  for (const [status, list] of Object.entries(buckets)) {
+    for (const e of list) {
+      if (best.get(e.name) === status) continue;
+      if (!others.has(e.name)) others.set(e.name, []);
+      others.get(e.name).push({ ...e, status });
+    }
+  }
+
+  const grouped = {};
+  for (const [status, list] of Object.entries(buckets)) {
+    grouped[status] = groupVariants(list.filter((e) => best.get(e.name) === status)).map((g) => ({
+      ...g,
+      otherVariants: (others.get(g.name) ?? []).sort((a, b) => a.weight_gb - b.weight_gb),
+    }));
+  }
+  return grouped;
+}
+
+/**
+ * Summarise bucketModels() output for the results overview.
+ *
+ * Counts give each model one status, the best any of its variants reaches
+ * (see groupByBestStatus), so they add up to `total`, the number of distinct
+ * models, and match the grouped result lists. Highlights come from the
+ * "runs well" bucket.
+ *
+ * @param {{ fits: Array, tight: Array, noFit: Array }} results
+ * @returns {{
+ *   counts: { fits: number, tight: number, noFit: number },
+ *   total: number,
+ *   bestGeneral: object|null,
+ *   bestCoding: object|null,
+ *   largest: object|null,
+ *   fastest: object|null,
+ * }} Highlights are enriched entries (highest-precision variant of the model)
+ */
+export function summarizeResults({ fits, tight, noFit }) {
+  const grouped = groupByBestStatus({ fits, tight, noFit });
+  const counts = { fits: grouped.fits.length, tight: grouped.tight.length, noFit: grouped.noFit.length };
+  const total = counts.fits + counts.tight + counts.noFit;
+
+  // One entry per model: its highest-precision variant that runs well
+  const fitsByModel = groupVariants(fits).map((g) => largestVariant(g.variants));
+  const pickMax = (list, key) =>
+    list.reduce((top, e) => (top == null || e[key] > top[key] || (e[key] === top[key] && (e.mmlu_score ?? 0) > (top.mmlu_score ?? 0)) ? e : top), null);
+
+  return {
+    counts,
+    total,
+    bestGeneral: topModelsByScore(fits, 'mmlu_score', 1)[0] ?? null,
+    bestCoding: topModelsByScore(fits, 'swe_bench_score', 1)[0] ?? null,
+    largest: pickMax(fitsByModel, 'params_b'),
+    // Fastest variant of any model of at least "Good" quality, so a tiny model doesn't win by default
+    fastest: pickMax(fits.filter((e) => e.tokPerSec != null && e.mmlu_score >= GOOD_QUALITY_MMLU), 'tokPerSec'),
+  };
 }

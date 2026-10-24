@@ -1,11 +1,12 @@
 <script>
   import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
-  import { contextLabel, tokLabel, bucketModels, groupVariants } from '$lib/calculations.js';
+  import { contextLabel, tokLabel, bucketModels, groupByBestStatus, summarizeResults } from '$lib/calculations.js';
   import { trackFilterChanged } from '$lib/analytics.js';
   import { modelSlug } from '$lib/pages.js';
+  import ResultsSummary from '$lib/components/ResultsSummary.svelte';
 
-  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {}, beforeNoFit = null } = $props();
+  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {}, beforeNoFit = null, showTopPicks = true } = $props();
 
   function onSortByChange(e) {
     sortBy = e.target.value;
@@ -20,11 +21,40 @@
     return bucketModels(allModels, vram, bandwidth, minContextK, minTokPerSec, requiredFeatures, sortBy, systemRamGB);
   });
 
-  let groupedFits = $derived(results ? groupVariants(results.fits) : []);
-  let groupedTight = $derived(results ? groupVariants(results.tight) : []);
-  let groupedNoFit = $derived(results ? groupVariants(results.noFit) : []);
+  // Each model appears once, under the best status any of its quantizations reaches
+  let byStatus = $derived(results ? groupByBestStatus(results) : { fits: [], tight: [], noFit: [] });
+  let groupedFits = $derived(byStatus.fits);
+  let groupedTight = $derived(byStatus.tight);
+  let groupedNoFit = $derived(byStatus.noFit);
+
+  /** Why a quantization is worse than the model's listed status, for the dimmed row. */
+  function otherVariantNote(v) {
+    if (v.status === 'tight') {
+      if (v.offloadInfo) return `Tight fit · needs ${v.offloadInfo.ramWeightGB.toFixed(1)} GB in system RAM`;
+      return `Tight fit · ${v.maxCtxK > 0 ? contextLabel(v.maxCtxK) : 'no'} context`;
+    }
+    if (!v.modelSupportsCtx) return `Doesn't fit · max context ${contextLabel(v.max_context_k)}`;
+    return `Doesn't fit · needs ${(v.weight_gb + v.kv_per_1k_gb).toFixed(1)} GB`;
+  }
 
   let totalFit = $derived(results ? results.fits.length + results.tight.length : 0);
+  let summary = $derived(results ? summarizeResults(results) : null);
+
+  // Each group shows this many models; the rest open in a dialog
+  const PREVIEW_COUNT = 3;
+
+  let buckets = $derived([
+    { key: 'fits', cls: 'fits', title: 'Runs well', groups: groupedFits },
+    { key: 'tight', cls: 'tight', title: 'Tight fit', groups: groupedTight },
+    { key: 'noFit', cls: 'no-fit', title: "Doesn't fit", groups: groupedNoFit },
+  ]);
+
+  let dialogs = $state({});
+
+  // The dialog's content fills it, so a click landing on the dialog itself is on the backdrop
+  function closeOnBackdrop(e) {
+    if (e.target === e.currentTarget) e.currentTarget.close();
+  }
 
   const mmluExplainer = 'MMLU (Massive Multitask Language Understanding) measures general knowledge across 57 subjects. Higher = more capable. Sorted best-first.';
   const sweBenchExplainer = 'SWE-bench Verified measures a model\'s ability to resolve real-world GitHub issues. Higher = better at coding tasks. Sorted best-first.';
@@ -66,6 +96,145 @@
   </div>
 {/snippet}
 
+{#snippet fitsVariants(g)}
+  <div class="variants">
+    {#each g.variants as v}
+      <div class="variant-row">
+        <span class="badge quant">{v.quantization}</span>
+        <div class="variant-stats">
+          <span class="stat context">
+            <span class="stat-label">Context</span>
+            <span class="stat-value">{contextLabel(v.maxCtxK)}</span>
+          </span>
+          {#if v.tokPerSec != null}
+            <span class="stat speed">
+              <span class="stat-label">Speed</span>
+              <span class="stat-value">{tokLabel(v.tokPerSec)}</span>
+            </span>
+          {/if}
+        </div>
+      </div>
+      {#if v.ctxInfo}
+        <p class="reason variant-reason ram-note">{contextLabel(v.ctxInfo.vramCtxK)} on GPU, {contextLabel(v.ctxInfo.ramCtxK)} extended via system RAM</p>
+      {/if}
+      {#if v.active_weight_gb}
+        <p class="reason variant-reason moe-note">MoE — speed based on ~{v.active_weight_gb} GB active experts (full {v.weight_gb} GB loaded in VRAM)</p>
+      {/if}
+    {/each}
+  </div>
+{/snippet}
+
+{#snippet tightVariants(g)}
+  <div class="variants">
+    {#each g.variants as v}
+      <div class="variant-row">
+        <span class="badge quant">{v.quantization}</span>
+        <div class="variant-stats">
+          <span class="stat context">
+            <span class="stat-label">Context</span>
+            <span class="stat-value">{v.maxCtxK > 0 ? contextLabel(v.maxCtxK) : '—'}</span>
+          </span>
+          {#if v.tokPerSec != null}
+            <span class="stat speed">
+              <span class="stat-label">Speed</span>
+              <span class="stat-value">{tokLabel(v.tokPerSec)}</span>
+            </span>
+          {/if}
+        </div>
+      </div>
+      {#if v.offloadInfo}
+        <p class="reason variant-reason offload-note">Requires {v.offloadInfo.gpuWeightGB.toFixed(1)} GB GPU + {v.offloadInfo.ramWeightGB.toFixed(1)} GB system RAM (~{v.offloadInfo.estimatedLayers} layers offloaded) — ~{v.offloadInfo.penaltyPercent}% slower</p>
+      {/if}
+      {#if v.ctxInfo}
+        <p class="reason variant-reason ram-note">{contextLabel(v.ctxInfo.vramCtxK)} on GPU, {contextLabel(v.ctxInfo.ramCtxK)} extended via system RAM</p>
+      {/if}
+      {#if !v.meetsMinCtx && v.fitsAtAll && !v.offloadInfo}
+        <p class="reason variant-reason">Only {contextLabel(v.maxCtxK)} context — below your {contextLabel(minContextK)} minimum</p>
+      {:else if v.maxCtxK < 4 && !v.offloadInfo}
+        <p class="reason variant-reason">Very limited context window ({contextLabel(v.maxCtxK)})</p>
+      {/if}
+      {#if !v.meetsMinSpeed && v.tokPerSec != null && !v.offloadInfo}
+        <p class="reason variant-reason">~{v.tokPerSec} tok/s — below your {minTokPerSec} tok/s minimum</p>
+      {/if}
+      {#if v.active_weight_gb}
+        <p class="reason variant-reason moe-note">MoE — speed based on ~{v.active_weight_gb} GB active experts (full {v.weight_gb} GB loaded in VRAM)</p>
+      {/if}
+      {#if !v.meetsFeatures}
+        <p class="reason variant-reason">Missing features: {requiredFeatures.filter((f) => !(v.features ?? []).includes(f)).map((f) => FEATURE_LABELS[f] ?? f).join(', ')}</p>
+      {/if}
+    {/each}
+  </div>
+{/snippet}
+
+{#snippet noFitVariants(g)}
+  <div class="variants">
+    {#each g.variants as v}
+      <div class="variant-row">
+        <span class="badge quant">{v.quantization}</span>
+        {#if !v.fitsAtAll}
+          <span class="variant-need">Needs {(v.weight_gb + v.kv_per_1k_gb).toFixed(1)} GB — {(v.weight_gb + v.kv_per_1k_gb - vram).toFixed(1)} GB over</span>
+        {:else if !v.modelSupportsCtx}
+          <span class="variant-need">Max context {contextLabel(v.max_context_k)} — needs {contextLabel(minContextK)}</span>
+        {/if}
+      </div>
+    {/each}
+  </div>
+{/snippet}
+
+{#snippet modelItem(g, key)}
+  <li>
+    {@render modelHeader(g)}
+    {#if key === 'fits'}
+      {@render fitsVariants(g)}
+    {:else if key === 'tight'}
+      {@render tightVariants(g)}
+    {:else}
+      {@render noFitVariants(g)}
+    {/if}
+    {#each g.otherVariants as v}
+      <div class="variant-row other-variant">
+        <span class="badge quant">{v.quantization}</span>
+        <span class="variant-need">{otherVariantNote(v)}</span>
+      </div>
+    {/each}
+  </li>
+{/snippet}
+
+<!-- One status group: a short preview, with the full list in a dialog. The dialog
+     is always rendered (closed) so prerendered pages keep every model link. -->
+{#snippet group(b)}
+  {#if b.groups.length > 0}
+    <div class="group {b.cls}" id="group-{b.key}">
+      <h3>{b.title} <span class="group-count">{b.groups.length}</span></h3>
+      <ul>
+        {#each b.groups.slice(0, PREVIEW_COUNT) as g (g.name)}
+          {@render modelItem(g, b.key)}
+        {/each}
+      </ul>
+      {#if b.groups.length > PREVIEW_COUNT}
+        <button type="button" class="view-all" onclick={() => dialogs[b.key]?.showModal()}>
+          View all {b.groups.length} →
+        </button>
+      {/if}
+    </div>
+    {#if b.groups.length > PREVIEW_COUNT}
+      <dialog class="group-dialog" bind:this={dialogs[b.key]} onclick={closeOnBackdrop} aria-labelledby="dialog-title-{b.key}">
+        <div class="dialog-inner group {b.cls}">
+          <div class="dialog-head">
+            <h3 id="dialog-title-{b.key}">{b.title} <span class="group-count">{b.groups.length}</span></h3>
+            <button type="button" class="dialog-close" onclick={() => dialogs[b.key]?.close()} aria-label="Close">✕</button>
+          </div>
+          <ul class="dialog-list">
+            {#each b.groups as g (g.name)}
+              {@render modelItem(g, b.key)}
+            {/each}
+          </ul>
+        </div>
+      </dialog>
+    {/if}
+  {/if}
+{/snippet}
+
 {#if results == null}
   <section class="empty">
     <p>Select a GPU or enter your VRAM to see which models you can run.</p>
@@ -79,6 +248,7 @@
       {#if minTokPerSec != null} at <strong>{minTokPerSec}+ tok/s</strong>{/if}
       — sorted by quality
     </p>
+    <ResultsSummary {summary} {showTopPicks} />
     <div class="results-meta">
       <div class="sort-control">
         <label for="sort-select">Ranked by</label>
@@ -104,123 +274,13 @@
       </button>
     </div>
 
-    {#if groupedFits.length > 0}
-      <div class="group fits">
-        <h3>Runs well</h3>
-        <ul>
-          {#each groupedFits as g}
-            <li>
-              {@render modelHeader(g)}
-              <div class="variants">
-                {#each g.variants as v}
-                  <div class="variant-row">
-                    <span class="badge quant">{v.quantization}</span>
-                    <div class="variant-stats">
-                      <span class="stat context">
-                        <span class="stat-label">Context</span>
-                        <span class="stat-value">{contextLabel(v.maxCtxK)}</span>
-                      </span>
-                      {#if v.tokPerSec != null}
-                        <span class="stat speed">
-                          <span class="stat-label">Speed</span>
-                          <span class="stat-value">{tokLabel(v.tokPerSec)}</span>
-                        </span>
-                      {/if}
-                    </div>
-                  </div>
-                  {#if v.ctxInfo}
-                    <p class="reason variant-reason ram-note">{contextLabel(v.ctxInfo.vramCtxK)} on GPU, {contextLabel(v.ctxInfo.ramCtxK)} extended via system RAM</p>
-                  {/if}
-                  {#if v.active_weight_gb}
-                    <p class="reason variant-reason moe-note">MoE — speed based on ~{v.active_weight_gb} GB active experts (full {v.weight_gb} GB loaded in VRAM)</p>
-                  {/if}
-                {/each}
-              </div>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {/if}
-
-    {#if groupedTight.length > 0}
-      <div class="group tight">
-        <h3>Tight fit</h3>
-        <ul>
-          {#each groupedTight as g}
-            <li>
-              {@render modelHeader(g)}
-              <div class="variants">
-                {#each g.variants as v}
-                  <div class="variant-row">
-                    <span class="badge quant">{v.quantization}</span>
-                    <div class="variant-stats">
-                      <span class="stat context">
-                        <span class="stat-label">Context</span>
-                        <span class="stat-value">{v.maxCtxK > 0 ? contextLabel(v.maxCtxK) : '—'}</span>
-                      </span>
-                      {#if v.tokPerSec != null}
-                        <span class="stat speed">
-                          <span class="stat-label">Speed</span>
-                          <span class="stat-value">{tokLabel(v.tokPerSec)}</span>
-                        </span>
-                      {/if}
-                    </div>
-                  </div>
-                  {#if v.offloadInfo}
-                    <p class="reason variant-reason offload-note">Requires {v.offloadInfo.gpuWeightGB.toFixed(1)} GB GPU + {v.offloadInfo.ramWeightGB.toFixed(1)} GB system RAM (~{v.offloadInfo.estimatedLayers} layers offloaded) — ~{v.offloadInfo.penaltyPercent}% slower</p>
-                  {/if}
-                  {#if v.ctxInfo}
-                    <p class="reason variant-reason ram-note">{contextLabel(v.ctxInfo.vramCtxK)} on GPU, {contextLabel(v.ctxInfo.ramCtxK)} extended via system RAM</p>
-                  {/if}
-                  {#if !v.meetsMinCtx && v.fitsAtAll && !v.offloadInfo}
-                    <p class="reason variant-reason">Only {contextLabel(v.maxCtxK)} context — below your {contextLabel(minContextK)} minimum</p>
-                  {:else if v.maxCtxK < 4 && !v.offloadInfo}
-                    <p class="reason variant-reason">Very limited context window ({contextLabel(v.maxCtxK)})</p>
-                  {/if}
-                  {#if !v.meetsMinSpeed && v.tokPerSec != null && !v.offloadInfo}
-                    <p class="reason variant-reason">~{v.tokPerSec} tok/s — below your {minTokPerSec} tok/s minimum</p>
-                  {/if}
-                  {#if v.active_weight_gb}
-                    <p class="reason variant-reason moe-note">MoE — speed based on ~{v.active_weight_gb} GB active experts (full {v.weight_gb} GB loaded in VRAM)</p>
-                  {/if}
-                  {#if !v.meetsFeatures}
-                    <p class="reason variant-reason">Missing features: {requiredFeatures.filter((f) => !(v.features ?? []).includes(f)).map((f) => FEATURE_LABELS[f] ?? f).join(', ')}</p>
-                  {/if}
-                {/each}
-              </div>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {/if}
+    {@render group(buckets[0])}
+    {@render group(buckets[1])}
 
     <!-- Optional content between the tight-fit and doesn't-fit groups (e.g. the email signup) -->
     {@render beforeNoFit?.()}
 
-    {#if groupedNoFit.length > 0}
-      <div class="group no-fit">
-        <h3>Doesn't fit</h3>
-        <ul>
-          {#each groupedNoFit as g}
-            <li>
-              {@render modelHeader(g)}
-              <div class="variants">
-                {#each g.variants as v}
-                  <div class="variant-row">
-                    <span class="badge quant">{v.quantization}</span>
-                    {#if !v.fitsAtAll}
-                      <span class="variant-need">Needs {(v.weight_gb + v.kv_per_1k_gb).toFixed(1)} GB — {(v.weight_gb + v.kv_per_1k_gb - vram).toFixed(1)} GB over</span>
-                    {:else if !v.modelSupportsCtx}
-                      <span class="variant-need">Max context {contextLabel(v.max_context_k)} — needs {contextLabel(minContextK)}</span>
-                    {/if}
-                  </div>
-                {/each}
-              </div>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {/if}
+    {@render group(buckets[2])}
   </section>
 {/if}
 
@@ -401,6 +461,109 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-bottom: 0.75rem;
+  }
+
+  .group h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .group-count {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .group {
+    scroll-margin-top: 1rem;
+  }
+
+  .view-all {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .view-all:hover {
+    border-color: var(--accent);
+    background: var(--surface-hover);
+  }
+
+  /* Full-list dialog */
+  .group-dialog {
+    /* app.css resets margin on everything; auto margins are what center a modal */
+    margin: auto;
+    width: min(760px, calc(100% - 2rem));
+    max-height: 85vh;
+    overflow: hidden;
+    padding: 0;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .group-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.65);
+  }
+
+  /* Lock the page behind an open dialog so only the list scrolls */
+  :global(html:has(.group-dialog[open])) {
+    overflow: hidden;
+  }
+
+  .dialog-inner {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(85vh - 2px); /* inside the dialog's 1px border */
+    border-radius: 0;
+    border: none;
+  }
+
+  .dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .dialog-head h3 {
+    margin-bottom: 0;
+  }
+
+  .dialog-close {
+    padding: 0.2rem 0.55rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  .dialog-close:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .dialog-list {
+    overflow-y: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    padding-right: 0.25rem;
   }
 
   .group.fits h3 { color: var(--fits); }
@@ -587,6 +750,11 @@
     display: flex;
     gap: 1rem;
     margin-left: auto;
+  }
+
+  /* A quantization that does worse than the model's listed status */
+  .other-variant {
+    opacity: 0.55;
   }
 
   .variant-need {
