@@ -129,9 +129,17 @@ export function calcMaxContextWithOffload(model, vram, systemRamGB) {
   };
 }
 
+/** KV cache size in GB for a context (in K tokens), capped at the model's max context. */
+function calcKvGB(model, contextK) {
+  return model.kv_per_1k_gb * Math.min(contextK, model.max_context_k);
+}
+
 /**
  * Calculate how much of a model's weights must be offloaded to system RAM
  * when the model doesn't fully fit in VRAM.
+ *
+ * Enough layers are offloaded to leave TIGHT_FIT_CONTEXT_K of KV cache on the
+ * GPU, since a model with no room for context can't run.
  *
  * Returns feasible: false when offloading is not possible (no system RAM,
  * >50% offload ratio, or insufficient system RAM).
@@ -142,14 +150,14 @@ export function calcMaxContextWithOffload(model, vram, systemRamGB) {
  * @returns {{ feasible: boolean, gpuWeightGB?: number, ramWeightGB?: number, offloadRatio?: number, estimatedLayers?: number }}
  */
 export function calcOffloadConfig(model, vram, systemRamGB) {
-  // Reserve minimal space for KV cache + overhead
-  const reserveForKV = INFERENCE_OVERHEAD_GB;
-  const availableForWeights = vram - reserveForKV;
-
   // Model fits entirely on GPU — no offloading needed
-  if (model.weight_gb <= availableForWeights) {
+  if (model.weight_gb <= vram - INFERENCE_OVERHEAD_GB) {
     return { feasible: true, gpuWeightGB: model.weight_gb, ramWeightGB: 0, offloadRatio: 0, estimatedLayers: 0 };
   }
+
+  // Offload enough layers to keep TIGHT_FIT_CONTEXT_K of KV cache + overhead on the GPU
+  const reserveForKV = INFERENCE_OVERHEAD_GB + calcKvGB(model, TIGHT_FIT_CONTEXT_K);
+  const availableForWeights = vram - reserveForKV;
 
   // Can't offload without system RAM
   if (systemRamGB == null) return { feasible: false };
@@ -342,11 +350,11 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
         };
       }
     } else if (offloadInfo) {
-      // Weight offloading: minimal context on remaining VRAM
-      // Available VRAM for KV = vram - gpuWeightGB (already accounted for overhead)
+      // Weight offloading: context on the VRAM calcOffloadConfig kept free for KV
+      // (epsilon so float error doesn't floor the reserved 16K down to 15K)
       const vramForKv = Math.max(vram - offloadInfo.gpuWeightGB - INFERENCE_OVERHEAD_GB, 0);
       maxCtxK = m.kv_per_1k_gb > 0
-        ? Math.min(Math.floor(vramForKv / m.kv_per_1k_gb), m.max_context_k)
+        ? Math.min(Math.floor(vramForKv / m.kv_per_1k_gb + 1e-9), m.max_context_k)
         : m.max_context_k;
     } else {
       maxCtxK = calcMaxContext(m, vram);
@@ -390,7 +398,8 @@ export function bucketModels(allModels, vram, bandwidth, minContextK, minTokPerS
   const noFit = [];
 
   for (const e of entries) {
-    if (!e.fitsAtAll || !e.modelSupportsCtx) {
+    if (!e.fitsAtAll || !e.modelSupportsCtx || e.maxCtxK <= 0) {
+      // No room for any KV cache means the model can't actually run
       noFit.push(e);
     } else if (e.offloadInfo) {
       // Weight offloading always goes to tight fit (never "runs well")
@@ -472,7 +481,7 @@ export function groupVariants(models) {
  * @returns {number} VRAM in GB
  */
 export function calcVramForContext(model, contextK) {
-  return model.weight_gb + model.kv_per_1k_gb * Math.min(contextK, model.max_context_k);
+  return model.weight_gb + calcKvGB(model, contextK);
 }
 
 /**
