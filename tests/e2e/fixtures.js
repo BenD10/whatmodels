@@ -55,7 +55,8 @@ export const test = base.extend({
   posthogRequests: async ({ page }, use) => {
     const urls = [];
     page.on('request', (r) => {
-      if (new URL(r.url()).hostname.endsWith('posthog.com')) urls.push(r.url());
+      const host = new URL(r.url()).hostname;
+      if (host === 'posthog.com' || host.endsWith('.posthog.com')) urls.push(r.url());
     });
     await use(urls);
   },
