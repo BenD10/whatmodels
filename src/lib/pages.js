@@ -27,7 +27,8 @@ export function monthYearLabel(isoDate) {
 }
 
 /**
- * Every URL in the sitemap. Pages built from the data carry DATA_UPDATED as
+ * Every URL in the sitemap. Pages built from the data (including the /data
+ * dataset docs, whose counts and date come from it) carry DATA_UPDATED as
  * their lastmod; hand-written pages (primer, privacy) have no reliable date,
  * so they carry none rather than a made-up one.
  * @param {Array} gpus  gpus.json
@@ -44,6 +45,7 @@ export function sitemapEntries(gpus, models, dataUpdated = DATA_UPDATED) {
     data('/models', '0.8', 'weekly'),
     ...VRAM_TIERS.map((size) => data(tierPath(size), '0.8', 'monthly')),
     fixed('/primer', '0.8', 'monthly'),
+    data('/data/', '0.6', 'monthly'),
     fixed('/privacy', '0.3', 'yearly'),
     ...gpus.map((g) => data(`/gpu/${g.id}`, '0.7', 'monthly')),
     ...modelPages(models).map((m) => data(`/model/${m.slug}`, '0.7', 'monthly')),

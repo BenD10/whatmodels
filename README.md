@@ -10,6 +10,21 @@ A static website that helps users find out which AI models their GPU can run —
 
 ---
 
+## Dataset
+
+The data behind the site is published as an open, MIT-licensed JSON dataset, rebuilt with every data release (about every two weeks):
+
+- **[`/data/models.json`](https://whatmodelscanirun.com/data/models.json)**: one row per model per quantization, with GGUF weight size, KV cache per 1K tokens (only layers whose cache grows with context), MoE active weights, trained context, features and MMLU-Pro / SWE-bench Verified scores
+- **[`/data/gpus.json`](https://whatmodelscanirun.com/data/gpus.json)**: VRAM, memory bandwidth (per configuration for unified-memory chips) and launch price
+
+```bash
+curl -s https://whatmodelscanirun.com/data/models.json | jq '.models[0]'
+```
+
+Every field, its units, how it's measured and the schema-version policy are documented at **[whatmodelscanirun.com/data](https://whatmodelscanirun.com/data/)**. Attribution with a link is appreciated.
+
+---
+
 ## Architecture
 
 ### Tech stack

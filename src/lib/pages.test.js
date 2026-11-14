@@ -137,7 +137,7 @@ describe('sitemapEntries', () => {
     const expected = [
       '/', '/gpus', '/models',
       '/vram/8gb', '/vram/12gb', '/vram/16gb', '/vram/24gb', '/vram/32gb', '/vram/48gb', '/vram/64gb', '/vram/96gb', '/vram/128gb',
-      '/primer', '/privacy',
+      '/primer', '/data/', '/privacy',
       ...gpusData.map((g) => `/gpu/${g.id}`),
       ...modelPages(modelsData).map((m) => `/model/${m.slug}`),
     ];
@@ -147,7 +147,7 @@ describe('sitemapEntries', () => {
 
   it('dates data-driven pages by the data release, and invents no date for the rest', () => {
     for (const e of entries) {
-      const fromData = e.path === '/' || ['/gpu', '/model', '/vram/'].some((p) => e.path.startsWith(p));
+      const fromData = e.path === '/' || ['/gpu', '/model', '/vram/', '/data'].some((p) => e.path.startsWith(p));
       expect(e.lastmod, e.path).toBe(fromData ? '2026-11-13' : null);
     }
     expect(sitemapEntries([], [])[0].lastmod).toBe(DATA_UPDATED);

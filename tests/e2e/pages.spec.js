@@ -10,6 +10,7 @@ const PAGES = [
   '/gpus',
   '/models',
   '/primer',
+  '/data/',
   '/privacy',
 ];
 

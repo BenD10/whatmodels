@@ -24,6 +24,20 @@ test('a new deploy shows up on the next visit, not a cached page', async ({ page
   await expect(page.locator('body')).toHaveAttribute('data-deploy', 'new');
 });
 
+test('the dataset JSON is fetched fresh, not served from the cache', async ({ page, context }) => {
+  await loadControlled(page);
+  const fetchUpdated = () => page.evaluate(async () => (await (await fetch('/data/models.json')).json()).updated);
+  await fetchUpdated(); // now in the service worker's cache
+
+  // Simulate a data release: the server now returns a newer file
+  await context.route((url) => url.pathname === '/data/models.json', async (route) => {
+    const response = await route.fetch();
+    const body = { ...(await response.json()), updated: '2099-01-01' };
+    await route.fulfill({ response, json: body });
+  });
+  expect(await fetchUpdated()).toBe('2099-01-01');
+});
+
 test('visited pages still work offline', async ({ page, context }) => {
   await loadControlled(page);
   await context.setOffline(true);
