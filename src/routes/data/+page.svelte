@@ -1,5 +1,6 @@
 <script>
   import { base } from '$app/paths';
+  import OgImage from '$lib/components/OgImage.svelte';
   import gpus from '$lib/data/gpus.json';
   import models from '$lib/data/models.json';
   import { DATA_UPDATED, SITE_NAME, SITE_URL, breadcrumbLd, jsonLdScript, modelPages } from '$lib/pages.js';
@@ -103,11 +104,12 @@ for m in models:
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:site_name" content={SITE_NAME} />
-  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
   {@html jsonLdScript(jsonLd)}
 </svelte:head>
+
+<OgImage />
 
 <div class="prose">
   <h1>Open dataset: LLM memory needs and GPUs</h1>
