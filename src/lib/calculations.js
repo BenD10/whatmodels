@@ -9,8 +9,25 @@
  * Additional memory overhead for inference engine internals (activations,
  * scratch buffers, etc.). Empirically derived from real-world benchmarks
  * on consumer GPUs using llama.cpp-based engines.
+ *
+ * Units: in the speed formula this is decimal GB (10^9 bytes) of extra
+ * traffic per token, because it was fitted against GGUF sizes in decimal GB
+ * (README §4, docs/speed-calibration.md). In the memory-fit maths it is a
+ * reserve in GiB, next to weight_gb and VRAM. The two readings differ by
+ * 0.07, well inside the constant's own uncertainty, so one value serves both.
  */
 export const INFERENCE_OVERHEAD_GB = 1.0;
+
+/**
+ * Decimal gigabytes per GiB: 2^30 / 10^9.
+ *
+ * `weight_gb` and `active_weight_gb` are GiB (bytes / 2^30), because they are
+ * compared with GPU memory, which is sized in binary units (a "24 GB" card
+ * holds 24 GiB). Memory bandwidth is quoted in decimal GB/s (10^9 bytes/s).
+ * The speed estimate divides one by the other, so it converts the weights to
+ * decimal GB first; without this, every speed would be 7.4% optimistic.
+ */
+export const GIB_IN_GB = 1.073741824;
 
 /**
  * Models with less than this usable context (in K tokens) are a "tight fit"
@@ -79,7 +96,9 @@ export function calcMaxContext(model, userVram) {
  *
  * Fitted (least squares on log error) to 26 published llama-bench tg128
  * results across NVIDIA, AMD and Apple hardware; leave-one-GPU-out fits stay
- * within 2.3–2.8 ms. Method and sources: docs/speed-calibration.md.
+ * within 2.3–2.8 ms. The fit used decimal-GB sizes, and refitting after the
+ * GiB/GB unit correction (Nov 2026) gives 2.52 ms, so it is unchanged.
+ * Method and sources: docs/speed-calibration.md.
  */
 export const MOE_TOKEN_OVERHEAD_MS = 2.5;
 
@@ -88,28 +107,30 @@ export const MOE_TOKEN_OVERHEAD_MS = 2.5;
  * During autoregressive generation, every token requires reading all weights
  * plus additional memory for KV cache reads, activations, and engine overhead.
  *
- * Dense:  tok/s ≈ bandwidth / (weight_gb + INFERENCE_OVERHEAD_GB)
+ * Dense:  tok/s ≈ bandwidth / (weight_gb × GIB_IN_GB + INFERENCE_OVERHEAD_GB)
  *
  * For sparse MoE models (those with active_weight_gb), only the active expert
  * weights are streamed per token, but routing and per-expert kernels add a
  * fixed time per token (MOE_TOKEN_OVERHEAD_MS), so:
  *
- * MoE:    seconds/token ≈ (active_weight_gb + INFERENCE_OVERHEAD_GB) / bandwidth
+ * MoE:    seconds/token ≈ (active_weight_gb × GIB_IN_GB + INFERENCE_OVERHEAD_GB) / bandwidth
  *                          + MOE_TOKEN_OVERHEAD_MS / 1000
  *
+ * Bytes per token are in decimal GB to match bandwidth in decimal GB/s:
+ * weights are stored in GiB (see GIB_IN_GB), the overhead is already decimal.
  * VRAM still holds all weights; only the speed estimate uses the active subset.
  *
- * @param {{ weight_gb: number, active_weight_gb?: number }} model
- * @param {number|null} bandwidth  Memory bandwidth in GB/s, or null if unknown
+ * @param {{ weight_gb: number, active_weight_gb?: number }} model  Sizes in GiB
+ * @param {number|null} bandwidth  Memory bandwidth in decimal GB/s, or null if unknown
  * @returns {number|null} Estimated tokens per second, or null if bandwidth unknown
  */
 export function calcTokPerSec(model, bandwidth) {
   if (bandwidth == null) return null;
   if (model.active_weight_gb == null) {
-    return Math.round(bandwidth / (model.weight_gb + INFERENCE_OVERHEAD_GB));
+    return Math.round(bandwidth / (model.weight_gb * GIB_IN_GB + INFERENCE_OVERHEAD_GB));
   }
   const secondsPerToken =
-    (model.active_weight_gb + INFERENCE_OVERHEAD_GB) / bandwidth + MOE_TOKEN_OVERHEAD_MS / 1000;
+    (model.active_weight_gb * GIB_IN_GB + INFERENCE_OVERHEAD_GB) / bandwidth + MOE_TOKEN_OVERHEAD_MS / 1000;
   return Math.round(1 / secondsPerToken);
 }
 
@@ -124,6 +145,7 @@ export function calcTokPerSec(model, bandwidth) {
  * bandwidth is the sum of both dies, which a single decode stream doesn't
  * reach. Fitted (least squares on log error) to 17 Ultra llama-bench results
  * on M1, M2, M3 and M5 Ultra; leave-one-chip-out fits stay within 0.67–0.74.
+ * Refitting after the GiB/GB unit correction (Nov 2026) gives 0.70 again.
  * Method and sources: docs/speed-calibration.md.
  */
 export const APPLE_ULTRA_BANDWIDTH_EFFICIENCY = 0.7;

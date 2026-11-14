@@ -24,6 +24,7 @@ import {
   MIN_UPGRADE_VRAM_GB,
   GOOD_QUALITY_MMLU,
   INFERENCE_OVERHEAD_GB,
+  GIB_IN_GB,
   MOE_TOKEN_OVERHEAD_MS,
   APPLE_ULTRA_BANDWIDTH_EFFICIENCY,
   effectiveBandwidth,
@@ -216,24 +217,38 @@ describe('calcTokPerSec', () => {
   });
 
   it('calculates correct tok/s for known bandwidth', () => {
-    // bandwidth = 504 GB/s, weight = 8.99 GB, overhead = 1.0
-    // 504 / (8.99 + 1.0) = 504 / 9.99 ≈ 50.45 → round = 50
+    // 504 GB/s, 8.99 GiB → 9.65 GB + 1.0 = 10.65 GB per token
+    // 504 / 10.65 ≈ 47.31 → 47
     const result = calcTokPerSec(mediumModel, 504);
-    expect(result).toBe(50);
+    expect(result).toBe(47);
   });
 
   it('handles small model with high bandwidth', () => {
-    // bandwidth = 1008 GB/s, weight = 1.32 GB, overhead = 1.0
-    // 1008 / 2.32 ≈ 434.48 → round = 434
+    // 1008 GB/s, 1.32 GiB → 1.42 GB + 1.0 = 2.42 GB
+    // 1008 / 2.42 ≈ 416.99 → 417
     const result = calcTokPerSec(smallModel, 1008);
-    expect(result).toBe(434);
+    expect(result).toBe(417);
   });
 
   it('handles large model', () => {
-    // bandwidth = 960 GB/s, weight = 43.5 GB, overhead = 1.0
-    // 960 / 44.5 ≈ 21.57 → round = 22
+    // 960 GB/s, 43.5 GiB → 46.71 GB + 1.0 = 47.71 GB
+    // 960 / 47.71 ≈ 20.12 → 20
     const result = calcTokPerSec(largeModel, 960);
-    expect(result).toBe(22);
+    expect(result).toBe(20);
+  });
+
+  it('converts GiB weights to decimal GB before dividing by GB/s bandwidth', () => {
+    // weight_gb is GiB (bytes / 2^30); bandwidth is decimal GB/s (10^9 bytes/s)
+    expect(GIB_IN_GB).toBe(2 ** 30 / 1e9);
+    // A 10 GiB file is 10.737 GB: 1000 GB/s / (10.737 + 1.0) = 85.2 → 85
+    // (dividing by the GiB figure directly would say 1000 / 11 = 91, 7% high)
+    expect(calcTokPerSec({ weight_gb: 10 }, 1000)).toBe(85);
+    // Same for MoE active weights: 2 GiB → 2.147 GB + 1.0 = 3.147 / 1000 = 3.147 ms
+    // + 2.5 ms = 5.647 ms → 177 (not (3.0 / 1000 + 2.5 ms) → 182)
+    expect(calcTokPerSec({ weight_gb: 20, active_weight_gb: 2 }, 1000)).toBe(177);
+    // Llama 3.1 8B Q4_K_M: 4,920,000,000-byte file = 4.58 GiB → back to 4.92 GB:
+    // the README's RX 9070 XT check, 640 / 5.92 = 108 tok/s, is unchanged
+    expect(calcTokPerSec({ weight_gb: 4.92e9 / 2 ** 30 }, 640)).toBe(108);
   });
 
   it('uses the documented overhead constant', () => {
@@ -245,37 +260,38 @@ describe('calcTokPerSec', () => {
   });
 
   it('adds a fixed per-token cost for MoE models', () => {
-    // RTX 5090: 1792 GB/s, 1.76 GB active
-    // (1.76 + 1.0) / 1792 = 1.540 ms + 2.5 ms = 4.040 ms/token → 247.5 → 248
-    // (the old bandwidth-only estimate was 1792 / 2.76 ≈ 649)
-    expect(calcTokPerSec(moeModel, 1792)).toBe(248);
+    // RTX 5090: 1792 GB/s, 1.76 GiB active → 1.89 GB
+    // (1.89 + 1.0) / 1792 = 1.613 ms + 2.5 ms = 4.113 ms/token → 243.2 → 243
+    // (the old bandwidth-only estimate was 1792 / 2.89 ≈ 620)
+    expect(calcTokPerSec(moeModel, 1792)).toBe(243);
   });
 
   it('stays close to the bandwidth bound for MoE on slow memory', () => {
-    // DGX Spark: 273 GB/s → 2.76 / 273 = 10.110 ms + 2.5 ms = 12.610 ms → 79.3 → 79
-    expect(calcTokPerSec(moeModel, 273)).toBe(79);
+    // DGX Spark: 273 GB/s → 2.89 / 273 = 10.585 ms + 2.5 ms = 13.085 ms → 76.4 → 76
+    expect(calcTokPerSec(moeModel, 273)).toBe(76);
   });
 
   it('caps MoE speed below 1000 / MOE_TOKEN_OVERHEAD_MS however fast the memory', () => {
-    // 1e6 GB/s → 0.003 ms + 2.5 ms → 400 (upper bound is 1000 / 2.5 = 400)
+    // 1e6 GB/s → 0.003 ms + 2.5 ms = 2.503 ms → 399.5 → 400 (upper bound is 1000 / 2.5 = 400)
     expect(calcTokPerSec(moeModel, 1e6)).toBeLessThanOrEqual(1000 / MOE_TOKEN_OVERHEAD_MS);
   });
 
   it('still runs MoE faster than a dense model of the same size', () => {
-    // dense 20.5 GB at 1792 GB/s: 1792 / 21.5 ≈ 83 vs MoE 248
+    // dense 20.5 GiB → 22.01 GB at 1792 GB/s: 1792 / 23.01 ≈ 77.9 → 78 vs MoE 243
     const dense = { ...moeModel, active_weight_gb: undefined };
-    expect(calcTokPerSec(dense, 1792)).toBe(83);
+    expect(calcTokPerSec(dense, 1792)).toBe(78);
     expect(calcTokPerSec(moeModel, 1792)).toBeGreaterThan(calcTokPerSec(dense, 1792));
   });
 
   it('returns 0 for MoE with zero bandwidth', () => {
-    // 2.76 / 0 = Infinity → 1 / Infinity = 0
+    // 2.89 / 0 = Infinity → 1 / Infinity = 0
     expect(calcTokPerSec(moeModel, 0)).toBe(0);
   });
 
   it('leaves dense estimates unchanged', () => {
-    // MoE overhead must not apply without active_weight_gb: 1008 / (8.99 + 1.0) ≈ 100.9 → 101
-    expect(calcTokPerSec(mediumModel, 1008)).toBe(101);
+    // MoE overhead must not apply without active_weight_gb:
+    // 8.99 GiB → 9.65 GB; 1008 / 10.65 ≈ 94.6 → 95
+    expect(calcTokPerSec(mediumModel, 1008)).toBe(95);
   });
 });
 
@@ -283,28 +299,38 @@ describe('calcTokPerSec', () => {
 // calcTokPerSec vs published benchmarks (docs/speed-calibration.md)
 // ---------------------------------------------------------------------------
 
+/** A benchmark point with decimal-GB sizes, as a model row with GiB sizes (models.json units). */
+function toModel(p) {
+  return {
+    weight_gb: p.gb / GIB_IN_GB,
+    ...(p.active_gb != null ? { active_weight_gb: p.active_gb / GIB_IN_GB } : {}),
+  };
+}
+
 describe('calcTokPerSec against published llama-bench tg128 results', () => {
-  // weight_gb is the GGUF size in GB; active_weight_gb = weight_gb × active / total params,
-  // the same convention models.json uses. Measured values are llama-bench tg128 (tg32 on
-  // DGX Spark) from the sources in docs/speed-calibration.md.
+  // gb / active_gb are the GGUF sizes in decimal GB as docs/speed-calibration.md lists
+  // them (active = size × active / total params, as models.json does). They are turned
+  // into GiB below, the unit models.json stores. Measured values are llama-bench tg128
+  // (tg32 on DGX Spark) from the sources in that doc.
   const points = [
     // MoE
-    { name: 'Qwen3 30B-A3B Q4_K_M, RTX 5090', bw: 1792, weight_gb: 18.55, active_weight_gb: 1.82, measured: 276.8 },
-    { name: 'gpt-oss 20B MXFP4, RTX 4090', bw: 1008, weight_gb: 12.1, active_weight_gb: 2.08, measured: 225.2 },
-    { name: 'gpt-oss 20B MXFP4, RTX 3090', bw: 936, weight_gb: 12.1, active_weight_gb: 2.08, measured: 161.8 },
-    { name: 'Qwen3 30B-A3B Q4_K_M, Radeon AI PRO R9700', bw: 640, weight_gb: 18.55, active_weight_gb: 1.82, measured: 183.5 },
-    { name: 'gpt-oss 120B MXFP4, DGX Spark', bw: 273, weight_gb: 63.37, active_weight_gb: 2.77, measured: 58.7 },
-    { name: 'Qwen3-Coder 30B-A3B Q8_0, DGX Spark', bw: 273, weight_gb: 32.48, active_weight_gb: 3.19, measured: 61.1 },
+    { name: 'Qwen3 30B-A3B Q4_K_M, RTX 5090', bw: 1792, gb: 18.55, active_gb: 1.82, measured: 276.8 },
+    { name: 'gpt-oss 20B MXFP4, RTX 4090', bw: 1008, gb: 12.1, active_gb: 2.08, measured: 225.2 },
+    { name: 'gpt-oss 20B MXFP4, RTX 3090', bw: 936, gb: 12.1, active_gb: 2.08, measured: 161.8 },
+    { name: 'Qwen3 30B-A3B Q4_K_M, Radeon AI PRO R9700', bw: 640, gb: 18.55, active_gb: 1.82, measured: 183.5 },
+    { name: 'gpt-oss 120B MXFP4, DGX Spark', bw: 273, gb: 63.37, active_gb: 2.77, measured: 58.7 },
+    { name: 'Qwen3-Coder 30B-A3B Q8_0, DGX Spark', bw: 273, gb: 32.48, active_gb: 3.19, measured: 61.1 },
     // Dense
-    { name: 'Llama 2 7B Q4_0, RTX 4090', bw: 1008, weight_gb: 3.82, measured: 186.2 },
-    { name: 'Llama 2 7B Q4_0, RTX 3060', bw: 360, weight_gb: 3.82, measured: 75.6 },
-    { name: 'Qwen2.5-Coder 7B Q8_0, DGX Spark', bw: 273, weight_gb: 8.1, measured: 29.4 },
+    { name: 'Llama 2 7B Q4_0, RTX 4090', bw: 1008, gb: 3.82, measured: 186.2 },
+    { name: 'Llama 2 7B Q4_0, RTX 3060', bw: 360, gb: 3.82, measured: 75.6 },
+    { name: 'Qwen2.5-Coder 7B Q8_0, DGX Spark', bw: 273, gb: 8.1, measured: 29.4 },
   ];
 
   for (const p of points) {
     it(`${p.name} is within ±35% of ${p.measured} tok/s`, () => {
-      // e.g. Qwen3 30B-A3B on a 5090: 2.82 / 1792 = 1.574 ms + 2.5 ms → 245 (−11%)
-      const predicted = calcTokPerSec(p, p.bw);
+      // e.g. Qwen3 30B-A3B on a 5090: 1.82 GB (1.695 GiB) active, 2.82 / 1792 = 1.574 ms
+      // + 2.5 ms = 4.074 ms → 245 (−11%), the same figure the doc's fit gave
+      const predicted = calcTokPerSec(toModel(p), p.bw);
       expect(predicted / p.measured).toBeGreaterThan(0.65);
       expect(predicted / p.measured).toBeLessThan(1.35);
     });
@@ -367,17 +393,19 @@ describe('effectiveBandwidth', () => {
   });
 
   it('slows an M3 Ultra dense estimate and leaves an M4 Max alone', () => {
-    // Llama 3.1 8B Q4_K_M (4.92 GB): M3 Ultra 573.3 / 5.92 ≈ 96.8 → 97 (was 819 / 5.92 ≈ 138)
-    const llama8b = { weight_gb: 4.92 };
+    // Llama 3.1 8B Q4_K_M (4.58 GiB → 4.92 GB): M3 Ultra 573.3 / 5.92 ≈ 96.9 → 97
+    // (was 819 / 5.92 ≈ 138)
+    const llama8b = { weight_gb: 4.58 };
     expect(calcTokPerSec(llama8b, effectiveBandwidth(m3Ultra, m3Ultra.vram_options[0]))).toBe(97);
-    // M4 Max 546 GB/s: 546 / 5.92 ≈ 92.2 → 92 (unchanged)
+    // M4 Max 546 GB/s: 546 / 5.92 ≈ 92.3 → 92 (unchanged)
     expect(calcTokPerSec(llama8b, effectiveBandwidth(m4Max, m4Max.vram_options[1]))).toBe(92);
   });
 
   it('slows an M3 Ultra MoE estimate', () => {
-    // Qwen3.5 35B A3B Q4_K_M, 1.76 GB active: 2.76 / 573.3 = 4.814 ms + 2.5 ms = 7.314 ms → 136.7 → 137
-    // (was 2.76 / 819 = 3.370 ms + 2.5 ms = 5.870 ms → 170)
-    expect(calcTokPerSec(moeModel, effectiveBandwidth(m3Ultra, m3Ultra.vram_options[0]))).toBe(137);
+    // Qwen3.5 35B A3B Q4_K_M, 1.76 GiB → 1.89 GB active:
+    // 2.89 / 573.3 = 5.041 ms + 2.5 ms = 7.541 ms → 132.6 → 133
+    // (was 2.89 / 819 = 3.528 ms + 2.5 ms = 6.028 ms → 166)
+    expect(calcTokPerSec(moeModel, effectiveBandwidth(m3Ultra, m3Ultra.vram_options[0]))).toBe(133);
   });
 });
 
@@ -393,26 +421,28 @@ describe('gpuConfigs on Apple Ultra', () => {
 describe('calcTokPerSec against published Apple Silicon llama-bench results', () => {
   // Recent llama.cpp builds (2026), from docs/speed-calibration.md. bw is the gpus.json
   // figure; effectiveBandwidth applies APPLE_ULTRA_BANDWIDTH_EFFICIENCY to Ultra chips only.
+  // gb / active_gb are decimal GB as the doc lists them, turned into GiB by toModel.
   const points = [
     // Single-die: no correction needed
-    { name: 'Llama 2 7B Q4_0, M5 Max', gpu: 'M5 Max', bw: 614, weight_gb: 3.82, measured: 119.92 },
-    { name: 'Llama 2 7B Q8_0, M5 Pro', gpu: 'M5 Pro', bw: 307, weight_gb: 7.16, measured: 38.92 },
-    { name: 'Llama 2 7B F16, M6', gpu: 'M6', bw: 170, weight_gb: 13.48, measured: 11.59 },
-    { name: 'gpt-oss 20B MXFP4, M5 Max', gpu: 'M5 Max', bw: 614, weight_gb: 12.1, active_weight_gb: 2.08, measured: 150.75 },
-    { name: 'gpt-oss 120B MXFP4, M5 Max', gpu: 'M5 Max', bw: 614, weight_gb: 63.37, active_weight_gb: 2.77, measured: 104.9 },
+    { name: 'Llama 2 7B Q4_0, M5 Max', gpu: 'M5 Max', bw: 614, gb: 3.82, measured: 119.92 },
+    { name: 'Llama 2 7B Q8_0, M5 Pro', gpu: 'M5 Pro', bw: 307, gb: 7.16, measured: 38.92 },
+    { name: 'Llama 2 7B F16, M6', gpu: 'M6', bw: 170, gb: 13.48, measured: 11.59 },
+    { name: 'gpt-oss 20B MXFP4, M5 Max', gpu: 'M5 Max', bw: 614, gb: 12.1, active_gb: 2.08, measured: 150.75 },
+    { name: 'gpt-oss 120B MXFP4, M5 Max', gpu: 'M5 Max', bw: 614, gb: 63.37, active_gb: 2.77, measured: 104.9 },
     // Ultra: corrected
-    { name: 'Llama 2 7B Q4_0, M1 Ultra', gpu: 'M1 Ultra', bw: 800, weight_gb: 3.82, measured: 113.79 },
-    { name: 'Llama 2 7B Q4_0, M5 Ultra', gpu: 'M5 Ultra', bw: 1200, weight_gb: 3.82, measured: 179.1 },
-    { name: 'Qwen3.8 27B Q4_0, M3 Ultra', gpu: 'M3 Ultra', bw: 819, weight_gb: 14.32, measured: 34.97 },
-    { name: 'gpt-oss 20B MXFP4, M2 Ultra', gpu: 'M2 Ultra', bw: 800, weight_gb: 12.1, active_weight_gb: 2.08, measured: 137.71 },
-    { name: 'Qwen3.5 35B-A3B Q8_0, M3 Ultra', gpu: 'M3 Ultra', bw: 819, weight_gb: 36.89, active_weight_gb: 3.16, measured: 85.5 },
+    { name: 'Llama 2 7B Q4_0, M1 Ultra', gpu: 'M1 Ultra', bw: 800, gb: 3.82, measured: 113.79 },
+    { name: 'Llama 2 7B Q4_0, M5 Ultra', gpu: 'M5 Ultra', bw: 1200, gb: 3.82, measured: 179.1 },
+    // 14.32 GiB (4.5 bits/weight scaled from the models.json Q8_0 size) = 15.38 GB
+    { name: 'Qwen3.8 27B Q4_0, M3 Ultra', gpu: 'M3 Ultra', bw: 819, gb: 15.38, measured: 34.97 },
+    { name: 'gpt-oss 20B MXFP4, M2 Ultra', gpu: 'M2 Ultra', bw: 800, gb: 12.1, active_gb: 2.08, measured: 137.71 },
+    { name: 'Qwen3.5 35B-A3B Q8_0, M3 Ultra', gpu: 'M3 Ultra', bw: 819, gb: 36.89, active_gb: 3.16, measured: 85.5 },
   ];
 
   for (const p of points) {
     it(`${p.name} is within ±25% of ${p.measured} tok/s`, () => {
       // e.g. Llama 2 7B Q4_0 on an M1 Ultra: 800 × 0.70 = 560 GB/s, 560 / 4.82 ≈ 116 (+2%; was 166, +46%)
       const bw = effectiveBandwidth({ name: p.gpu, manufacturer: 'Apple', bandwidth_gbps: p.bw });
-      const predicted = calcTokPerSec(p, bw);
+      const predicted = calcTokPerSec(toModel(p), bw);
       expect(predicted / p.measured).toBeGreaterThan(0.75);
       expect(predicted / p.measured).toBeLessThan(1.25);
     });
@@ -1225,10 +1255,10 @@ describe('summarizeResults', () => {
   });
 
   it('picks an MoE model as fastest using the calibrated MoE speed', () => {
-    // 32 GB, 1792 GB/s: moeModel ≈ 248 tok/s vs mediumModel 1792 / 9.99 ≈ 179
+    // 32 GB, 1792 GB/s: moeModel ≈ 243 tok/s vs mediumModel 1792 / (9.65 + 1.0) ≈ 168
     const s = summarizeResults(bucketModels([mediumModel, moeModel], 32, 1792, null, null));
     expect(s.fastest.id).toBe('test-moe');
-    expect(s.fastest.tokPerSec).toBe(248);
+    expect(s.fastest.tokPerSec).toBe(243);
   });
 
   it('only considers good-quality models for fastest', () => {
@@ -1297,8 +1327,8 @@ describe('cheapestGpusFor', () => {
     // Test Medium Q4 (4.9 GB): 8 GB leaves 3.1 / 0.25 = 12K (only tight); 12 GB leaves 28K
     const picks = cheapestGpusFor([mediumModel, mediumQ4], shopGpus);
     expect(picks.map((p) => p.gpu.id)).toEqual(['mid-12', 'mid-12-pricey', 'big-16']);
-    // tok/s is for the smallest quantization: round(456 / (4.9 + 1.0)) = 77
-    expect(picks[0].tokPerSec).toBe(77);
+    // tok/s is for the smallest quantization: 4.9 GiB → 5.26 GB; round(456 / 6.26) = 73
+    expect(picks[0].tokPerSec).toBe(73);
   });
 
   it('skips Apple, GPUs without an MSRP, and GPUs that only fit tightly', () => {
