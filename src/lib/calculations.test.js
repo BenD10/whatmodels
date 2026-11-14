@@ -24,6 +24,7 @@ import {
   MIN_UPGRADE_VRAM_GB,
   GOOD_QUALITY_MMLU,
   INFERENCE_OVERHEAD_GB,
+  MOE_TOKEN_OVERHEAD_MS,
   TIGHT_FIT_CONTEXT_K,
   MAX_OFFLOAD_RATIO,
 } from './calculations.js';
@@ -86,6 +87,21 @@ const largeModel = {
   layers: 80,
   mmlu_score: 86.1,
   swe_bench_score: 33.4,
+};
+
+/** A sparse MoE model: 20.5 GB in VRAM, ~1.76 GB of active experts per token (Qwen3.5 35B A3B Q4_K_M) */
+const moeModel = {
+  id: 'test-moe',
+  name: 'Test MoE',
+  params_b: 35,
+  quantization: 'Q4_K_M',
+  weight_gb: 20.5,
+  active_weight_gb: 1.76,
+  kv_per_1k_gb: 0.019,
+  max_context_k: 256,
+  layers: 40,
+  mmlu_score: 85.3,
+  swe_bench_score: 69.2,
 };
 
 /** A model with vision feature */
@@ -219,6 +235,76 @@ describe('calcTokPerSec', () => {
   it('uses the documented overhead constant', () => {
     expect(INFERENCE_OVERHEAD_GB).toBe(1.0);
   });
+
+  it('uses the documented MoE per-token overhead constant', () => {
+    expect(MOE_TOKEN_OVERHEAD_MS).toBe(2.5);
+  });
+
+  it('adds a fixed per-token cost for MoE models', () => {
+    // RTX 5090: 1792 GB/s, 1.76 GB active
+    // (1.76 + 1.0) / 1792 = 1.540 ms + 2.5 ms = 4.040 ms/token → 247.5 → 248
+    // (the old bandwidth-only estimate was 1792 / 2.76 ≈ 649)
+    expect(calcTokPerSec(moeModel, 1792)).toBe(248);
+  });
+
+  it('stays close to the bandwidth bound for MoE on slow memory', () => {
+    // DGX Spark: 273 GB/s → 2.76 / 273 = 10.110 ms + 2.5 ms = 12.610 ms → 79.3 → 79
+    expect(calcTokPerSec(moeModel, 273)).toBe(79);
+  });
+
+  it('caps MoE speed below 1000 / MOE_TOKEN_OVERHEAD_MS however fast the memory', () => {
+    // 1e6 GB/s → 0.003 ms + 2.5 ms → 400 (upper bound is 1000 / 2.5 = 400)
+    expect(calcTokPerSec(moeModel, 1e6)).toBeLessThanOrEqual(1000 / MOE_TOKEN_OVERHEAD_MS);
+  });
+
+  it('still runs MoE faster than a dense model of the same size', () => {
+    // dense 20.5 GB at 1792 GB/s: 1792 / 21.5 ≈ 83 vs MoE 248
+    const dense = { ...moeModel, active_weight_gb: undefined };
+    expect(calcTokPerSec(dense, 1792)).toBe(83);
+    expect(calcTokPerSec(moeModel, 1792)).toBeGreaterThan(calcTokPerSec(dense, 1792));
+  });
+
+  it('returns 0 for MoE with zero bandwidth', () => {
+    // 2.76 / 0 = Infinity → 1 / Infinity = 0
+    expect(calcTokPerSec(moeModel, 0)).toBe(0);
+  });
+
+  it('leaves dense estimates unchanged', () => {
+    // MoE overhead must not apply without active_weight_gb: 1008 / (8.99 + 1.0) ≈ 100.9 → 101
+    expect(calcTokPerSec(mediumModel, 1008)).toBe(101);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// calcTokPerSec vs published benchmarks (docs/speed-calibration.md)
+// ---------------------------------------------------------------------------
+
+describe('calcTokPerSec against published llama-bench tg128 results', () => {
+  // weight_gb is the GGUF size in GB; active_weight_gb = weight_gb × active / total params,
+  // the same convention models.json uses. Measured values are llama-bench tg128 (tg32 on
+  // DGX Spark) from the sources in docs/speed-calibration.md.
+  const points = [
+    // MoE
+    { name: 'Qwen3 30B-A3B Q4_K_M, RTX 5090', bw: 1792, weight_gb: 18.55, active_weight_gb: 1.82, measured: 276.8 },
+    { name: 'gpt-oss 20B MXFP4, RTX 4090', bw: 1008, weight_gb: 12.1, active_weight_gb: 2.08, measured: 225.2 },
+    { name: 'gpt-oss 20B MXFP4, RTX 3090', bw: 936, weight_gb: 12.1, active_weight_gb: 2.08, measured: 161.8 },
+    { name: 'Qwen3 30B-A3B Q4_K_M, Radeon AI PRO R9700', bw: 640, weight_gb: 18.55, active_weight_gb: 1.82, measured: 183.5 },
+    { name: 'gpt-oss 120B MXFP4, DGX Spark', bw: 273, weight_gb: 63.37, active_weight_gb: 2.77, measured: 58.7 },
+    { name: 'Qwen3-Coder 30B-A3B Q8_0, DGX Spark', bw: 273, weight_gb: 32.48, active_weight_gb: 3.19, measured: 61.1 },
+    // Dense
+    { name: 'Llama 2 7B Q4_0, RTX 4090', bw: 1008, weight_gb: 3.82, measured: 186.2 },
+    { name: 'Llama 2 7B Q4_0, RTX 3060', bw: 360, weight_gb: 3.82, measured: 75.6 },
+    { name: 'Qwen2.5-Coder 7B Q8_0, DGX Spark', bw: 273, weight_gb: 8.1, measured: 29.4 },
+  ];
+
+  for (const p of points) {
+    it(`${p.name} is within ±35% of ${p.measured} tok/s`, () => {
+      // e.g. Qwen3 30B-A3B on a 5090: 2.82 / 1792 = 1.574 ms + 2.5 ms → 245 (−11%)
+      const predicted = calcTokPerSec(p, p.bw);
+      expect(predicted / p.measured).toBeGreaterThan(0.65);
+      expect(predicted / p.measured).toBeLessThan(1.35);
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -1024,6 +1110,13 @@ describe('summarizeResults', () => {
   it('uses the fastest variant for fastest', () => {
     // Both Test Medium variants run well at 24 GB; Q4 (4.9 GB) is faster than Q8
     expect(summarizeResults(bucketModels([mediumModel, mediumQ4], 24, 1000, null, null)).fastest.id).toBe('test-medium-q4');
+  });
+
+  it('picks an MoE model as fastest using the calibrated MoE speed', () => {
+    // 32 GB, 1792 GB/s: moeModel ≈ 248 tok/s vs mediumModel 1792 / 9.99 ≈ 179
+    const s = summarizeResults(bucketModels([mediumModel, moeModel], 32, 1792, null, null));
+    expect(s.fastest.id).toBe('test-moe');
+    expect(s.fastest.tokPerSec).toBe(248);
   });
 
   it('only considers good-quality models for fastest', () => {

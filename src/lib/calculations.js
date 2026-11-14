@@ -65,15 +65,39 @@ export function calcMaxContext(model, userVram) {
 }
 
 /**
+ * Fixed per-token decode cost of a sparse MoE model, in milliseconds, on top
+ * of the time to stream its active weights.
+ *
+ * MoE decode in llama.cpp does far more than read the active experts: each
+ * token runs the router, top-k selection, one small matmul per selected expert
+ * and the gather/scatter around them, plus the shared attention and output
+ * layers, which `active_weight_gb` (total weights scaled by active/total
+ * params) undercounts. Those costs barely shrink as bandwidth grows, so they
+ * show up as a near-constant time per token, not as extra gigabytes. Without
+ * it, an RTX 5090 is predicted at ~650 tok/s for a 3B-active model that
+ * benchmarks at ~280.
+ *
+ * Fitted (least squares on log error) to 26 published llama-bench tg128
+ * results across NVIDIA, AMD and Apple hardware; leave-one-GPU-out fits stay
+ * within 2.3–2.8 ms. Method and sources: docs/speed-calibration.md.
+ */
+export const MOE_TOKEN_OVERHEAD_MS = 2.5;
+
+/**
  * Estimate decode tokens/sec from memory bandwidth.
  * During autoregressive generation, every token requires reading all weights
  * plus additional memory for KV cache reads, activations, and engine overhead.
  *
- * tok/s ≈ bandwidth / (weight_gb + overhead)
+ * Dense:  tok/s ≈ bandwidth / (weight_gb + INFERENCE_OVERHEAD_GB)
  *
- * For sparse MoE models, only the active expert weights are read per token.
- * active_weight_gb captures this: VRAM still holds all weights, but bandwidth
- * is bound by the active subset.
+ * For sparse MoE models (those with active_weight_gb), only the active expert
+ * weights are streamed per token, but routing and per-expert kernels add a
+ * fixed time per token (MOE_TOKEN_OVERHEAD_MS), so:
+ *
+ * MoE:    seconds/token ≈ (active_weight_gb + INFERENCE_OVERHEAD_GB) / bandwidth
+ *                          + MOE_TOKEN_OVERHEAD_MS / 1000
+ *
+ * VRAM still holds all weights; only the speed estimate uses the active subset.
  *
  * @param {{ weight_gb: number, active_weight_gb?: number }} model
  * @param {number|null} bandwidth  Memory bandwidth in GB/s, or null if unknown
@@ -81,8 +105,12 @@ export function calcMaxContext(model, userVram) {
  */
 export function calcTokPerSec(model, bandwidth) {
   if (bandwidth == null) return null;
-  const effectiveWeight = model.active_weight_gb ?? model.weight_gb;
-  return Math.round(bandwidth / (effectiveWeight + INFERENCE_OVERHEAD_GB));
+  if (model.active_weight_gb == null) {
+    return Math.round(bandwidth / (model.weight_gb + INFERENCE_OVERHEAD_GB));
+  }
+  const secondsPerToken =
+    (model.active_weight_gb + INFERENCE_OVERHEAD_GB) / bandwidth + MOE_TOKEN_OVERHEAD_MS / 1000;
+  return Math.round(1 / secondsPerToken);
 }
 
 /**
