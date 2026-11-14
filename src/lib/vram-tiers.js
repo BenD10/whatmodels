@@ -5,7 +5,7 @@
  * itself live in pages.js, next to the other URL helpers and the sitemap.
  */
 
-import { bucketModels, gpuConfigs, topModelsByScore } from './calculations.js';
+import { bucketModels, gpuConfigs, summarizeResults, topModelsByScore } from './calculations.js';
 import { DATA_UPDATED, VRAM_TIERS, memParam, monthYearLabel } from './pages.js';
 
 /**
@@ -43,6 +43,31 @@ export function representativeBandwidth(gpus, size) {
   if (bws.length === 0) return null;
   const mid = Math.floor(bws.length / 2);
   return Math.round(bws.length % 2 ? bws[mid] : (bws[mid - 1] + bws[mid]) / 2);
+}
+
+/**
+ * The numbers a tier page leads with. Shared by the page, its meta
+ * description and its preview image.
+ * @param {number} size  GB
+ * @param {Array} gpus  gpus.json
+ * @param {Array} models  models.json
+ * @returns {{ configs: Array, bandwidth: number|null, results: object, runsWell: number, tight: number, topNames: string[] }}
+ *   results is bucketModels() output; runsWell and tight count models, not
+ *   variants; topNames are the two best by MMLU-Pro among those that run well
+ */
+export function tierPageFacts(size, gpus, models) {
+  const configs = tierConfigs(gpus, size);
+  const bandwidth = representativeBandwidth(gpus, size);
+  const results = bucketModels(models, size, bandwidth, null, null);
+  const { counts } = summarizeResults(results);
+  return {
+    configs,
+    bandwidth,
+    results,
+    runsWell: counts.fits,
+    tight: counts.tight,
+    topNames: topModelsByScore(results.fits, 'mmlu_score', 2).map((m) => m.name),
+  };
 }
 
 /**

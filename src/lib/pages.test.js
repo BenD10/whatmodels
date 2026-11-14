@@ -19,7 +19,11 @@ import {
   tierSlug,
   tierPath,
   parseTierSlug,
+  gpuPageFacts,
+  gpuDescription,
+  modelPageFacts,
 } from './pages.js';
+import { bucketModels, gpuConfigs, gpusForModel, groupVariants, topModelsByScore } from './calculations.js';
 import gpusData from './data/gpus.json';
 import modelsData from './data/models.json';
 
@@ -211,5 +215,41 @@ describe('VRAM tier slugs', () => {
 
   it('rejects unlisted sizes and other spellings', () => {
     for (const bad of ['10gb', '16', '16GB', '016gb', '', 'gb', '16gbx']) expect(parseTierSlug(bad), bad).toBeNull();
+  });
+});
+
+describe('gpuPageFacts / gpuDescription', () => {
+  it('counts models (not variants) at the largest memory option', () => {
+    const m3Ultra = gpusData.find((g) => g.id === 'm3-ultra');
+    const facts = gpuPageFacts(m3Ultra, modelsData);
+    const top = gpuConfigs(m3Ultra).at(-1);
+    expect(facts.config).toEqual(top);
+    expect(facts.multiConfig).toBe(true);
+    const r = bucketModels(modelsData, top.vram, top.bandwidth, null, null);
+    expect(facts.runsWell).toBe(groupVariants(r.fits).length);
+    expect(facts.topNames).toEqual(topModelsByScore(r.fits, 'mmlu_score', 2).map((m) => m.name));
+  });
+
+  it('writes the description the GPU page has always had', () => {
+    const facts = { config: { vram: 16 }, multiConfig: false, runsWell: 44, tight: 8, topNames: ['A', 'B'] };
+    expect(gpuDescription({ name: 'GeForce RTX 5070 Ti' }, facts)).toBe(
+      '44 local LLMs run well on the GeForce RTX 5070 Ti with 16 GB of VRAM, including A and B. See max context and estimated tokens/sec for every model.'
+    );
+    expect(gpuDescription({ name: 'M3 Max' }, { ...facts, config: { vram: 128 }, multiConfig: true, topNames: [] })).toBe(
+      '44 local LLMs run well on the M3 Max with 128 GB. See max context and estimated tokens/sec for every model.'
+    );
+  });
+});
+
+describe('modelPageFacts', () => {
+  it('splits gpusForModel into runs-well and loads, with the smallest memory of each', () => {
+    for (const model of modelPages(modelsData)) {
+      const facts = modelPageFacts(model, gpusData);
+      expect(facts.runners).toEqual(gpusForModel(model.variants, gpusData));
+      expect(facts.runnersWell.every((r) => r.status === 'fits')).toBe(true);
+      const minVram = (list) => (list.length ? Math.min(...list.map((r) => r.config.vram)) : null);
+      expect(facts.cheapest?.config.vram ?? null).toBe(minVram(facts.runnersWell));
+      expect(facts.smallestRunner?.config.vram ?? null).toBe(minVram(facts.runners));
+    }
   });
 });

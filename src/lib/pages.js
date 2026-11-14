@@ -4,7 +4,7 @@
  * and the sitemap.
  */
 
-import { TIGHT_FIT_CONTEXT_K, calcVramForContext, contextLabel, gpuConfigs, groupVariants } from './calculations.js';
+import { TIGHT_FIT_CONTEXT_K, bucketModels, calcVramForContext, contextLabel, gpuConfigs, gpusForModel, groupVariants, summarizeResults, topModelsByScore } from './calculations.js';
 
 export const SITE_URL = 'https://whatmodelscanirun.com';
 export const SITE_NAME = 'What Models?';
@@ -119,6 +119,59 @@ export function modelDescription(model, { gpuCount, runnerCount }) {
     return `${need} No single GPU in our database has that much memory. See VRAM per quantization and how to run it across multiple GPUs.`;
   }
   return `${need} See VRAM per quantization and which of ${gpuCount} GPUs can run it, with context and tokens/sec estimates.`;
+}
+
+/**
+ * The numbers a model page leads with: which GPUs can load it, which run it
+ * well, and the smallest memory for each. Shared by the page and its preview
+ * image, so the two never disagree.
+ * @param {object} model  A modelPages() entry
+ * @param {Array} gpus  gpus.json
+ * @returns {{ runners: Array, runnersWell: Array, cheapest: object|null, smallestRunner: object|null }}
+ *   gpusForModel() entries; cheapest is the smallest-memory GPU that runs it
+ *   well, smallestRunner the smallest-memory one that can load it at all
+ */
+export function modelPageFacts(model, gpus) {
+  const runners = gpusForModel(model.variants, gpus);
+  const runnersWell = runners.filter((r) => r.status === 'fits');
+  const smallest = (list) => list.reduce((best, r) => (best == null || r.config.vram < best.config.vram ? r : best), null);
+  return { runners, runnersWell, cheapest: smallest(runnersWell), smallestRunner: smallest(runners) };
+}
+
+/**
+ * The numbers a GPU page leads with, for the configuration it is prerendered
+ * with (the largest memory option of a unified-memory chip). Shared by the
+ * meta description and the preview image.
+ * @param {object} gpu
+ * @param {Array} models  models.json
+ * @returns {{ config: object, multiConfig: boolean, runsWell: number, tight: number, topNames: string[] }}
+ *   runsWell and tight count models, not variants; topNames are the two best
+ *   by MMLU-Pro among those that run well
+ */
+export function gpuPageFacts(gpu, models) {
+  const configs = gpuConfigs(gpu);
+  const config = configs.at(-1);
+  const results = bucketModels(models, config.vram, config.bandwidth, null, null);
+  const { counts } = summarizeResults(results);
+  return {
+    config,
+    multiConfig: configs.length > 1,
+    runsWell: counts.fits,
+    tight: counts.tight,
+    topNames: topModelsByScore(results.fits, 'mmlu_score', 2).map((m) => m.name),
+  };
+}
+
+/**
+ * Meta description for a GPU page.
+ * @param {object} gpu
+ * @param {ReturnType<typeof gpuPageFacts>} facts
+ * @returns {string}
+ */
+export function gpuDescription(gpu, { config, multiConfig, runsWell, topNames }) {
+  const memory = multiConfig ? `${config.vram} GB` : `${config.vram} GB of VRAM`;
+  const examples = topNames.length > 0 ? `, including ${topNames.join(' and ')}` : '';
+  return `${runsWell} local LLMs run well on the ${gpu.name} with ${memory}${examples}. See max context and estimated tokens/sec for every model.`;
 }
 
 /**

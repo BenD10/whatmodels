@@ -2,14 +2,16 @@
   import { base } from '$app/paths';
   import { afterNavigate } from '$app/navigation';
   import allModels from '$lib/data/models.json';
-  import { APPLE_ULTRA_BANDWIDTH_EFFICIENCY, bucketModels, contextLabel, effectiveBandwidth, gpuConfigs, groupVariants, isAppleUltra, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
+  import { APPLE_ULTRA_BANDWIDTH_EFFICIENCY, bucketModels, contextLabel, effectiveBandwidth, gpuConfigs, isAppleUltra, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
   import gpus from '$lib/data/gpus.json';
-  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, memOptionIndex, modelSlug, tierPath, toolQuery } from '$lib/pages.js';
+  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuDescription, gpuPageFacts, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, memOptionIndex, modelSlug, tierPath, toolQuery } from '$lib/pages.js';
+  import { gpuCard, gpuOgPath } from '$lib/og.js';
   import { tierForVram } from '$lib/vram-tiers.js';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
   import AmazonButton from '$lib/components/AmazonButton.svelte';
   import AffiliateDisclosure from '$lib/components/AffiliateDisclosure.svelte';
+  import OgImage from '$lib/components/OgImage.svelte';
 
   let { data } = $props();
 
@@ -47,16 +49,10 @@
   let path = $derived(`/gpu/${gpu.id}`);
   let title = $derived(`What AI models can ${indefiniteArticle(shortName)} ${shortName} (${gpuVramLabel(gpu)}) run?`);
 
-  // Meta description uses the prerendered (largest) config so it is stable
-  let description = $derived.by(() => {
-    const top = configs.at(-1);
-    const r = bucketModels(allModels, top.vram, top.bandwidth, null, null);
-    const count = groupVariants(r.fits).length;
-    const names = topModelsByScore(r.fits, 'mmlu_score', 2).map((m) => m.name);
-    const memory = configs.length > 1 ? `${top.vram} GB` : `${top.vram} GB of VRAM`;
-    const examples = names.length > 0 ? `, including ${names.join(' and ')}` : '';
-    return `${count} local LLMs run well on the ${gpu.name} with ${memory}${examples}. See max context and estimated tokens/sec for every model.`;
-  });
+  // Meta description and preview image use the prerendered (largest) config so they are stable
+  let pageFacts = $derived(gpuPageFacts(gpu, allModels));
+  let description = $derived(gpuDescription(gpu, pageFacts));
+  let ogAlt = $derived(gpuCard(gpu, pageFacts).alt);
 
   let jsonLd = $derived({
     '@context': 'https://schema.org',
@@ -90,7 +86,6 @@
   <meta property="og:site_name" content={SITE_NAME} />
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
 
@@ -116,6 +111,8 @@
     <p class="muted">None of the models that run well here has a published {scoreName} score yet. See the full list below.</p>
   {/if}
 {/snippet}
+
+<OgImage path={gpuOgPath(gpu)} alt={ogAlt} />
 
 <article class="page">
   <nav class="crumbs" aria-label="Breadcrumb">

@@ -7,6 +7,7 @@
   import GpuInput from '$lib/components/GpuInput.svelte';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
+  import OgImage from '$lib/components/OgImage.svelte';
 
   /** Validate and sanitize URL query parameters */
   function parseUrlParams(params) {
@@ -208,7 +209,6 @@
   <meta property="og:site_name" content="What Models?" />
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="What Models? — Pick the right model for your GPU in seconds" />
   <meta name="twitter:description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
 
@@ -227,6 +227,8 @@
     "softwareHelp": { "@type": "WebPage", "url": "https://github.com/BenD10/whatmodels" }
   })}</script>`}
 </svelte:head>
+
+<OgImage />
 
 <div class="page">
   <GpuInput

@@ -9,7 +9,9 @@ import {
   tierTitle,
   tierDescription,
   tierUnlocks,
+  tierPageFacts,
 } from './vram-tiers.js';
+import { bucketModels, summarizeResults } from './calculations.js';
 import { VRAM_TIERS } from './pages.js';
 import gpusData from './data/gpus.json';
 import modelsData from './data/models.json';
@@ -140,5 +142,16 @@ describe('tierUnlocks', () => {
       const to = { vram: VRAM_TIERS[i + 1], bandwidth: null };
       expect(tierUnlocks(modelsData, from, to).count, `${from.vram} → ${to.vram} GB`).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('tierPageFacts', () => {
+  it('buckets models at the tier size and its representative bandwidth', () => {
+    const facts = tierPageFacts(16, gpusData, modelsData);
+    expect(facts.configs).toEqual(tierConfigs(gpusData, 16));
+    expect(facts.bandwidth).toBe(representativeBandwidth(gpusData, 16));
+    const counts = summarizeResults(bucketModels(modelsData, 16, facts.bandwidth, null, null)).counts;
+    expect([facts.runsWell, facts.tight]).toEqual([counts.fits, counts.tight]);
+    expect(facts.topNames.length).toBeLessThanOrEqual(2);
   });
 });

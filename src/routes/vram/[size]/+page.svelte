@@ -3,24 +3,28 @@
   import allModels from '$lib/data/models.json';
   import gpus from '$lib/data/gpus.json';
   import { bucketModels, contextLabel, groupVariants, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
+  import { tierCard, tierOgPath } from '$lib/og.js';
   import { SITE_NAME, SITE_URL, VRAM_TIERS, breadcrumbLd, gpuShortName, jsonLdScript, modelSlug, tierPath } from '$lib/pages.js';
-  import { gpuPagePath, nextTier, representativeBandwidth, tierConfigs, tierDescription, tierTitle, tierToolQuery, tierUnlocks } from '$lib/vram-tiers.js';
+  import { gpuPagePath, nextTier, representativeBandwidth, tierDescription, tierPageFacts, tierTitle, tierToolQuery, tierUnlocks } from '$lib/vram-tiers.js';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
   import AmazonButton from '$lib/components/AmazonButton.svelte';
   import AffiliateDisclosure from '$lib/components/AffiliateDisclosure.svelte';
+  import OgImage from '$lib/components/OgImage.svelte';
 
   let { data } = $props();
 
   let size = $derived(data.size);
-  let configs = $derived(tierConfigs(gpus, size));
+  // Shared with the preview image, so the two never disagree
+  let facts = $derived(tierPageFacts(size, gpus, allModels));
+  let configs = $derived(facts.configs);
   let discrete = $derived(configs.filter((c) => !c.unified));
   let unified = $derived(configs.filter((c) => c.unified));
-  let bandwidth = $derived(representativeBandwidth(gpus, size));
+  let bandwidth = $derived(facts.bandwidth);
 
   let sortBy = $state('mmlu');
 
-  let results = $derived(bucketModels(allModels, size, bandwidth, null, null));
+  let results = $derived(facts.results);
   let counts = $derived(summarizeResults(results).counts);
   let bestGeneral = $derived(topModelsByScore(results.fits, 'mmlu_score', 5));
   let bestCoding = $derived(topModelsByScore(results.fits, 'swe_bench_score', 5));
@@ -40,13 +44,9 @@
   let path = $derived(tierPath(size));
   let title = $derived(tierTitle(size));
   let description = $derived(
-    tierDescription(size, {
-      runsWell: counts.fits,
-      tight: counts.tight,
-      topNames: topModelsByScore(results.fits, 'mmlu_score', 2).map((m) => m.name),
-      gpuCount: configs.length,
-    })
+    tierDescription(size, { runsWell: facts.runsWell, tight: facts.tight, topNames: facts.topNames, gpuCount: configs.length })
   );
+  let ogAlt = $derived(tierCard(size, facts).alt);
 
   let jsonLd = $derived({
     '@context': 'https://schema.org',
@@ -91,7 +91,6 @@
   <meta property="og:site_name" content={SITE_NAME} />
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
 
@@ -128,6 +127,8 @@
     {/each}
   </ul>
 {/snippet}
+
+<OgImage path={tierOgPath(size)} alt={ogAlt} />
 
 <article class="page">
   <nav class="crumbs" aria-label="Breadcrumb">

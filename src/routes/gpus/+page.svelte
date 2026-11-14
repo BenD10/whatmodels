@@ -2,6 +2,7 @@
   import { base } from '$app/paths';
   import gpus from '$lib/data/gpus.json';
   import { SITE_NAME, SITE_URL, VRAM_TIERS, gpuShortName, gpuVramLabel, jsonLdScript, tierPath } from '$lib/pages.js';
+  import OgImage from '$lib/components/OgImage.svelte';
 
   const title = 'Which AI models can your GPU run? Every GPU, compared';
   const description = `Pick your graphics card or Apple Silicon chip to see which local LLMs fit in its memory, with context length and tokens/sec estimates. ${gpus.length} GPUs covered.`;
@@ -37,11 +38,12 @@
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:site_name" content={SITE_NAME} />
-  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
   {@html jsonLdScript(jsonLd)}
 </svelte:head>
+
+<OgImage />
 
 <div class="page">
   <h1>Browse by GPU</h1>
