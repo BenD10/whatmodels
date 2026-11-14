@@ -114,6 +114,48 @@ export function calcTokPerSec(model, bandwidth) {
 }
 
 /**
+ * Share of quoted memory bandwidth that llama.cpp's Metal backend turns into
+ * decode speed on Apple's dual-die Ultra chips (M1–M5 Ultra).
+ *
+ * On recent llama.cpp builds (2026), single-die Apple chips (M5, M5 Pro,
+ * M5 Max, M6, and an M2/M3 Max at 400 GB/s) land within ~2% of the
+ * bandwidth formula for dense models, so they need no correction. Ultra chips
+ * join two dies with UltraFusion and run 25–70% below it: their peak
+ * bandwidth is the sum of both dies, which a single decode stream doesn't
+ * reach. Fitted (least squares on log error) to 17 Ultra llama-bench results
+ * on M1, M2, M3 and M5 Ultra; leave-one-chip-out fits stay within 0.67–0.74.
+ * Method and sources: docs/speed-calibration.md.
+ */
+export const APPLE_ULTRA_BANDWIDTH_EFFICIENCY = 0.7;
+
+/**
+ * Whether a GPU is one of Apple's dual-die Ultra chips.
+ * @param {{ manufacturer?: string, name?: string }} gpu
+ * @returns {boolean}
+ */
+export function isAppleUltra(gpu) {
+  return gpu?.manufacturer === 'Apple' && /\bUltra\b/.test(gpu.name ?? '');
+}
+
+/**
+ * The bandwidth to feed the speed estimate for a GPU (or one of its memory
+ * options): its quoted bandwidth, scaled by APPLE_ULTRA_BANDWIDTH_EFFICIENCY
+ * on Apple Ultra chips. Every place that turns a selected GPU into a
+ * bandwidth goes through this, so NVIDIA, AMD, Intel and single-die Apple
+ * figures are passed through unchanged. Manually entered VRAM has no vendor
+ * and no bandwidth, so it never comes here.
+ *
+ * @param {{ manufacturer?: string, name?: string, bandwidth_gbps?: number }} gpu
+ * @param {{ bandwidth_gbps?: number }|null} [option]  A vram_options entry, for unified-memory GPUs
+ * @returns {number|null} GB/s, or null if the bandwidth is unknown
+ */
+export function effectiveBandwidth(gpu, option = null) {
+  const peak = (option ?? gpu)?.bandwidth_gbps ?? null;
+  if (peak == null) return null;
+  return isAppleUltra(gpu) ? peak * APPLE_ULTRA_BANDWIDTH_EFFICIENCY : peak;
+}
+
+/**
  * Maximum weight-offload ratio we consider practical. Beyond this the
  * model is too slow to be useful and goes into "doesn't fit".
  */
@@ -518,15 +560,18 @@ export function calcVramForContext(model, contextK) {
  * vram_options (Apple Silicon, Strix Halo) return one per option, keeping
  * the original index so it can be used as the `mem` URL param.
  *
+ * `bandwidth` is the effective figure for speed estimates (see
+ * effectiveBandwidth); `peakBandwidth` is the quoted spec, for display.
+ *
  * @param {{ vram_gb?: number, bandwidth_gbps?: number, vram_options?: Array<{ vram_gb: number, bandwidth_gbps: number }> }} gpu
- * @returns {Array<{ vram: number, bandwidth: number|null, memIdx: number|null }>}
+ * @returns {Array<{ vram: number, bandwidth: number|null, peakBandwidth: number|null, memIdx: number|null }>}
  */
 export function gpuConfigs(gpu) {
   if (!gpu.vram_options) {
-    return [{ vram: gpu.vram_gb, bandwidth: gpu.bandwidth_gbps ?? null, memIdx: null }];
+    return [{ vram: gpu.vram_gb, bandwidth: effectiveBandwidth(gpu), peakBandwidth: gpu.bandwidth_gbps ?? null, memIdx: null }];
   }
   return gpu.vram_options
-    .map((o, memIdx) => ({ vram: o.vram_gb, bandwidth: o.bandwidth_gbps ?? null, memIdx }))
+    .map((o, memIdx) => ({ vram: o.vram_gb, bandwidth: effectiveBandwidth(gpu, o), peakBandwidth: o.bandwidth_gbps ?? null, memIdx }))
     .sort((a, b) => a.vram - b.vram);
 }
 
@@ -699,7 +744,7 @@ export function cheapestGpusFor(variants, gpus, { limit = 3, minVramExclusive = 
   const out = [];
   for (const gpu of gpus) {
     if (!isBuyableGpu(gpu) || gpu.vram_gb <= minVramExclusive) continue;
-    const { fits } = bucketModels([smallest], gpu.vram_gb, gpu.bandwidth_gbps, null, null);
+    const { fits } = bucketModels([smallest], gpu.vram_gb, effectiveBandwidth(gpu), null, null);
     if (fits.length > 0) {
       out.push({ gpu, quantization: smallest.quantization, tokPerSec: fits[0].tokPerSec, maxCtxK: fits[0].maxCtxK });
     }
