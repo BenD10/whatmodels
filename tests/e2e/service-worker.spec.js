@@ -28,5 +28,5 @@ test('visited pages still work offline', async ({ page, context }) => {
   await loadControlled(page);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.locator('h2')).toContainText('RTX 4060');
+  await expect(page.locator('h1')).toContainText('RTX 4060');
 });

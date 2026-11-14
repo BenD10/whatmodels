@@ -44,7 +44,7 @@
 </svelte:head>
 
 <div class="page">
-  <h2>Browse by GPU</h2>
+  <h1>Browse by GPU</h1>
   <p class="intro">Pick a GPU to see every model it can run. For a custom setup, use the <a href="{base}/">full tool</a>.</p>
 
   {#each byManufacturer as [manufacturer, list]}
@@ -69,7 +69,7 @@
     gap: 1.25rem;
   }
 
-  h2 {
+  h1 {
     font-size: 1.4rem;
     font-weight: 700;
   }
@@ -121,7 +121,7 @@
   }
 
   @media (max-width: 600px) {
-    h2 {
+    h1 {
       font-size: 1.2rem;
     }
   }

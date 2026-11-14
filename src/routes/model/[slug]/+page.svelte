@@ -3,7 +3,7 @@
   import gpus from '$lib/data/gpus.json';
   import { TIGHT_FIT_CONTEXT_K, calcVramForContext, cheapestGpusFor, contextLabel, gpusForModel, tokLabel } from '$lib/calculations.js';
   import CheapestGpus from '$lib/components/CheapestGpus.svelte';
-  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, jsonLdScript } from '$lib/pages.js';
+  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, jsonLdScript, largestGpuMemory, modelDescription, quotedContextK } from '$lib/pages.js';
 
   let { data } = $props();
 
@@ -14,7 +14,11 @@
   let variants = $derived(model.variants); // smallest weights first
   let smallest = $derived(variants[0]);
   let isMoe = $derived(variants.some((v) => v.active_weight_gb != null));
+  // Short-context models (Gemma 2: 8K) skip columns past their trained context
+  let showTightContext = $derived(model.max_context_k > TIGHT_FIT_CONTEXT_K);
   let showMidContext = $derived(model.max_context_k > MID_CONTEXT_K);
+  let shortContext = $derived(model.max_context_k < TIGHT_FIT_CONTEXT_K);
+  let largest = largestGpuMemory(gpus);
 
   let runners = $derived(gpusForModel(variants, gpus));
   let cheapestToBuy = $derived(cheapestGpusFor(variants, gpus));
@@ -36,9 +40,10 @@
 
   let path = $derived(`/model/${model.slug}`);
   let title = $derived(`What GPU do you need to run ${model.name}?`);
-  let description = $derived(
-    `${model.name} needs ${calcVramForContext(smallest, TIGHT_FIT_CONTEXT_K).toFixed(1)} GB of VRAM at ${smallest.quantization} with ${contextLabel(TIGHT_FIT_CONTEXT_K)} context. ` +
-      `See VRAM per quantization and which of ${gpus.length} GPUs can run it, with context and tokens/sec estimates.`
+  let description = $derived(modelDescription(model, { gpuCount: gpus.length, runnerCount: runners.length }));
+  // Smallest memory that can load it at all (for models every GPU lists as a tight fit)
+  let smallestRunner = $derived(
+    runners.reduce((best, r) => (best == null || r.config.vram < best.config.vram ? r : best), null)
   );
 
   let jsonLd = $derived({
@@ -87,7 +92,7 @@
   </nav>
 
   <header>
-    <h2>{title}</h2>
+    <h1>{title}</h1>
     <div class="badges">
       <span class="badge params">{model.params_b}B params</span>
       <span class="badge params">{contextLabel(model.max_context_k)} max context</span>
@@ -101,10 +106,17 @@
         ({cheapest.variant.quantization}, e.g. {cheapest.gpu.name}).
         <strong>{runnersWell.length}</strong> of {gpus.length} GPUs run it well{#if runners.length > runnersWell.length}{' '}and
           <strong>{runners.length - runnersWell.length}</strong> more are a tight fit{/if}.
+      {:else if runners.length > 0 && shortContext}
+        <strong>{runners.length}</strong> of {gpus.length} GPUs can run {model.name}, from <strong>{smallestRunner.config.vram} GB</strong>
+        ({smallestRunner.variant.quantization}, e.g. {smallestRunner.gpu.name}). Its trained context is only
+        {contextLabel(model.max_context_k)}, under the {contextLabel(TIGHT_FIT_CONTEXT_K)} we count as comfortable, so every GPU is listed as a tight fit.
       {:else if runners.length > 0}
-        No single GPU in our database runs {model.name} comfortably; <strong>{runners.length}</strong> can load it with very limited context.
+        No single GPU in our database runs {model.name} with {contextLabel(TIGHT_FIT_CONTEXT_K)} or more context;
+        <strong>{runners.length}</strong> can load it with less, from <strong>{smallestRunner.config.vram} GB</strong> (e.g. {smallestRunner.gpu.name}).
       {:else}
-        {model.name} doesn't fit on any single GPU in our database. Try multiple GPUs or system RAM offloading in the full tool.
+        {model.name} needs at least <strong>{calcVramForContext(smallest, quotedContextK(model)).toFixed(1)} GB</strong>
+        ({smallest.quantization}, {contextLabel(quotedContextK(model))} context), more than any single GPU in our database
+        (the largest is {largest.gpu.name} with {largest.vram} GB). Try multiple GPUs or system RAM offloading in the full tool.
       {/if}
       {#if isMoe}
         It's a mixture-of-experts model, so all weights must fit in memory but speed depends only on the active experts.
@@ -126,7 +138,7 @@
           <tr>
             <th>Quantization</th>
             <th>Weights</th>
-            <th>{contextLabel(TIGHT_FIT_CONTEXT_K)} context</th>
+            {#if showTightContext}<th>{contextLabel(TIGHT_FIT_CONTEXT_K)} context</th>{/if}
             {#if showMidContext}<th>{contextLabel(MID_CONTEXT_K)} context</th>{/if}
             <th>Full {contextLabel(model.max_context_k)}</th>
           </tr>
@@ -136,9 +148,9 @@
             <tr>
               <td><span class="badge quant">{v.quantization}</span></td>
               <td>{v.weight_gb.toFixed(1)} GB</td>
-              <td><strong>{calcVramForContext(v, TIGHT_FIT_CONTEXT_K).toFixed(1)} GB</strong></td>
+              {#if showTightContext}<td><strong>{calcVramForContext(v, TIGHT_FIT_CONTEXT_K).toFixed(1)} GB</strong></td>{/if}
               {#if showMidContext}<td>{calcVramForContext(v, MID_CONTEXT_K).toFixed(1)} GB</td>{/if}
-              <td>{calcVramForContext(v, v.max_context_k).toFixed(1)} GB</td>
+              <td>{#if showTightContext}{calcVramForContext(v, v.max_context_k).toFixed(1)} GB{:else}<strong>{calcVramForContext(v, v.max_context_k).toFixed(1)} GB</strong>{/if}</td>
             </tr>
           {/each}
         </tbody>
@@ -161,7 +173,7 @@
   <section>
     <h3>GPUs that can run {model.name}</h3>
     {#if runners.length === 0}
-      <p class="note">None on its own — <a href="{base}/">open the tool</a> to try multiple GPUs or system RAM offloading.</p>
+      <p class="note">None on its own: it needs more memory than the largest single GPU here ({largest.vram} GB). <a href="{base}/">Open the tool</a> to try multiple GPUs or system RAM offloading.</p>
     {:else}
       <p class="note">Best quantization that fits on each GPU, with the context and speed it gets. For chips with several memory sizes, the smallest that works is shown.</p>
       {#each byManufacturer as [manufacturer, list]}
@@ -207,7 +219,7 @@
     text-decoration: underline;
   }
 
-  h2 {
+  h1 {
     font-size: 1.4rem;
     font-weight: 700;
     letter-spacing: -0.01em;
@@ -383,7 +395,7 @@
   }
 
   @media (max-width: 600px) {
-    h2 {
+    h1 {
       font-size: 1.2rem;
     }
 

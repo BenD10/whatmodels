@@ -9,7 +9,15 @@ import {
   memOptionIndex,
   memParam,
   jsonLdScript,
+  DATA_UPDATED,
+  monthYearLabel,
+  sitemapEntries,
+  largestGpuMemory,
+  quotedContextK,
+  modelDescription,
 } from './pages.js';
+import gpusData from './data/gpus.json';
+import modelsData from './data/models.json';
 
 describe('slugify', () => {
   it('lowercases and collapses punctuation', () => {
@@ -100,5 +108,86 @@ describe('jsonLdScript', () => {
   it('escapes < so data cannot close the script tag', () => {
     expect(jsonLdScript({ a: '</script>' })).not.toContain('</script><');
     expect(jsonLdScript({ a: '</script>' })).toContain('\\u003c/script>');
+  });
+});
+
+describe('DATA_UPDATED', () => {
+  it('is a real YYYY-MM-DD date, not in the future', () => {
+    expect(DATA_UPDATED).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const d = new Date(`${DATA_UPDATED}T00:00:00Z`);
+    expect(d.toISOString().slice(0, 10)).toBe(DATA_UPDATED);
+    expect(d.getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
+  it('formats as month and year for the footer', () => {
+    expect(monthYearLabel('2026-11-13')).toBe('November 2026');
+    expect(monthYearLabel('2027-01-01')).toBe('January 2027');
+  });
+});
+
+describe('sitemapEntries', () => {
+  const entries = sitemapEntries(gpusData, modelsData, '2026-11-13');
+  const paths = entries.map((e) => e.path);
+
+  it('lists every GPU and model page once, plus the static pages', () => {
+    const expected = [
+      '/', '/gpus', '/models', '/primer', '/privacy',
+      ...gpusData.map((g) => `/gpu/${g.id}`),
+      ...modelPages(modelsData).map((m) => `/model/${m.slug}`),
+    ];
+    expect(paths).toEqual(expected);
+    expect(new Set(paths).size).toBe(paths.length);
+  });
+
+  it('dates data-driven pages by the data release, and invents no date for the rest', () => {
+    for (const e of entries) {
+      const fromData = e.path === '/' || e.path.startsWith('/gpu') || e.path.startsWith('/model');
+      expect(e.lastmod, e.path).toBe(fromData ? '2026-11-13' : null);
+    }
+    expect(sitemapEntries([], [])[0].lastmod).toBe(DATA_UPDATED);
+  });
+});
+
+describe('largestGpuMemory', () => {
+  it('looks inside multi-config GPUs', () => {
+    const big = largestGpuMemory([{ id: 'a', vram_gb: 32 }, m3Ultra, { id: 'b', vram_gb: 96 }]);
+    expect(big.gpu.id).toBe('m3-ultra');
+    expect(big.vram).toBe(512);
+    expect(largestGpuMemory([])).toBeNull();
+  });
+});
+
+describe('model page description', () => {
+  const model = (max_context_k) => ({
+    name: 'Test 9B',
+    max_context_k,
+    variants: [{ quantization: 'Q4_K_M', weight_gb: 5, kv_per_1k_gb: 0.1, max_context_k }],
+  });
+
+  it('quotes 16K context, or the whole context when it is shorter', () => {
+    expect(quotedContextK({ max_context_k: 128 })).toBe(16);
+    expect(quotedContextK({ max_context_k: 8 })).toBe(8);
+  });
+
+  it('states the VRAM at the quoted context', () => {
+    // 5 GB weights + 16K × 0.1 GB = 6.6 GB
+    expect(modelDescription(model(128), { gpuCount: 132, runnerCount: 40 })).toBe(
+      'Test 9B needs 6.6 GB of VRAM at Q4_K_M with 16K context. See VRAM per quantization and which of 132 GPUs can run it, with context and tokens/sec estimates.'
+    );
+    // 8K trained context: 5 + 8 × 0.1 = 5.8 GB, and it must not claim 16K
+    const short = modelDescription(model(8), { gpuCount: 132, runnerCount: 120 });
+    expect(short).toContain('5.8 GB of VRAM at Q4_K_M with 8K context.');
+    expect(short).not.toContain('16K');
+  });
+
+  it('does not promise GPUs when none can run it', () => {
+    const none = modelDescription(model(128), { gpuCount: 132, runnerCount: 0 });
+    expect(none).toContain('No single GPU in our database has that much memory');
+    expect(none).not.toContain('which of 132 GPUs');
+  });
+
+  it('is unique for every real model page', () => {
+    const descs = modelPages(modelsData).map((m) => modelDescription(m, { gpuCount: gpusData.length, runnerCount: 1 }));
+    expect(new Set(descs).size).toBe(descs.length);
   });
 });

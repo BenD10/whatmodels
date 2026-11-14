@@ -1,24 +1,17 @@
 import gpus from '$lib/data/gpus.json';
 import allModels from '$lib/data/models.json';
-import { SITE_URL as SITE, modelPages } from '$lib/pages.js';
+import { SITE_URL as SITE, sitemapEntries } from '$lib/pages.js';
 
 export const prerender = true;
 
-const pages = [
-  { path: '/',        priority: '1.0', changefreq: 'weekly'  },
-  { path: '/gpus',    priority: '0.8', changefreq: 'weekly'  },
-  { path: '/models',  priority: '0.8', changefreq: 'weekly'  },
-  { path: '/primer',  priority: '0.8', changefreq: 'monthly' },
-  { path: '/privacy', priority: '0.3', changefreq: 'yearly'  },
-  ...gpus.map((g) => ({ path: `/gpu/${g.id}`, priority: '0.7', changefreq: 'monthly' })),
-  ...modelPages(allModels).map((m) => ({ path: `/model/${m.slug}`, priority: '0.7', changefreq: 'monthly' })),
-];
+const pages = sitemapEntries(gpus, allModels);
 
 export function GET() {
   const urls = pages
-    .map(({ path, priority, changefreq }) => `
+    .map(({ path, priority, changefreq, lastmod }) => `
   <url>
-    <loc>${SITE}${path}</loc>
+    <loc>${SITE}${path}</loc>${lastmod ? `
+    <lastmod>${lastmod}</lastmod>` : ''}
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
   </url>`)

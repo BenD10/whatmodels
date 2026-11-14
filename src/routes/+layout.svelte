@@ -3,11 +3,16 @@
   import { page } from '$app/stores';
   import { afterNavigate } from '$app/navigation';
   import { resetPageView } from '$lib/analytics.js';
+  import { DATA_UPDATED, monthYearLabel } from '$lib/pages.js';
   import '../app.css';
 
   let { children } = $props();
 
   afterNavigate(resetPageView);
+
+  // Route id, not pathname: during prerender `base` is relative, so pathname checks misfire
+  let isHome = $derived($page.route.id === '/');
+  const section = (prefix) => $page.route.id?.startsWith(prefix) ?? false;
 </script>
 
 <div class="shell">
@@ -15,10 +20,11 @@
     <a href="{base}/" class="brand">
       <img src="{base}/logo.png" alt="What Models? logo" class="logo" width="96" height="96" />
       <div>
-        <h1>
+        <!-- The wordmark is the page heading only on the tool; every other page has its own <h1> -->
+        <svelte:element this={isHome ? 'h1' : 'p'} class="wordmark">
           <span class="what">What</span>
           <span class="model">Models</span><span class="question">?</span>
-        </h1>
+        </svelte:element>
         <p class="tagline">Pick the right model for your GPU — in seconds.</p>
       </div>
     </a>
@@ -26,10 +32,10 @@
 
   <div class="content-card">
     <nav>
-      <a href="{base}/" class:active={$page.url.pathname === base + '/'}>Tool</a>
-      <a href="{base}/primer" class:active={$page.url.pathname.startsWith(base + '/primer')}>LLM Primer</a>
-      <a href="{base}/gpus" class:active={$page.url.pathname.startsWith(base + '/gpu')}>GPUs</a>
-      <a href="{base}/models" class:active={$page.url.pathname.startsWith(base + '/model')}>Models</a>
+      <a href="{base}/" class:active={isHome}>Tool</a>
+      <a href="{base}/primer" class:active={section('/primer')}>LLM Primer</a>
+      <a href="{base}/gpus" class:active={section('/gpu')}>GPUs</a>
+      <a href="{base}/models" class:active={section('/model')}>Models</a>
     </nav>
     <main>
       {@render children()}
@@ -38,7 +44,7 @@
 
   <footer>
     <p>
-      Data last updated November 2026.
+      Data last updated {monthYearLabel(DATA_UPDATED)}.
       <a href="https://github.com/BenD10/whatmodels" target="_blank" rel="noopener">&#9829; GitHub</a> ·
       <a href="https://github.com/BenD10/whatmodels/issues" target="_blank" rel="noopener">Report an issue</a> ·
       <a href="{base}/privacy">Privacy Policy</a>
@@ -80,7 +86,7 @@
     filter: drop-shadow(0 0 14px rgba(107, 138, 255, 0.45));
   }
 
-  h1 {
+  .wordmark {
     font-size: 1.85rem;
     font-weight: 800;
     letter-spacing: -0.03em;
@@ -169,7 +175,7 @@
       height: 72px;
     }
 
-    h1 {
+    .wordmark {
       font-size: 1.45rem;
     }
 
