@@ -78,3 +78,8 @@ export function trackNotifyFormSubmitted(vramTier, pageType) {
 export function trackAffiliateClick(gpuId, pageType, placement, marketplace) {
   capture('affiliate_click', { gpu_id: gpuId, page_type: pageType, placement, marketplace });
 }
+
+/** A link from the home tool to a GPU's landing page (`placement`: where it sits). */
+export function trackGpuPageLink(gpuId, placement) {
+  capture('gpu_page_link_clicked', { gpu_id: gpuId, placement });
+}

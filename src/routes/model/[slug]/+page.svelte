@@ -4,6 +4,7 @@
   import { TIGHT_FIT_CONTEXT_K, calcVramForContext, cheapestGpusFor, contextLabel, gpusForModel, tokLabel } from '$lib/calculations.js';
   import CheapestGpus from '$lib/components/CheapestGpus.svelte';
   import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, jsonLdScript, largestGpuMemory, modelDescription, quotedContextK } from '$lib/pages.js';
+  import { modelPageHeading, modelPageTitle } from '$lib/titles.js';
 
   let { data } = $props();
 
@@ -39,7 +40,9 @@
   });
 
   let path = $derived(`/model/${model.slug}`);
-  let title = $derived(`What GPU do you need to run ${model.name}?`);
+  // Searchers' wording: "<model> VRAM requirements", "which GPUs can run it"
+  let title = $derived(modelPageHeading(model.name));
+  let docTitle = $derived(modelPageTitle(model.name));
   let description = $derived(modelDescription(model, { gpuCount: gpus.length, runnerCount: runners.length }));
   // Smallest memory that can load it at all (for models every GPU lists as a tight fit)
   let smallestRunner = $derived(
@@ -66,7 +69,7 @@
 </script>
 
 <svelte:head>
-  <title>{title}</title>
+  <title>{docTitle}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href="{SITE_URL}{path}" />
 
