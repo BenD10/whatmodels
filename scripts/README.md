@@ -6,6 +6,7 @@ module they import, and has its own README with full usage:
 - [`models/`](models/README.md) manages `src/lib/data/models.json` (shared logic in `models/model_script_utils.py`)
 - [`gpus/`](gpus/README.md) manages `src/lib/data/gpus.json` (shared logic in `gpus/gpu_script_utils.py`)
 - `perf/` (Node, not data) checks page-weight budgets on the static build: `npm run perf:budgets` after a build, budgets in `perf/budgets.js`, its own tests run with `npm test`
+- `releases/build_release.py` drafts the "What's new" entry in `src/lib/data/releases.json` from the models/GPU diff between two git refs (see its docstring)
 - `tests/` holds unit tests for the model scripts, with trimmed real `config.json` fixtures in `tests/configs/`
 
 Run everything from the repo root.
