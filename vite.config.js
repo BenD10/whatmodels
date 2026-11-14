@@ -12,6 +12,7 @@ export default defineConfig({
   },
   test: {
     // Playwright owns tests/e2e (*.spec.js); Vitest runs the unit tests in src
-    include: ['src/**/*.test.js']
+    // and the page-weight budget checker's own tests
+    include: ['src/**/*.test.js', 'scripts/perf/**/*.test.js']
   }
 });
