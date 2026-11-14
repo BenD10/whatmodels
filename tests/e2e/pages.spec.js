@@ -5,6 +5,7 @@ const PAGES = [
   '/?gpu=rtx-4060',
   '/gpu/rtx-4060',
   '/gpu/m3-ultra',
+  '/vram/16gb',
   '/model/qwen3-5-27b',
   '/gpus',
   '/models',

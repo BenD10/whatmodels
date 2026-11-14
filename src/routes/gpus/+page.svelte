@@ -1,7 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import gpus from '$lib/data/gpus.json';
-  import { SITE_NAME, SITE_URL, gpuShortName, gpuVramLabel, jsonLdScript } from '$lib/pages.js';
+  import { SITE_NAME, SITE_URL, VRAM_TIERS, gpuShortName, gpuVramLabel, jsonLdScript, tierPath } from '$lib/pages.js';
 
   const title = 'Which AI models can your GPU run? Every GPU, compared';
   const description = `Pick your graphics card or Apple Silicon chip to see which local LLMs fit in its memory, with context length and tokens/sec estimates. ${gpus.length} GPUs covered.`;
@@ -46,6 +46,13 @@
 <div class="page">
   <h1>Browse by GPU</h1>
   <p class="intro">Pick a GPU to see every model it can run. For a custom setup, use the <a href="{base}/">full tool</a>.</p>
+
+  <nav class="tiers" aria-label="Browse by VRAM">
+    <span class="tiers-label">Browse by VRAM</span>
+    {#each VRAM_TIERS as t}
+      <a href="{base}{tierPath(t)}">{t} GB</a>
+    {/each}
+  </nav>
 
   {#each byManufacturer as [manufacturer, list]}
     <section>
@@ -95,6 +102,33 @@
 
   a:hover {
     text-decoration: underline;
+  }
+
+  .tiers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .tiers-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-right: 0.25rem;
+  }
+
+  .tiers a {
+    padding: 0.3rem 0.7rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.15s;
+  }
+
+  .tiers a:hover {
+    border-color: var(--accent);
+    text-decoration: none;
   }
 
   ul {
