@@ -40,6 +40,8 @@
     ['quantization', 'string', 'GGUF quantization: Q4_K_M, Q4_K_S, Q8_0 or fp16.'],
     ['params_b', 'number', 'Total parameters, in billions.'],
     ['weight_gb', 'number', 'Size of the GGUF weights in GB (2³⁰ bytes), summed across shards. Excludes vision projectors (mmproj), MTP and draft heads.'],
+    ['gguf_repo', 'string | null', 'Hugging Face repo (owner/name) holding this row’s GGUF, checked against weight_gb. Runs as ollama run hf.co/<gguf_repo>:<quant> or llama-server -hf <gguf_repo>:<quant> (F16 for fp16). null when no source could be verified.'],
+    ['gguf_shards', 'number | null', 'How many files the GGUF is split into (1 = a single file; Ollama can’t pull split GGUFs from Hugging Face). null when gguf_repo is null.'],
     ['active_weight_gb', 'number | null', 'Mixture-of-experts only: the weights read per token (total weights scaled by active ÷ total parameters), in GB. null for dense models.'],
     ['kv_per_1k_gb', 'number', 'fp16 KV cache per 1,000 tokens of context, in GB. Counts only layers whose cache grows with context (see below).'],
     ['max_context_k', 'number', 'Trained context length in units of 1,024 tokens (128 = 131,072 tokens).'],

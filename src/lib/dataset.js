@@ -26,6 +26,8 @@ export const MODEL_FIELDS = [
   'quantization',
   'params_b',
   'weight_gb',
+  'gguf_repo',
+  'gguf_shards',
   'active_weight_gb',
   'kv_per_1k_gb',
   'max_context_k',
