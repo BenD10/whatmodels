@@ -1956,7 +1956,7 @@
     "kv_per_1k_gb": 0.137,
     "max_context_k": 1024,
     "layers": 48,
-    "mmlu_score": null,
+    "mmlu_score": 82.9,
     "swe_bench_score": null,
     "features": [
       "reasoning"
@@ -1972,7 +1972,7 @@
     "kv_per_1k_gb": 0.137,
     "max_context_k": 1024,
     "layers": 48,
-    "mmlu_score": null,
+    "mmlu_score": 82.9,
     "swe_bench_score": null,
     "features": [
       "reasoning"
@@ -2478,7 +2478,7 @@
     "kv_per_1k_gb": 0.01,
     "max_context_k": 1024,
     "layers": 45,
-    "mmlu_score": null,
+    "mmlu_score": 86.1,
     "swe_bench_score": null,
     "features": [
       "tool_use",
@@ -2495,7 +2495,7 @@
     "kv_per_1k_gb": 0.01,
     "max_context_k": 1024,
     "layers": 45,
-    "mmlu_score": null,
+    "mmlu_score": 86.1,
     "swe_bench_score": null,
     "features": [
       "tool_use",
@@ -3325,7 +3325,7 @@
     "kv_per_1k_gb": 0.084,
     "max_context_k": 1024,
     "layers": 78,
-    "mmlu_score": null,
+    "mmlu_score": 86.8,
     "swe_bench_score": null,
     "features": [
       "tool_use",
@@ -3344,12 +3344,12 @@
     "max_context_k": 512,
     "layers": 36,
     "mmlu_score": null,
-    "swe_bench_score": 70.6,
+    "swe_bench_score": 72.4,
     "features": [
       "tool_use",
       "reasoning"
     ],
-    "notes": "IFM (MBZUAI) dense reasoning model, the medium member of the K2-Horizon family: 9.0B stored parameters around a 7B core. 36 full-attention layers (8 KV heads, head_dim 128), so KV cost grows quickly at its native 512K context. SWE-bench Verified 70.6, Terminal-Bench 2.1 39.1, BrowseComp 59.0, HMMT Feb 2026 73.3. MMLU-Pro not published. Apache 2.0. Official IFM GGUF. GGUF Q4_K_M file size."
+    "notes": "IFM (MBZUAI) dense reasoning model, the medium member of the K2-Horizon family: 9.0B stored parameters around a 7B core. 36 full-attention layers (8 KV heads, head_dim 128), so KV cost grows quickly at its native 512K context. SWE-bench Verified 72.4, Terminal-Bench 2.1 39.1, BrowseComp 59.0, HMMT Feb 2026 73.3. MMLU-Pro not published. Apache 2.0. Official IFM GGUF. GGUF Q4_K_M file size."
   },
   {
     "id": "k2-horizon-7b-q8",
@@ -3361,12 +3361,12 @@
     "max_context_k": 512,
     "layers": 36,
     "mmlu_score": null,
-    "swe_bench_score": 70.6,
+    "swe_bench_score": 72.4,
     "features": [
       "tool_use",
       "reasoning"
     ],
-    "notes": "IFM (MBZUAI) dense reasoning model, the medium member of the K2-Horizon family: 9.0B stored parameters around a 7B core. 36 full-attention layers (8 KV heads, head_dim 128), so KV cost grows quickly at its native 512K context. SWE-bench Verified 70.6, Terminal-Bench 2.1 39.1, BrowseComp 59.0, HMMT Feb 2026 73.3. MMLU-Pro not published. Apache 2.0. Official IFM GGUF. GGUF Q8_0 file size."
+    "notes": "IFM (MBZUAI) dense reasoning model, the medium member of the K2-Horizon family: 9.0B stored parameters around a 7B core. 36 full-attention layers (8 KV heads, head_dim 128), so KV cost grows quickly at its native 512K context. SWE-bench Verified 72.4, Terminal-Bench 2.1 39.1, BrowseComp 59.0, HMMT Feb 2026 73.3. MMLU-Pro not published. Apache 2.0. Official IFM GGUF. GGUF Q8_0 file size."
   },
   {
     "id": "mistral-large-4-1t-a52b-q4",
@@ -3488,12 +3488,12 @@
     "max_context_k": 256,
     "layers": 24,
     "mmlu_score": null,
-    "swe_bench_score": null,
+    "swe_bench_score": 43.4,
     "features": [
       "tool_use",
       "reasoning"
     ],
-    "notes": "Liquid AI's on-device agent model. 24 layers: 13 gated short-convolution, 5 sliding-window (256 tokens) and 6 global attention (4 KV heads, head_dim 128), so only the 6 global layers grow the KV cache. 256K context. Reasons by default; built for tool calling, structured output and fine-tuning. MMLU-Pro and SWE-bench Verified not published. Official LiquidAI GGUF. GGUF Q4_K_M file size."
+    "notes": "Liquid AI's on-device agent model. 24 layers: 13 gated short-convolution, 5 sliding-window (256 tokens) and 6 global attention (4 KV heads, head_dim 128), so only the 6 global layers grow the KV cache. 256K context. Reasons by default; built for tool calling, structured output and fine-tuning. SWE-bench Verified 43.4 (OpenCode harness). MMLU-Pro not published. Official LiquidAI GGUF. GGUF Q4_K_M file size."
   },
   {
     "id": "lfm3-1.7b-q8",
@@ -3505,12 +3505,12 @@
     "max_context_k": 256,
     "layers": 24,
     "mmlu_score": null,
-    "swe_bench_score": null,
+    "swe_bench_score": 43.4,
     "features": [
       "tool_use",
       "reasoning"
     ],
-    "notes": "Liquid AI's on-device agent model. 24 layers: 13 gated short-convolution, 5 sliding-window (256 tokens) and 6 global attention (4 KV heads, head_dim 128), so only the 6 global layers grow the KV cache. 256K context. Reasons by default; built for tool calling, structured output and fine-tuning. MMLU-Pro and SWE-bench Verified not published. Official LiquidAI GGUF. GGUF Q8_0 file size."
+    "notes": "Liquid AI's on-device agent model. 24 layers: 13 gated short-convolution, 5 sliding-window (256 tokens) and 6 global attention (4 KV heads, head_dim 128), so only the 6 global layers grow the KV cache. 256K context. Reasons by default; built for tool calling, structured output and fine-tuning. SWE-bench Verified 43.4 (OpenCode harness). MMLU-Pro not published. Official LiquidAI GGUF. GGUF Q8_0 file size."
   },
   {
     "id": "lfm3-vl-2b-q4",
