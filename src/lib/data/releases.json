@@ -1,0 +1,147 @@
+[
+  {
+    "date": "2026-11-13",
+    "title": "Mistral Large 4, six more new models and faster MoE estimates",
+    "summary": "Seven new models, from the 1T-parameter Mistral Large 4 down to LFM3 1.7B, and active-parameter data for 18 mixture-of-experts models, so their speed estimates are no longer several times too low.",
+    "models_added": [
+      "Mistral Large 4 1T A52B",
+      "Ling 3.1 Flash",
+      "Mellum2.1 12B A2.5B Thinking",
+      "LFM3 1.7B",
+      "LFM3-VL 2B",
+      "Nanbeige4.3 33B",
+      "Arete 27B"
+    ],
+    "gpus_added": [],
+    "corrections": [
+      "Tokens/sec for 18 mixture-of-experts models (DeepSeek V4, GLM 5, Llama 4, MiMo V2.5, GPT-OSS 20B and others) now counts only the weights read per token, not the whole model, so their estimates went up several-fold.",
+      "MMLU-Pro scores added for GLM 5.3 (86.8), GLM 5.3 Flash (86.1) and MiMo V2.5 (82.9), from the Vals AI leaderboard.",
+      "K2-Horizon 7B's SWE-bench Verified score updated from 70.6 to 72.4, matching the released checkpoint."
+    ]
+  },
+  {
+    "date": "2026-10-24",
+    "title": "GLM 5.3, Nemotron 3.5, RTX Spark and corrected Gemma KV cache",
+    "summary": "Thirteen new models including GLM 5.3, Nemotron 3.5 and Muse Spark Open, five new GPUs including RTX Spark and Ryzen AI Max 400, and corrected KV cache sizes that give Gemma 3 and Gemma 4 far more usable context.",
+    "models_added": [
+      "GLM 5.3",
+      "Nemotron 3.5 Lightning 30B A3B",
+      "Nemotron 3.5 Super VL 120B A12B",
+      "Nemotron 3.5 Bolt 74B A9B",
+      "Nemotron 3.5 Bolt E4B",
+      "Muse Spark Open 816B A42B",
+      "Beam 1.0 501B A23B",
+      "Ornith 1.5 122B",
+      "LFM2.5 24B A2B",
+      "Flint 40B A2.5B",
+      "MiniCPM-V 4.7 35B A3B",
+      "MiMo V2.6 Distill Qwen 9B",
+      "K2-Horizon 7B"
+    ],
+    "gpus_added": ["rtx-spark", "ryzen-ai-max-400", "rtx-pro-5500", "rtx-pro-2000", "arc-pro-b65"],
+    "corrections": [
+      "KV cache corrected for Gemma 3, Gemma 4 and GPT-OSS 20B: only their full-attention layers keep a growing cache. Gemma 3 27B at Q4_K_M on 24 GB now reaches 98K tokens of context instead of 12K.",
+      "GLM 5.1: KV cache corrected to match GLM 5 (0.074 to 0.084 GB per 1K tokens), and its 91.7 score was plain MMLU; it now shows MMLU-Pro, 86.9.",
+      "MMLU-Pro added for DeepSeek V4 Pro (87.5), and SWE-bench Verified for GLM-4.7 Flash, GPT-OSS 20B, MiniMax M2.5 and Nemotron Cascade 2 30B A3B.",
+      "GPU specs corrected: Radeon RX 9070 GRE is 12 GB at 432 GB/s, GeForce RTX 5080 is 960 GB/s and RTX PRO 4000 Blackwell is 672 GB/s.",
+      "New memory options for M3 Max (96 GB) and M4 Pro (64 GB); M5 and M6 bandwidth corrected.",
+      "Launch prices added for 45 current GPUs, used to suggest the cheapest upgrade that runs more models."
+    ]
+  },
+  {
+    "date": "2026-09-07",
+    "title": "Qwen3.8 27B, GLM 5.3 Flash and fixed Qwen3.5 sizes",
+    "summary": "Eleven new models including Qwen3.8 27B, GLM 5.3 Flash, Gemma 4 12B and Mistral Large 3, five new GPUs including the Radeon AI PRO R9700, M5 Ultra and M6, and fixes to badly wrong Qwen3.5, GLM 5 and MiniMax M2.5 entries.",
+    "models_added": [
+      "Qwen3.8 27B",
+      "Qwen3.8 Flash Next",
+      "GLM 5.3 Flash",
+      "Gemma 4 12B",
+      "Mistral Large 3 675B",
+      "Ornith 1.5 9B",
+      "Ornith 1.5 35B A3B",
+      "Ornith 1.5 397B",
+      "Muse Glimmer 30B",
+      "Laguna XS 2.1",
+      "LFM2.5 2.6B"
+    ],
+    "gpus_added": ["radeon-ai-pro-r9700", "rtx-pro-4500", "arc-pro-b70", "m5-ultra", "m6"],
+    "corrections": [
+      "Qwen3.5 397B A17B, Qwen3.5 122B A10B, GLM 5 and MiniMax M2.5 were listed at about 23 GB each; they now show the full GGUF size, summed across every shard (71 GB to 425 GB).",
+      "KV cache recomputed for the Qwen3.5 family, GLM 5 and MiniMax M2.5, counting only layers with a growing cache (Qwen3.5 27B: 0.48 to 0.061 GB per 1K tokens), so they run with much longer context.",
+      "Max context raised to the trained length: 256K for Qwen3.5, 198K for GLM 5 and 192K for MiniMax M2.5.",
+      "Qwen3.5 models now list vision, tool use and reasoning, and show MMLU-Pro instead of estimated MMLU scores.",
+      "Parameter counts corrected for GLM 5 (754B) and MiniMax M2.5 (229B).",
+      "M3 Ultra memory options corrected to 96, 256 and 512 GB."
+    ]
+  },
+  {
+    "date": "2026-06-30",
+    "title": "Apple M5, M5 Pro and M5 Max",
+    "summary": "Apple's M5 family: the M5, M5 Pro and M5 Max, with every unified-memory configuration and its bandwidth.",
+    "models_added": [],
+    "gpus_added": ["m5-max", "m5-pro", "m5"],
+    "corrections": []
+  },
+  {
+    "date": "2026-06-02",
+    "title": "DeepSeek V4, GLM 5.1, MiMo V2.5 and Tesla GPUs",
+    "summary": "Eight new models including DeepSeek V4 Flash and Pro, GLM 5.1, MiMo V2.5 and Mistral Small 4, and four new GPUs: Tesla T4, Tesla V100 (16 and 32 GB) and the AMD BC-250.",
+    "models_added": [
+      "DeepSeek V4 Flash",
+      "DeepSeek V4 Pro",
+      "GLM 5.1",
+      "MiMo V2.5",
+      "MiMo V2.5 Pro",
+      "Mistral Small 4",
+      "Step 3.7 Flash",
+      "DeepSeek R1 0528"
+    ],
+    "gpus_added": ["tesla-t4", "tesla-v100-16gb", "tesla-v100-32gb", "amd-bc250"],
+    "corrections": []
+  },
+  {
+    "date": "2026-04-24",
+    "title": "Qwen3.6 35B A3B and Qwen3.6 27B",
+    "summary": "Both Qwen3.6 models: the 35B A3B mixture-of-experts and the dense 27B, each with vision and 256K tokens of context.",
+    "models_added": ["Qwen3.6 35B A3B", "Qwen3.6 27B"],
+    "gpus_added": [],
+    "corrections": []
+  },
+  {
+    "date": "2026-04-12",
+    "title": "Gemma 4 and Nemotron 3",
+    "summary": "Four Gemma 4 models from E2B to 31B, Nemotron 3 Nano 4B and Nemotron Cascade 2 30B A3B, plus active-parameter speed estimates for mixture-of-experts models.",
+    "models_added": [
+      "Gemma 4 E2B",
+      "Gemma 4 E4B",
+      "Gemma 4 26B A4B",
+      "Gemma 4 31B",
+      "Nemotron 3 Nano 4B",
+      "Nemotron Cascade 2 30B A3B"
+    ],
+    "gpus_added": [],
+    "corrections": [
+      "Tokens/sec for Qwen3 Coder 30B-A3B, Qwen3 Next 80B-A3B, Qwen3.5 35B A3B and two other mixture-of-experts models now counts only the weights read per token."
+    ]
+  },
+  {
+    "date": "2026-03-06",
+    "title": "Qwen3.5, GLM 5, MiniMax M2.5 and DGX Spark",
+    "summary": "The Qwen3.5 family from 0.8B to 397B A17B, GLM 5 and MiniMax M2.5, and NVIDIA's DGX Spark.",
+    "models_added": [
+      "Qwen3.5 0.8B",
+      "Qwen3.5 2B",
+      "Qwen3.5 4B",
+      "Qwen3.5 9B",
+      "Qwen3.5 27B",
+      "Qwen3.5 35B A3B",
+      "Qwen3.5 122B A10B",
+      "Qwen3.5 397B A17B",
+      "GLM 5",
+      "MiniMax M2.5"
+    ],
+    "gpus_added": ["dgx-spark-gb-10"],
+    "corrections": []
+  }
+]

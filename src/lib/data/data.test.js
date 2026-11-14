@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import models from './models.json';
 import gpus from './gpus.json';
+import releases from './releases.json';
+import { DATA_UPDATED } from '../pages.js';
 
 // ---------------------------------------------------------------------------
 // Allowed values
@@ -303,5 +305,78 @@ describe('gpus.json', () => {
         expect(gpu.vram_options).toBeUndefined();
       });
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// releases.json ("What's new"; scripts/releases/build_release.py drafts entries)
+// ---------------------------------------------------------------------------
+
+describe('releases.json', () => {
+  const RELEASE_KEYS = ['corrections', 'date', 'gpus_added', 'models_added', 'summary', 'title'];
+  const modelNames = new Set(models.map((m) => m.name));
+  const gpuIds = new Set(gpus.map((g) => g.id));
+
+  it('is a non-empty array', () => {
+    expect(Array.isArray(releases)).toBe(true);
+    expect(releases.length).toBeGreaterThan(0);
+  });
+
+  it('has unique ISO dates, newest first', () => {
+    const dates = releases.map((r) => r.date);
+    for (const d of dates) {
+      expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      // A real calendar day (no 2026-02-30)
+      expect(new Date(`${d}T00:00:00Z`).toISOString().slice(0, 10), d).toBe(d);
+    }
+    expect(new Set(dates).size).toBe(dates.length);
+    expect([...dates].sort().reverse()).toEqual(dates);
+  });
+
+  it('starts with the current data release (add an entry whenever DATA_UPDATED moves)', () => {
+    expect(releases[0].date).toBe(DATA_UPDATED);
+  });
+
+  describe.each(releases)('$date', (release) => {
+    it('has exactly the known keys', () => {
+      expect(Object.keys(release).sort()).toEqual(RELEASE_KEYS);
+    });
+
+    it('has a title and summary of sensible length, and no draft placeholders', () => {
+      expect(release.title.length).toBeGreaterThan(0);
+      expect(release.title.length).toBeLessThanOrEqual(80);
+      expect(release.summary.length).toBeGreaterThan(20);
+      expect(release.summary.length).toBeLessThanOrEqual(300);
+      expect(JSON.stringify(release)).not.toMatch(/TODO/);
+    });
+
+    it('names only models that exist in models.json, once each', () => {
+      for (const name of release.models_added) expect(modelNames, name).toContain(name);
+      expect(new Set(release.models_added).size).toBe(release.models_added.length);
+    });
+
+    it('names only GPU ids that exist in gpus.json, once each', () => {
+      for (const id of release.gpus_added) expect(gpuIds, id).toContain(id);
+      expect(new Set(release.gpus_added).size).toBe(release.gpus_added.length);
+    });
+
+    it('has corrections as non-empty sentences', () => {
+      expect(Array.isArray(release.corrections)).toBe(true);
+      for (const c of release.corrections) {
+        expect(typeof c).toBe('string');
+        expect(c.trim().length).toBeGreaterThan(0);
+      }
+    });
+
+    it('changes something', () => {
+      expect(release.models_added.length + release.gpus_added.length + release.corrections.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('adds each model and GPU at most once across releases', () => {
+    const names = releases.flatMap((r) => r.models_added);
+    const ids = releases.flatMap((r) => r.gpus_added);
+    expect(new Set(names).size).toBe(names.length);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
