@@ -5,13 +5,14 @@
 
 <div class="prose">
   <h2>Privacy Policy</h2>
-  <p class="updated">Last updated: October 2026</p>
+  <p class="updated">Last updated: November 2026</p>
 
   <p>
     What Models? (<strong>whatmodelscanirun.com</strong>) is a static website with no backend
     and no user accounts. All computation happens in your browser using data baked into the site
-    at build time. The only personal information the site collects is an email address, and only
-    if you choose to sign up for new-model alerts.
+    at build time. The only personal information the site itself asks for is an email address, and
+    only if you choose to sign up for new-model alerts. The site also shows ads from Google, which
+    uses cookies as described under Advertising below.
   </p>
 
   <h3>Email alerts</h3>
@@ -25,12 +26,14 @@
   <p>
     Along with your email, the form sends the GPU you were looking at and its memory tier
     (for example <code>rtx-4060</code> and <code>vram-8</code>), so alerts only cover models
-    that fit your hardware. Nothing is sent until you confirm your address by clicking the link in
-    the confirmation email. Your email is used only for these alerts and is never sold or shared.
+    that fit your hardware. This is sent to Buttondown when you submit the form, but you won't
+    get any alerts until you confirm your address by clicking the link in the confirmation email.
+    Your email is used only for these alerts and is never sold or shared.
   </p>
   <p>
     Every email includes an unsubscribe link. Clicking it removes you from the list immediately.
-    You can also ask for your address to be deleted by opening an issue on GitHub (see Contact below).
+    You can also ask for your address to be deleted by emailing
+    <a href="mailto:hello@whatmodelscanirun.com">hello@whatmodelscanirun.com</a>.
   </p>
 
   <h3>Analytics</h3>
@@ -40,7 +43,25 @@
     were used, and whether the email alert form was seen or submitted. Your email address is never
     sent to PostHog. No other personally identifiable information is collected. PostHog may set a cookie or
     use local storage to distinguish sessions. You can opt out by enabling the "Do Not Track"
-    header in your browser, or by using an ad blocker.
+    setting in your browser, which the site honours, or by using an ad blocker.
+  </p>
+
+  <h3>Advertising</h3>
+  <p>
+    This site uses <a href="https://adsense.google.com" target="_blank" rel="noopener">Google AdSense</a>
+    to show ads. Google's use of advertising cookies lets it and its partners serve ads to you
+    based on your visits to this site and/or other sites on the internet, and measure how those
+    ads perform. See
+    <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses information from sites that use its services</a>.
+  </p>
+  <p>
+    You can turn off personalised ads in
+    <a href="https://myadcenter.google.com" target="_blank" rel="noopener">Google's My Ad Center</a>,
+    or opt out of some third-party vendors' use of cookies for personalised advertising at
+    <a href="https://www.aboutads.info/choices" target="_blank" rel="noopener">aboutads.info</a>.
+    Visitors in the European Economic Area, the UK and Switzerland are asked for consent before
+    personalised ads are shown, and can change their choice at any time with the privacy settings
+    link the consent message adds to the page.
   </p>
 
   <h3>Affiliate links</h3>
@@ -61,8 +82,7 @@
 
   <h3>Contact</h3>
   <p>
-    Questions? Open an issue on
-    <a href="https://github.com/BenD10/whatmodels/issues" target="_blank" rel="noopener">GitHub</a>.
+    Questions? Email <a href="mailto:hello@whatmodelscanirun.com">hello@whatmodelscanirun.com</a>.
   </p>
 </div>
 
