@@ -1,21 +1,25 @@
 # Data Management Scripts
 
-Scripts are now organized by domain:
+Scripts are organized by domain. Each folder holds its scripts plus the shared
+module they import, and has its own README with full usage:
 
-- `scripts/models/` for model-data workflows
-- `scripts/gpus/` for GPU-data workflows
+- [`models/`](models/README.md) manages `src/lib/data/models.json` (shared logic in `models/model_script_utils.py`)
+- [`gpus/`](gpus/README.md) manages `src/lib/data/gpus.json` (shared logic in `gpus/gpu_script_utils.py`)
+- `tests/` holds unit tests for the model scripts, with trimmed real `config.json` fixtures in `tests/configs/`
 
-Each folder has its own README with detailed usage and examples.
+Run everything from the repo root.
 
 ## Quick Start
 
 ### Model scripts
 
 ```bash
-python3 scripts/models/add_model.py "Llama-3.2-1B-Instruct-Q8_0-GGUF"
+python3 scripts/models/add_model.py --name "Qwen3.8 27B" \
+    --config-repo Qwen/Qwen3.8-27B --gguf-repo unsloth/Qwen3.8-27B-GGUF \
+    --quant Q4_K_M --quant Q8_0 --features vision,tool_use,reasoning
 python3 scripts/models/extract_model_ids.py
 python3 scripts/models/list_recent_models.py --days 30 --short
-python3 scripts/models/update_model_stats.py
+python3 scripts/models/update_model_stats.py --report
 ```
 
 ### GPU scripts
@@ -27,17 +31,13 @@ python3 scripts/gpus/list_recent_gpus.py --manufacturer NVIDIA --limit 10
 python3 scripts/gpus/update_gpu_specs.py rtx-5090 --vram 32 --bandwidth 1792
 ```
 
+### Tests
+
+```bash
+python3 -m unittest discover -s scripts/tests
+```
+
 ## Dependencies
 
-- Python 3.8+
-- `requests` (`pip install requests`) for Hugging Face model scripts
-
-## Data Files
-
-- `src/lib/data/models.json` - main model database
-- `src/lib/data/gpus.json` - main GPU database
-- `src/lib/data/models.minimal.json` - generated minimal model dataset
-
-## Backward Compatibility
-
-Top-level scripts in `scripts/` are still present. The foldered commands are now the preferred interface.
+- Python 3.9+, stdlib only
+- `list_recent_models.py` also needs `requests` (`pip install requests`)

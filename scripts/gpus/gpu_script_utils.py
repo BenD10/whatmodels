@@ -5,7 +5,7 @@ import json
 import re
 from pathlib import Path
 
-GPU_DATA_PATH = Path(__file__).parent.parent / "src" / "lib" / "data" / "gpus.json"
+GPU_DATA_PATH = Path(__file__).resolve().parents[2] / "src" / "lib" / "data" / "gpus.json"
 VALID_MANUFACTURERS = ("NVIDIA", "AMD", "Intel", "Apple")
 GPU_ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MANUFACTURER_ORDER = {name: idx for idx, name in enumerate(VALID_MANUFACTURERS)}

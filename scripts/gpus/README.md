@@ -32,5 +32,5 @@ python3 scripts/gpus/update_gpu_specs.py rtx-5090 --vram 32 --bandwidth 1792
 
 ## Notes
 
-- These commands currently delegate to the existing top-level scripts in `scripts/`.
+- Shared logic (loading, validation, ordered insertion) lives in `gpu_script_utils.py` in this folder.
 - Valid manufacturers are `NVIDIA`, `AMD`, `Intel`, and `Apple`.
