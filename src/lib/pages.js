@@ -4,10 +4,92 @@
  * and the sitemap.
  */
 
-import { groupVariants } from './calculations.js';
+import { TIGHT_FIT_CONTEXT_K, calcVramForContext, contextLabel, gpuConfigs, groupVariants } from './calculations.js';
 
 export const SITE_URL = 'https://whatmodelscanirun.com';
 export const SITE_NAME = 'What Models?';
+
+/**
+ * Date of the last data release (gpus.json / models.json), as YYYY-MM-DD.
+ * Bump it in the same PR as every data update: it drives the footer's
+ * "Data last updated" month and the sitemap's <lastmod> for every page
+ * whose content comes from the data.
+ */
+export const DATA_UPDATED = '2026-11-13';
+
+/**
+ * "November 2026" for a YYYY-MM-DD date.
+ * @param {string} isoDate
+ * @returns {string}
+ */
+export function monthYearLabel(isoDate) {
+  return new Date(`${isoDate}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+}
+
+/**
+ * Every URL in the sitemap. Pages built from the data carry DATA_UPDATED as
+ * their lastmod; hand-written pages (primer, privacy) have no reliable date,
+ * so they carry none rather than a made-up one.
+ * @param {Array} gpus  gpus.json
+ * @param {Array} models  models.json
+ * @param {string} [dataUpdated]
+ * @returns {Array<{ path: string, priority: string, changefreq: string, lastmod: string|null }>}
+ */
+export function sitemapEntries(gpus, models, dataUpdated = DATA_UPDATED) {
+  const data = (path, priority, changefreq) => ({ path, priority, changefreq, lastmod: dataUpdated });
+  const fixed = (path, priority, changefreq) => ({ path, priority, changefreq, lastmod: null });
+  return [
+    data('/', '1.0', 'weekly'),
+    data('/gpus', '0.8', 'weekly'),
+    data('/models', '0.8', 'weekly'),
+    fixed('/primer', '0.8', 'monthly'),
+    fixed('/privacy', '0.3', 'yearly'),
+    ...gpus.map((g) => data(`/gpu/${g.id}`, '0.7', 'monthly')),
+    ...modelPages(models).map((m) => data(`/model/${m.slug}`, '0.7', 'monthly')),
+  ];
+}
+
+/**
+ * The single GPU configuration with the most memory.
+ * @param {Array} gpus
+ * @returns {{ gpu: object, vram: number }|null}
+ */
+export function largestGpuMemory(gpus) {
+  let best = null;
+  for (const gpu of gpus) {
+    for (const c of gpuConfigs(gpu)) {
+      if (best == null || c.vram > best.vram) best = { gpu, vram: c.vram };
+    }
+  }
+  return best;
+}
+
+/**
+ * The context a model page quotes VRAM at: TIGHT_FIT_CONTEXT_K, or the model's
+ * whole trained context if that is shorter (Gemma 2 stops at 8K).
+ * @param {{ max_context_k: number }} model
+ * @returns {number}
+ */
+export function quotedContextK(model) {
+  return Math.min(TIGHT_FIT_CONTEXT_K, model.max_context_k);
+}
+
+/**
+ * Meta description for a model page.
+ * @param {object} model  A modelPages() entry (variants smallest first)
+ * @param {{ gpuCount: number, runnerCount: number }} counts
+ *   GPUs in the database, and how many of them can load the model at all
+ * @returns {string}
+ */
+export function modelDescription(model, { gpuCount, runnerCount }) {
+  const smallest = model.variants[0];
+  const ctxK = quotedContextK(model);
+  const need = `${model.name} needs ${calcVramForContext(smallest, ctxK).toFixed(1)} GB of VRAM at ${smallest.quantization} with ${contextLabel(ctxK)} context.`;
+  if (runnerCount === 0) {
+    return `${need} No single GPU in our database has that much memory. See VRAM per quantization and how to run it across multiple GPUs.`;
+  }
+  return `${need} See VRAM per quantization and which of ${gpuCount} GPUs can run it, with context and tokens/sec estimates.`;
+}
 
 /**
  * Turn a display name into a URL slug: "Qwen3.5 27B" → "qwen3-5-27b".

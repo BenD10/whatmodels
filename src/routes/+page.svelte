@@ -197,9 +197,12 @@
   <title>What Models? — Pick the right model for your GPU in seconds</title>
   <meta name="description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
 
+  <!-- Shared links carry ?gpu=… state; they are all the same page to search engines -->
+  <link rel="canonical" href="https://whatmodelscanirun.com/" />
+
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://whatmodelscanirun.com" />
+  <meta property="og:url" content="https://whatmodelscanirun.com/" />
   <meta property="og:title" content="What Models? — Pick the right model for your GPU in seconds" />
   <meta property="og:description" content="Pick the right AI model for your GPU — in seconds. Check VRAM, bandwidth, and context size compatibility." />
   <meta property="og:site_name" content="What Models?" />

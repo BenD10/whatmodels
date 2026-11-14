@@ -106,7 +106,7 @@
       {/each}
     </ol>
   {:else}
-    <p class="muted">No benchmarked models run well on this configuration.</p>
+    <p class="muted">None of the models that run well here has a published {scoreName} score yet. See the full list below.</p>
   {/if}
 {/snippet}
 
@@ -116,7 +116,7 @@
   </nav>
 
   <header>
-    <h2>{title}</h2>
+    <h1>{title}</h1>
     <p class="intro">
       The {gpu.name} has <strong>{config.vram} GB</strong> of {configs.length > 1 ? 'unified memory' : 'VRAM'}{#if config.bandwidth != null}{' '}and
         <strong>{config.bandwidth} GB/s</strong> memory bandwidth{/if}.
@@ -213,7 +213,7 @@
     text-decoration: underline;
   }
 
-  h2 {
+  h1 {
     font-size: 1.4rem;
     font-weight: 700;
     letter-spacing: -0.01em;
@@ -378,7 +378,7 @@
   }
 
   @media (max-width: 600px) {
-    h2 {
+    h1 {
       font-size: 1.2rem;
     }
 

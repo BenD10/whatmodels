@@ -35,7 +35,7 @@
 </svelte:head>
 
 <div class="page">
-  <h2>Browse by model</h2>
+  <h1>Browse by model</h1>
   <p class="intro">Pick a model to see the VRAM it needs and which GPUs can run it. Minimum VRAM is for the smallest quantization with {contextLabel(TIGHT_FIT_CONTEXT_K)} context.</p>
 
   <ul>
@@ -55,7 +55,7 @@
     gap: 1.25rem;
   }
 
-  h2 {
+  h1 {
     font-size: 1.4rem;
     font-weight: 700;
   }
@@ -98,7 +98,7 @@
   }
 
   @media (max-width: 600px) {
-    h2 {
+    h1 {
       font-size: 1.2rem;
     }
   }

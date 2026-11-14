@@ -1,10 +1,16 @@
 <svelte:head>
   <title>LLM Primer — What Models?</title>
   <meta name="description" content="A practical guide to running large language models locally — VRAM, quantization, bandwidth, context windows, and how to pick the right model for your GPU." />
+  <link rel="canonical" href="https://whatmodelscanirun.com/primer" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://whatmodelscanirun.com/primer" />
+  <meta property="og:title" content="LLM Primer — What Models?" />
+  <meta property="og:description" content="A practical guide to running large language models locally — VRAM, quantization, bandwidth, context windows, and how to pick the right model for your GPU." />
+  <meta property="og:site_name" content="What Models?" />
 </svelte:head>
 
 <div class="prose">
-  <h2>LLM Primer</h2>
+  <h1>LLM Primer</h1>
   <p class="subtitle">Everything you need to know to run AI models on your own hardware.</p>
 
   <h3>What is a large language model?</h3>
@@ -109,7 +115,7 @@
     line-height: 1.75;
   }
 
-  .prose h2 {
+  .prose h1 {
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--text);

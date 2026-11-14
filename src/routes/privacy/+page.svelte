@@ -1,10 +1,16 @@
 <svelte:head>
   <title>Privacy Policy — What Models?</title>
   <meta name="description" content="Privacy policy for whatmodelscanirun.com." />
+  <link rel="canonical" href="https://whatmodelscanirun.com/privacy" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://whatmodelscanirun.com/privacy" />
+  <meta property="og:title" content="Privacy Policy — What Models?" />
+  <meta property="og:description" content="Privacy policy for whatmodelscanirun.com." />
+  <meta property="og:site_name" content="What Models?" />
 </svelte:head>
 
 <div class="prose">
-  <h2>Privacy Policy</h2>
+  <h1>Privacy Policy</h1>
   <p class="updated">Last updated: November 2026</p>
 
   <p>
@@ -93,7 +99,7 @@
     line-height: 1.7;
   }
 
-  .prose h2 {
+  .prose h1 {
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--text);

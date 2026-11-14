@@ -14,7 +14,7 @@ test('memory switcher updates results and the tool link', async ({ page }) => {
 
 test('model page lists quantizations and GPUs that run it', async ({ page }) => {
   await page.goto('/model/qwen3-5-27b');
-  await expect(page.locator('h2')).toHaveText('What GPU do you need to run Qwen3.5 27B?');
+  await expect(page.locator('h1')).toHaveText('What GPU do you need to run Qwen3.5 27B?');
   await expect(page.locator('table tbody tr')).not.toHaveCount(0);
   const gpuLink = page.locator('.gpu-list a.gpu-name').first();
   await expect(gpuLink).toHaveAttribute('href', /\/gpu\//);
