@@ -5,7 +5,7 @@
   --surface: #151519;
   --surface-hover: #1c1c22;
   --text: #e4e4eb;
-  --text-muted: #7a7a8a;
+  --text-muted: #858595; /* 5.0:1 on --surface (WCAG AA) */
   --accent: #6b8aff;
   --accent-dim: rgba(107, 138, 255, 0.12);
   --fits: #4ade80;
@@ -20,6 +20,12 @@
   --border: #252530;
   --radius: 10px;
   --radius-sm: 6px;
+}
+
+/* Reserve the scrollbar's width so the centred layout doesn't jump sideways
+   when results make the page scrollable (desktop CLS) */
+html {
+  scrollbar-gutter: stable;
 }
 
 *, *::before, *::after {

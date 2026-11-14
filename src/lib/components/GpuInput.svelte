@@ -506,7 +506,6 @@
     font-weight: 400;
     font-size: 0.7rem;
     color: var(--text-muted);
-    opacity: 0.7;
     text-transform: none;
     letter-spacing: normal;
   }

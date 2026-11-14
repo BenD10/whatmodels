@@ -152,12 +152,12 @@
 
   <section class="picks">
     <div class="pick-card">
-      <h3>Best for general use</h3>
+      <h2>Best for general use</h2>
       <p class="muted">Highest MMLU score among models that run well</p>
       {@render pickList(bestGeneral, 'mmlu_score', 'MMLU')}
     </div>
     <div class="pick-card">
-      <h3>Best for coding</h3>
+      <h2>Best for coding</h2>
       <p class="muted">Highest SWE-bench Verified score among models that run well</p>
       {@render pickList(bestCoding, 'swe_bench_score', 'SWE-bench')}
     </div>
@@ -165,7 +165,7 @@
 
   {#if upgrades.length > 0}
     <section class="upgrades">
-      <h3 class="section-title">Upgrade options</h3>
+      <h2 class="section-title">Upgrade options</h2>
       <p class="muted">The cheapest GPUs with more VRAM than the {shortName}, by launch MSRP.</p>
       <ul class="upgrade-list">
         {#each upgrades as u (u.gpu.id)}
@@ -186,7 +186,7 @@
   {/if}
 
   <section>
-    <h3 class="section-title">Every model on the {shortName}{#if configs.length > 1}{' '}({config.vram} GB){/if}</h3>
+    <h2 class="section-title">Every model on the {shortName}{#if configs.length > 1}{' '}({config.vram} GB){/if}</h2>
     <ModelResults vram={config.vram} bandwidth={config.bandwidth} bind:sortBy showTopPicks={false} pageType="gpu">
       {#snippet beforeNoFit()}
         <NotifySignup vram={config.vram} gpuId={gpu.id} gpuName={shortName} pageType="gpu" />
@@ -220,6 +220,11 @@
     text-decoration: underline;
   }
 
+  /* Breadcrumb links sit in muted text: underline so they aren't told apart by colour alone */
+  .crumbs a {
+    text-decoration: underline;
+  }
+
   h1 {
     font-size: 1.4rem;
     font-weight: 700;
@@ -238,6 +243,8 @@
 
   .tier-link {
     white-space: nowrap;
+    /* In muted body text: underline so it isn't told apart by colour alone */
+    text-decoration: underline;
   }
 
   .configs {
@@ -341,7 +348,7 @@
     background: rgba(0, 0, 0, 0.2);
   }
 
-  .pick-card h3,
+  .pick-card h2,
   .section-title {
     font-size: 1rem;
     font-weight: 600;

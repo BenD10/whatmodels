@@ -145,7 +145,7 @@
   </header>
 
   <section>
-    <h3>VRAM needed per quantization</h3>
+    <h2>VRAM needed per quantization</h2>
     <div class="table-wrap">
       <table>
         <thead>
@@ -205,7 +205,7 @@
 
   {#if cheapestToBuy.length > 0}
     <section>
-      <h3>Cheapest GPUs that can run {model.name}</h3>
+      <h2>Cheapest GPUs that can run {model.name}</h2>
       <p class="note">
         Lowest launch MSRP among GPUs that run its smallest quantization ({smallest.quantization}) well, with at least
         {contextLabel(TIGHT_FIT_CONTEXT_K)} context.
@@ -215,13 +215,13 @@
   {/if}
 
   <section>
-    <h3>GPUs that can run {model.name}</h3>
+    <h2>GPUs that can run {model.name}</h2>
     {#if runners.length === 0}
       <p class="note">None on its own: it needs more memory than the largest single GPU here ({largest.vram} GB). <a href="{base}/">Open the tool</a> to try multiple GPUs or system RAM offloading.</p>
     {:else}
       <p class="note">Best quantization that fits on each GPU, with the context and speed it gets. For chips with several memory sizes, the smallest that works is shown.</p>
       {#each byManufacturer as [manufacturer, list]}
-        <h4>{manufacturer}</h4>
+        <h3>{manufacturer}</h3>
         <ul class="gpu-list">
           {#each list as r}
             <li class:tight={r.status === 'tight'}>
@@ -263,6 +263,11 @@
     text-decoration: underline;
   }
 
+  /* Breadcrumb links sit in muted text: underline so they aren't told apart by colour alone */
+  .crumbs a {
+    text-decoration: underline;
+  }
+
   h1 {
     font-size: 1.4rem;
     font-weight: 700;
@@ -271,13 +276,13 @@
     margin-bottom: 0.6rem;
   }
 
-  h3 {
+  h2 {
     font-size: 1rem;
     font-weight: 600;
     margin-bottom: 0.6rem;
   }
 
-  h4 {
+  h3 {
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -333,6 +338,11 @@
   .intro,
   .note {
     color: var(--text-muted);
+  }
+
+  /* In muted body text: underline so it isn't told apart by colour alone */
+  .note a {
+    text-decoration: underline;
   }
 
   .note {
