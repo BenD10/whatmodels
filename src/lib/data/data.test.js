@@ -160,6 +160,27 @@ describe('models.json', () => {
         expect(serialized.size).toBe(1);
       },
     );
+
+    // MoE tok/s uses active_weight_gb; a variant without it falls back to the
+    // full weight_gb and its speed is understated several-fold.
+    it.each(Object.entries(byName))(
+      '%s variants all have active_weight_gb or none do',
+      (_name, variants) => {
+        const withActive = variants.filter((m) => m.active_weight_gb != null);
+        expect([0, variants.length]).toContain(withActive.length);
+      },
+    );
+
+    it.each(Object.entries(byName))(
+      '%s variants have smaller active_weight_gb for lighter quants',
+      (_name, variants) => {
+        if (variants.some((m) => m.active_weight_gb == null)) return;
+        const sorted = [...variants].sort((a, b) => a.weight_gb - b.weight_gb);
+        for (let i = 1; i < sorted.length; i++) {
+          expect(sorted[i - 1].active_weight_gb).toBeLessThan(sorted[i].active_weight_gb);
+        }
+      },
+    );
   });
 });
 
