@@ -4,20 +4,23 @@ The site estimates decode (token generation) speed from memory bandwidth alone. 
 
 ## Formula
 
-**Dense models** (unchanged):
+**Dense models**:
 
 ```
-tok/s = bandwidth / (weight_gb + INFERENCE_OVERHEAD_GB)        INFERENCE_OVERHEAD_GB = 1.0
+tok/s = bandwidth / (weight_gb × GIB_IN_GB + INFERENCE_OVERHEAD_GB)     INFERENCE_OVERHEAD_GB = 1.0
+                                                                         GIB_IN_GB = 1.073741824
 ```
 
 **Sparse MoE models** (rows with `active_weight_gb`):
 
 ```
-seconds/token = (active_weight_gb + INFERENCE_OVERHEAD_GB) / bandwidth + MOE_TOKEN_OVERHEAD_MS / 1000
-                                                                          MOE_TOKEN_OVERHEAD_MS = 2.5
+seconds/token = (active_weight_gb × GIB_IN_GB + INFERENCE_OVERHEAD_GB) / bandwidth + MOE_TOKEN_OVERHEAD_MS / 1000
+                                                                                      MOE_TOKEN_OVERHEAD_MS = 2.5
 ```
 
-`active_weight_gb` is the GGUF size scaled by active/total parameters, for example 20.5 GB × 3/35 = 1.76 GB for Qwen3.5 35B A3B Q4_K_M.
+`active_weight_gb` is the GGUF size scaled by active/total parameters, for example 20.5 GiB × 3/35 = 1.76 GiB (1.89 GB) for Qwen3.5 35B A3B Q4_K_M.
+
+**Units.** `weight_gb` and `active_weight_gb` are GiB (bytes / 2^30), because the memory-fit maths compares them with VRAM, which is sized in binary units. `bandwidth` is decimal GB/s (10^9 bytes/s), as vendors quote it. So the speed formula multiplies the weights by `GIB_IN_GB` = 2^30 / 10^9 to get the decimal gigabytes read per token. `INFERENCE_OVERHEAD_GB` is already decimal GB: it was fitted against decimal file sizes. See [Unit correction](#unit-correction-14-november-2026).
 
 **Apple Ultra chips** (M1, M2, M3 and M5 Ultra) feed both formulas a reduced bandwidth:
 
@@ -38,6 +41,63 @@ The old MoE estimate divided bandwidth by the active weights and nothing else. T
 These costs barely shrink as bandwidth grows. In the data they behave like a near-constant time per token, about 2.5 ms, rather than like extra gigabytes. The effect is largest on fast GPUs: the old formula was within ~6% on a 273 GB/s DGX Spark but more than 2× too high on a 1792 GB/s RTX 5090. A constant in GB (option d below) can't fit both ends, but a constant in time can.
 
 On slow memory the estimate is still close to the bandwidth bound. On fast memory it caps below 1000 / 2.5 = 400 tok/s, which matches the best published MoE results (the RTX 5090 reaches ~376 tok/s on gpt-oss 20B).
+
+## Unit correction (14 November 2026)
+
+### What was wrong
+
+`models.json` held `weight_gb` in two units. 112 rows had decimal GB (bytes / 10^9) and 102 had GiB (bytes / 2^30). The memory-fit maths needs GiB, because VRAM is sized in binary units (a "24 GB" card holds 24 GiB), so the 112 rows were converted to GiB. That is right for fit but wrong for speed if nothing else changes. Memory bandwidth is quoted in decimal GB/s, and dividing it by a GiB figure overstates speed by 2^30 / 10^9 = 1.0737×.
+
+All three constants were fitted against decimal-GB sizes. Every benchmark table in this doc lists weights as "GiB × 1.074", and the README's RX 9070 XT check uses decimal sizes (Llama 3.1 8B Q8_0 = 8.54 GB). So:
+
+- the 112 converted rows would have sped up by up to 7% for no physical reason;
+- the 102 rows that were already GiB have been 2–7% optimistic all along (least for small models and for MoE, where the fixed overhead dominates).
+
+The fix is in `calcTokPerSec`: the weights are converted back to decimal GB (`weight_gb × GIB_IN_GB`, and the same for `active_weight_gb`) before the bandwidth divides them. `INFERENCE_OVERHEAD_GB` stays a decimal-GB figure because it was fitted that way. The memory-fit maths is unchanged and stays in GiB. No other code divides weights by bandwidth: multi-GPU pooling, the offload penalty and `effectiveBandwidth` only scale the bandwidth, and every page (home, GPU, model, VRAM tier, upgrade and cheapest-GPU suggestions) goes through `calcTokPerSec`.
+
+### Error tables, recomputed
+
+Each point's bytes per token was rebuilt in decimal GB. The primary points already were, so they are unchanged. Six points were sized from `models.json` in GiB and treated as GB, and those were corrected:
+
+- Gemma 4 26B-A4B Q4_K (2 secondary points): 2.44 GiB active is 2.62 GB.
+- Nemotron 3 Nano 30B-A3B Q4_K_M (secondary): 2.32 GiB active is 2.49 GB (24.57 GB file × 3.2 / 31.6).
+- Qwen3.5 35B-A3B UD-Q4_K_XL (2 secondary points): the old rows implied 1.69 GB active, which matches neither unit. The file is 22.24 GB on the Hub, so 1.91 GB active (× 3 / 35).
+- Qwen3.8 27B Q4_0 `--pure` on an M3 Ultra (Apple fit): 14.32 GiB is 15.38 GB.
+
+Errors are `predicted / measured − 1`, as median absolute / worst. "Without the conversion" is the GiB data with the old formula, which is what the site would have shown had only the data changed. All rows use the current model (Ultra factor 0.70 on Ultra chips) unless marked.
+
+| Set | Points | As published | GiB data, no conversion | GiB data × GIB_IN_GB (now) |
+|---|---|---|---|---|
+| MoE primary, original fit (no Ultra factor) | 26 | 20% / +74% | 19% / +80% | 20% / +74% |
+| MoE primary, current model | 26 | 18% / +52% | 18% / +58% | 18% / +52% |
+| … NVIDIA + AMD | 18 | 16% / −37% | 15% / −36% | 16% / −37% |
+| … Apple (older builds) | 8 | 24% / +52% | 29% / +58% | 24% / +52% |
+| MoE secondary (not fitted) | 11 | 17% / +36% | 19% / +36% | 17% / +32% |
+| Dense primary (no Ultra factor) | 13 | 23% / +84% | 31% / +95% | 23% / +84% |
+| … NVIDIA + DGX Spark | 8 | 8% / +28% | 15% / +36% | 8% / +28% |
+| Apple dense, 2026 builds | 25 | 4% / −23% | 8% / +25% | 3% / −23% |
+| … single-die | 14 | 2% / +14% | 6% / +22% | 2% / +14% |
+| … Ultra | 11 | 13% / −23% | 8% / +25% | 13% / −23% |
+| Apple MoE, 2026 builds | 8 | 16% / +72% | 20% / +78% | 16% / +72% |
+
+Without the conversion, the median bias on the 8 NVIDIA dense points goes from +8% to +15%, and on the 14 single-die Apple points from 0% to +6%. (The Ultra dense rows look better without the conversion only because their 0.70 factor was fitted with the conversion in effect; refitted without it, the factor drops to 0.66.)
+
+### Refit
+
+Each constant was refitted by least squares on log error, on the same points as its original fit, with the corrected sizes.
+
+| Constant | Value | Refit | Points | Median error, current → refit | Decision |
+|---|---|---|---|---|---|
+| `MOE_TOKEN_OVERHEAD_MS` | 2.5 ms | 2.52 ms | 26 MoE primary, no Ultra factor (the original method) | 20% → 20% | **kept** |
+| … same, with the Ultra factor on the 4 Ultra rows | | 2.24 ms | 26 MoE primary | 18% → 17%; held-out secondary 17% → 16% but worst +32% → +37%; Apple 2026 MoE 16% → 18% | not a clear gain: **kept** |
+| `APPLE_ULTRA_BANDWIDTH_EFFICIENCY` | 0.70 | 0.700 (0.695 before the Qwen3.8 27B fix) | 17 Ultra points, 2026 builds | 13% / 23% (dense / MoE) → same | **kept** |
+| `INFERENCE_OVERHEAD_GB` | 1.0 GB | 1.23 GB | 22 dense points the formula is meant to hit unadjusted (8 NVIDIA/DGX + 14 single-die Apple 2026) | 3% → 4%; NVIDIA 8% → 9% (worst +28% → +22%) | worse median on the fitted points: **kept** |
+
+The 1.0 GB overhead was never fitted with this method; the README's RX 9070 XT check set it. Fitting it here moves only the worst case, because the high NVIDIA errors come from a per-token cost that doesn't scale with bytes, so a larger byte overhead trades the fast cards against the slow ones. With 1.23 GB the MoE refit becomes 2.26 ms and MoE primary error drops from 18% to 16%. That's small and would mean changing two constants at once, so both are kept.
+
+### What changes on the site
+
+Nothing changes for the 112 converted rows (within ±1 tok/s of rounding; a few rows whose old value wasn't an exact decimal size move by up to 6%). The 102 rows that were already GiB slow down: on an RTX 4090 the dense ones by 2–7% (median 6%) and the MoE ones by 2–7% (median 5%). For example, Qwen3.5 27B Q4_K_M on an RTX 4090 goes from 61 to 57 tok/s, and Qwen3.5 35B A3B Q4_K_M on an RTX 5090 from 248 to 243.
 
 ## Fit
 
@@ -69,7 +129,7 @@ A two-parameter version (1.45 × active plus 1.4 ms) lowers the fit error a litt
 | MoE, all primary | 26 | 54% / +166% | 20% / +74% |
 | MoE, NVIDIA + AMD | 18 | 44% / +142% | 16% / −37% |
 | MoE, Apple Silicon | 8 | 113% / +166% | 37% / +74% |
-| MoE, secondary (not fitted) | 11 | 106% / +243% | 17% / +36% |
+| MoE, secondary (not fitted) | 11 | 106% / +243% | 17% / +36% (17% / +32% after the unit correction) |
 | Dense, primary | 13 | 23% / +84% | unchanged |
 | Dense, NVIDIA | 8 | 8% / +28% | unchanged |
 | Dense, Apple Silicon | 5 | 47% / +84% | unchanged (but see [Apple Silicon](#apple-silicon)) |
@@ -78,7 +138,7 @@ The dense formula is not changed.
 
 ## Benchmarks
 
-Primary points are `llama-bench` `tg128` at depth 0 (`tg32` for the DGX Spark rows), fully offloaded to the GPU. Weight is the GGUF size in GB (GiB × 1.074). Active weight uses the same convention as `models.json`. Bandwidth is the value in `gpus.json`.
+Primary points are `llama-bench` `tg128` at depth 0 (`tg32` for the DGX Spark rows), fully offloaded to the GPU. Weight is the GGUF size in decimal GB (GiB × 1.074), which is what the code now reads per token (`weight_gb × GIB_IN_GB`). Active weight uses the same convention as `models.json`. Bandwidth is the value in `gpus.json`. The Old/New columns are from the original fit, before the Ultra factor; the [unit correction](#unit-correction-14-november-2026) leaves every primary row unchanged.
 
 ### MoE: primary
 
@@ -117,21 +177,21 @@ Primary points are `llama-bench` `tg128` at depth 0 (`tg32` for the DGX Spark ro
 
 ### MoE: secondary (checked, not fitted)
 
-These are averaged runs, runs at 4K depth, or partly sized from `models.json`, so they are weaker evidence.
+These are averaged runs, runs at 4K depth, or partly sized from `models.json`, so they are weaker evidence. Rows marked * were re-sized in decimal GB in the [unit correction](#unit-correction-14-november-2026); the New column shows the corrected figure.
 
 | Model | GPU | Measured | Old | New | Source |
 |---|---|---|---|---|---|
-| Qwen3.5 35B-A3B UD-Q4_K_XL (TG average, q8 KV) | RTX 5090 | 194.0 | 666 (+243%) | 250 (+29%) | [Discussion #19890](https://github.com/ggml-org/llama.cpp/discussions/19890), Feb 2026 |
-| Qwen3.5 35B-A3B UD-Q4_K_XL (TG average) | R9700 (Vulkan) | 127.4 | 238 (+87%) | 149 (+17%) | [Discussion #19890](https://github.com/ggml-org/llama.cpp/discussions/19890), Feb 2026 |
+| Qwen3.5 35B-A3B UD-Q4_K_XL (TG average, q8 KV) * | RTX 5090 | 194.0 | 666 (+243%) | 243 (+25%) | [Discussion #19890](https://github.com/ggml-org/llama.cpp/discussions/19890), Feb 2026 |
+| Qwen3.5 35B-A3B UD-Q4_K_XL (TG average) * | R9700 (Vulkan) | 127.4 | 238 (+87%) | 142 (+11%) | [Discussion #19890](https://github.com/ggml-org/llama.cpp/discussions/19890), Feb 2026 |
 | Qwen3 30B-A3B Q4_K @ 4K | RTX 3090 | 153.6 | 332 (+116%) | 181 (+18%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-3090/), Mar 2026 |
 | Qwen3 30B-A3B Q4_K @ 4K | RTX 4090 | 207.3 | 357 (+72%) | 189 (−9%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-4090/), Mar 2026 |
 | Qwen3 30B-A3B Q4_K @ 4K | RTX 5090 | 226.1 | 635 (+181%) | 245 (+9%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-5090/), Mar 2026 |
 | gpt-oss 20B MXFP4 @ 4K | RTX 3090 | 147.5 | 304 (+106%) | 173 (+17%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-3090/), Mar 2026 |
 | gpt-oss 20B MXFP4 @ 4K | RTX 4090 | 190.6 | 327 (+72%) | 180 (−6%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-4090/), Mar 2026 |
 | gpt-oss 20B @ 4K | RTX 5090 | 298.2 | 582 (+95%) | 237 (−21%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-5090/), Mar 2026 |
-| Gemma 4 26B-A4B Q4_K @ 4K | RTX 3090 | 119.4 | 272 (+128%) | 162 (+36%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-3090/), Mar 2026 |
-| Gemma 4 26B-A4B Q4_K @ 4K | RTX 5090 | 180.3 | 521 (+189%) | 226 (+25%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-5090/), Mar 2026 |
-| Nemotron 3 Nano 30B-A3B Q4_K_M | DGX Spark (GB10) | 61.8 | 82 (+33%) | 68 (+10%) | [Discussion #17621](https://github.com/ggml-org/llama.cpp/discussions/17621), Jan 2026 |
+| Gemma 4 26B-A4B Q4_K @ 4K * | RTX 3090 | 119.4 | 272 (+128%) | 157 (+32%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-3090/), Mar 2026 |
+| Gemma 4 26B-A4B Q4_K @ 4K * | RTX 5090 | 180.3 | 521 (+189%) | 221 (+23%) | [Hardware Corner](https://www.hardware-corner.net/gpu-llm-benchmarks/rtx-5090/), Mar 2026 |
+| Nemotron 3 Nano 30B-A3B Q4_K_M * | DGX Spark (GB10) | 61.8 | 82 (+33%) | 65 (+6%) | [Discussion #17621](https://github.com/ggml-org/llama.cpp/discussions/17621), Jan 2026 |
 
 ### Dense (check only; formula unchanged)
 
@@ -231,7 +291,7 @@ The worst remaining MoE error is GLM-4.7-Flash on an M2 Ultra (+72%). It uses ML
 | Qwen2.5-Coder 7B Q8_0 | M2 Ultra | 800 | 8.10 | – | 79.68 (tg32) | 88 (+10%) | 62 (−23%) | b828e18 (7948), early 2026, [Mac M2 Ultra bench](https://github.com/ggml-org/llama.cpp/blob/master/benches/mac-m2-ultra/mac-m2-ultra.md) |
 | Gemma 3 4B Q4_0 | M2 Ultra | 800 | 2.52 | – | 134.28 (tg32) | 227 (+69%) | 159 (+18%) | b828e18 (7948), early 2026, [Mac M2 Ultra bench](https://github.com/ggml-org/llama.cpp/blob/master/benches/mac-m2-ultra/mac-m2-ultra.md) |
 | Qwen3 4B Q4_0 (`--pure`) | M3 Ultra | 819 | 2.26 ‖ | – | 158.8 | 251 (+58%) | 176 (+11%) | Oct 2026, [PR #31075](https://github.com/ggml-org/llama.cpp/pull/31075) |
-| Qwen3.8 27B Q4_0 (`--pure`) | M3 Ultra | 819 | 14.32 ‖ | – | 34.97 | 54 (+53%) | 37 (+7%) | Oct 2026, [PR #31075](https://github.com/ggml-org/llama.cpp/pull/31075) |
+| Qwen3.8 27B Q4_0 (`--pure`) | M3 Ultra | 819 | 15.38 ‖ | – | 34.97 | 50 (+43%) | 35 (0%) | Oct 2026, [PR #31075](https://github.com/ggml-org/llama.cpp/pull/31075) |
 | gpt-oss 20B MXFP4 | M5 Max (128 GB) | 614 | 12.10 | 2.08 | 150.75 | 133 (−12%) | unchanged | Oct 2026, [PR #31075](https://github.com/ggml-org/llama.cpp/pull/31075) |
 | gpt-oss 120B MXFP4 | M5 Max (40c) | 614 | 63.37 | 2.77 | 104.9 | 116 (+10%) | unchanged | b9592, Jun 2026, [LM Studio #2040](https://github.com/lmstudio-ai/lmstudio-bug-tracker/issues/2040) |
 | gpt-oss 20B MXFP4 | M2 Ultra (192 GB) | 800 | 12.10 | 2.08 | 137.71 | 158 (+14%) | 125 (−9%) | Oct 2026, [PR #31075](https://github.com/ggml-org/llama.cpp/pull/31075) |
@@ -243,7 +303,7 @@ The worst remaining MoE error is GLM-4.7-Flash on an M2 Ultra (+72%). It uses ML
 
 ¶ The poster names no chip. The comment re-runs their Nov 2023 post with 12 threads, and its numbers track the M2 Max (38c) row of the 2023 table. Every M1–M3 Max at that tier has 400 GB/s, which is all the check needs. This Q4_0 file is 3.53 GiB.
 \# The #4167 table lists the M5 Ultra at 1228 GB/s; `gpus.json` has 1200. At 1228 the Ultra errors move by about 2 points.
-‖ Sized as parameters × 4.5 bits (Q4_0 on every tensor). For Qwen3.8 27B this is scaled from the `models.json` Q8_0 size, because its listed parameter count includes tensors the GGUF doesn't carry.
+‖ Sized as parameters × 4.5 bits (Q4_0 on every tensor). For Qwen3.8 27B this is scaled from the `models.json` Q8_0 size, because its listed parameter count includes tensors the GGUF doesn't carry. That size is GiB (14.32), so it is 15.38 GB here; the original fit used 14.32 as if it were GB.
 
 ### Benchmarks: older builds (not fitted)
 
@@ -279,7 +339,8 @@ Not used: two BF16 MoE runs on an M1 Ultra ([Issue #19480](https://github.com/gg
 ## Known limits
 
 - **Apple estimates assume a recent llama.cpp build.** Metal decode speed rose 15–35% between 2023 and 2026 builds on the same machines. Apps that bundle an older llama.cpp, or Ollama and LM Studio runtimes that lag upstream, will be slower than the site says. See [Apple Silicon](#apple-silicon) for the remaining Ultra and MoE errors.
-- **Dense estimates are ~10–30% high on the fastest NVIDIA cards** (RTX 3090, 4090 and 5090). A small fixed per-token time for dense models would help, but the dense formula was kept as it is for this change.
+- **Dense estimates are ~10–30% high on the fastest NVIDIA cards** (RTX 3090, 4090 and 5090). A small fixed per-token time for dense models would help, but the dense formula was kept as it is for this change. A larger `INFERENCE_OVERHEAD_GB` doesn't fix it: see [Unit correction](#unit-correction-14-november-2026).
+- **KV cache reads are not modelled separately.** They are part of the 1 GB overhead, sized for short contexts and fp16 KV. Quantized KV (`-ctk q8_0`) and long contexts change them.
 - **MoE results move with llama.cpp releases.** gpt-oss 20B on an RTX 5090 went from 282 tok/s (Aug 2025) to 376 (Nov 2025), and reaches 419 with an opt-in CUDA graph flag. The estimate aims at a recent default build.
 - **Long contexts are slower.** All figures are at short context. Decode speed drops as the KV cache grows, especially on models with full attention in every layer.
 - Model-specific costs are not modelled. MLA attention (GLM-4.7-Flash, DeepSeek) and hybrid linear-attention layers (Qwen3.5) run 15–40% slower than their active weights suggest.
