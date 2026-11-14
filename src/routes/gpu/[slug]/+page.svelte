@@ -4,7 +4,7 @@
   import allModels from '$lib/data/models.json';
   import { APPLE_ULTRA_BANDWIDTH_EFFICIENCY, bucketModels, contextLabel, effectiveBandwidth, gpuConfigs, isAppleUltra, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
   import gpus from '$lib/data/gpus.json';
-  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuDescription, gpuPageFacts, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, memOptionIndex, modelSlug, tierPath, toolQuery } from '$lib/pages.js';
+  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuDescription, gpuPageFacts, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, memOptionIndex, modelItemListLd, modelSlug, tierPath, toolQuery } from '$lib/pages.js';
   import { gpuCard, gpuOgPath } from '$lib/og.js';
   import { tierForVram } from '$lib/vram-tiers.js';
   import ModelResults from '$lib/components/ModelResults.svelte';
@@ -69,7 +69,9 @@
         { name: 'GPUs', path: '/gpus' },
         { name: gpu.name, path },
       ]),
-    ],
+      // Same results and order as the page's "runs well" list (MMLU-Pro, best first); omitted when nothing runs well
+      modelItemListLd(`Best local AI models for the ${shortName}${configs.length > 1 ? ` (${config.vram} GB)` : ''}`, results.fits),
+    ].filter(Boolean),
   });
 </script>
 

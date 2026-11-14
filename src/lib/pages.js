@@ -301,3 +301,30 @@ export function breadcrumbLd(crumbs) {
     })),
   };
 }
+
+/** Most models a landing page's ItemList names: a summary, not the full table. */
+export const ITEM_LIST_LIMIT = 10;
+
+/**
+ * ItemList structured data for the models that run well on a landing page:
+ * one ListItem per model (quantization variants collapsed), in the order
+ * given, capped at `limit`.
+ * @param {string} name  The list's name
+ * @param {Array} fits  bucketModels().fits, already in the page's order
+ * @param {number} [limit]
+ * @returns {object|null} null when nothing runs well, so the page omits the list
+ */
+export function modelItemListLd(name, fits, limit = ITEM_LIST_LIMIT) {
+  const groups = groupVariants(fits).slice(0, limit);
+  if (groups.length === 0) return null;
+  return {
+    '@type': 'ItemList',
+    name,
+    itemListElement: groups.map((g, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: g.name,
+      url: `${SITE_URL}/model/${modelSlug(g.name)}`,
+    })),
+  };
+}

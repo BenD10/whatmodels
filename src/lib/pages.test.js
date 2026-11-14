@@ -22,8 +22,11 @@ import {
   gpuPageFacts,
   gpuDescription,
   modelPageFacts,
+  modelItemListLd,
+  ITEM_LIST_LIMIT,
+  SITE_URL,
 } from './pages.js';
-import { bucketModels, gpuConfigs, gpusForModel, groupVariants, topModelsByScore } from './calculations.js';
+import { bucketModels, gpuConfigs, gpusForModel, groupByBestStatus, groupVariants, topModelsByScore } from './calculations.js';
 import gpusData from './data/gpus.json';
 import modelsData from './data/models.json';
 
@@ -250,6 +253,56 @@ describe('modelPageFacts', () => {
       const minVram = (list) => (list.length ? Math.min(...list.map((r) => r.config.vram)) : null);
       expect(facts.cheapest?.config.vram ?? null).toBe(minVram(facts.runnersWell));
       expect(facts.smallestRunner?.config.vram ?? null).toBe(minVram(facts.runners));
+    }
+  });
+});
+
+describe('modelItemListLd', () => {
+  const m = (name, quantization, mmlu_score) => ({ name, quantization, mmlu_score, weight_gb: quantization === 'Q8_0' ? 8 : 4 });
+
+  it('collapses variants into one ListItem per model, keeping the given order', () => {
+    const fits = [m('Beta 7B', 'Q8_0', 70), m('Alpha 3B', 'Q4_K_M', 60), m('Beta 7B', 'Q4_K_M', 70)];
+    const ld = modelItemListLd('Best local AI models for the RTX 4090', fits);
+    expect(ld).toEqual({
+      '@type': 'ItemList',
+      name: 'Best local AI models for the RTX 4090',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Beta 7B', url: `${SITE_URL}/model/beta-7b` },
+        { '@type': 'ListItem', position: 2, name: 'Alpha 3B', url: `${SITE_URL}/model/alpha-3b` },
+      ],
+    });
+  });
+
+  it(`caps the list at ${ITEM_LIST_LIMIT} models by default`, () => {
+    const fits = Array.from({ length: 25 }, (_, i) => m(`Model ${i}`, 'Q4_K_M', 90 - i));
+    const items = modelItemListLd('x', fits).itemListElement;
+    expect(items).toHaveLength(ITEM_LIST_LIMIT);
+    expect(items.map((it) => it.position)).toEqual(Array.from({ length: ITEM_LIST_LIMIT }, (_, i) => i + 1));
+    expect(items.at(-1).name).toBe(`Model ${ITEM_LIST_LIMIT - 1}`);
+    expect(modelItemListLd('x', fits, 3).itemListElement).toHaveLength(3);
+  });
+
+  it('returns null when nothing runs well, so the page omits the list', () => {
+    expect(modelItemListLd('x', [])).toBeNull();
+  });
+
+  it('lists, for every GPU page, the first models that run well, linked by absolute URL to pages that exist', () => {
+    const slugs = new Set(modelPages(modelsData).map((p) => p.slug));
+    for (const gpu of gpusData) {
+      const config = gpuConfigs(gpu).at(-1);
+      const results = bucketModels(modelsData, config.vram, config.bandwidth, null, null);
+      const ld = modelItemListLd(gpu.name, results.fits);
+      if (ld == null) {
+        expect(results.fits).toHaveLength(0);
+        continue;
+      }
+      // Same models, same order as the page's "runs well" group (ModelResults uses groupByBestStatus)
+      const shown = groupByBestStatus(results).fits.map((g) => g.name);
+      expect(ld.itemListElement.map((it) => it.name)).toEqual(shown.slice(0, ITEM_LIST_LIMIT));
+      for (const it of ld.itemListElement) {
+        expect(it.url).toMatch(/^https:\/\/whatmodelscanirun\.com\/model\/[a-z0-9-]+$/);
+        expect(slugs.has(it.url.split('/').pop())).toBe(true);
+      }
     }
   });
 });
