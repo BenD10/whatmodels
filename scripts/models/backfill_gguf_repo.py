@@ -5,9 +5,9 @@ the Hugging Face repo that holds each row's GGUF.
 
 A repo counts as verified for a row only when it holds a complete GGUF for the
 row's quantization (shards summed, mmproj/MTP/draft/dspark files ignored) whose
-size matches weight_gb within --tolerance (2% by default). Older rows were
-recorded in decimal GB rather than GiB, so a decimal match also counts and is
-reported as such. Rows with no verified repo get gguf_repo: null, so the site
+size matches weight_gb within --tolerance (2% by default). Some older rows were
+recorded in decimal GB rather than GiB (see --check-weights), so a decimal match
+also counts and is reported as such. Rows with no verified repo get gguf_repo: null, so the site
 shows no run command for them. Nothing is guessed.
 
 On top of the size match the script checks the commands the site will print:
@@ -23,6 +23,17 @@ Usage (from the repo root):
     python3 scripts/models/backfill_gguf_repo.py                   # write models.json
     python3 scripts/models/backfill_gguf_repo.py --recheck         # re-verify rows that already have a repo
     python3 scripts/models/backfill_gguf_repo.py --only "Qwen3.5 27B" --dry-run
+    python3 scripts/models/backfill_gguf_repo.py --check-weights        # weight_gb vs the Hub, report only
+    python3 scripts/models/backfill_gguf_repo.py --fix-weights --dry-run
+    python3 scripts/models/backfill_gguf_repo.py --fix-weights          # rewrite decimal-GB weights in GiB
+
+--check-weights measures every row that has a gguf_repo: it sums the file set
+the row's run command downloads (the same llama.cpp selection the backfill
+verified) and classifies weight_gb as GiB (within 1%), decimal GB (the stored
+value is bytes / 1e9) or some other mismatch. --fix-weights also rewrites the
+decimal-GB rows in GiB and recomputes their active_weight_gb; other mismatches
+are only reported, since they need a person to look at the repo, unless
+--include-other says the repo's file is right.
 
 By default only rows without a gguf_repo (missing or null) are searched, so a
 re-run picks up repos published since the last one. Output order follows
@@ -353,6 +364,129 @@ def with_repo(row: dict, repo: str | None, shards: int | None) -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# weight_gb check: GiB vs decimal GB
+# ---------------------------------------------------------------------------
+
+WEIGHT_TOLERANCE = 0.01  # GiB and decimal GB are 7.4% apart, so 1% can't confuse them
+
+
+def row_file_size(info: dict, row: dict) -> tuple[int | None, list[str], str | None]:
+    """(bytes, files, problem) for the file set the row's run command downloads.
+
+    The file set is llama.cpp's choice for "-hf repo:TAG", which the backfill
+    required to equal the verified family, so it is the file the row
+    describes. It must have as many files as gguf_shards says.
+    """
+    tag = RUN_TAGS.get(row["quantization"])
+    siblings = info.get("siblings", []) or []
+    files = llamacpp_resolve([s.get("rfilename", "") for s in siblings], tag) if tag else []
+    if not files:
+        return None, [], f"no :{tag} file in the repo"
+    sizes = {
+        s.get("rfilename"): s.get("size") or (s.get("lfs") or {}).get("size") or 0 for s in siblings
+    }
+    if not all(sizes.get(f) for f in files):
+        return None, files, "the Hub lists no size for some files"
+    if row.get("gguf_shards") and len(files) != row["gguf_shards"]:
+        return None, files, f"{len(files)} file(s) on the Hub, gguf_shards says {row['gguf_shards']}"
+    return sum(sizes[f] for f in files), files, None
+
+
+def classify_weight(weight_gb: float, size_bytes: int, tolerance: float = WEIGHT_TOLERANCE) -> str:
+    """'GiB' when weight_gb is the file size in GiB, 'GB' when it is decimal GB, else 'other'."""
+    for unit, divisor in (("GiB", 1024 ** 3), ("GB", 1e9)):
+        true = size_bytes / divisor
+        if abs(weight_gb - true) <= tolerance * true:
+            return unit
+    return "other"
+
+
+def fixed_weights(row: dict, size_bytes: int) -> dict:
+    """The weight fields of a row rewritten from its file size in GiB.
+
+    add_model.py sets active_weight_gb = round(active_params x weight_gb /
+    params_b, 2). The row doesn't store active_params, so it is recovered from
+    the old values (to 0.1B, which every MoE row so far uses) and checked by
+    reproducing the old active_weight_gb; if that fails, the old figure is
+    scaled by the same factor as weight_gb instead.
+    """
+    new_weight = round(size_bytes / 1024 ** 3, 2)
+    fields = {"weight_gb": new_weight}
+    old_active, old_weight, params_b = row.get("active_weight_gb"), row["weight_gb"], row["params_b"]
+    if old_active is not None:
+        active_params = round(old_active * params_b / old_weight, 1)
+        if abs(round(active_params * old_weight / params_b, 2) - old_active) <= 0.011:
+            fields["active_weight_gb"] = round(active_params * new_weight / params_b, 2)
+        else:
+            fields["active_weight_gb"] = round(old_active * new_weight / old_weight, 2)
+    return fields
+
+
+def check_weights(hub: "Hub", models: list[dict], only: list[str], include_other: bool = False) -> list[dict]:
+    """One finding per row with a gguf_repo: {row, unit, size, files, problem, fields}.
+
+    fields holds the fix for decimal-GB rows, and with include_other for
+    mismatched rows too (their repo was verified, so its file is the truth).
+    """
+    findings = []
+    for row in models:
+        if not row.get("gguf_repo") or (only and row["name"] not in only):
+            continue
+        info = hub.repo_info(row["gguf_repo"])
+        if not info:
+            findings.append({"row": row, "unit": "error", "size": None, "files": [],
+                             "problem": "repo not found", "fields": {}})
+            continue
+        size, files, problem = row_file_size(info, row)
+        unit = "error" if problem else classify_weight(row["weight_gb"], size)
+        fields = fixed_weights(row, size) if unit == "GB" or (include_other and unit == "other") else {}
+        findings.append({"row": row, "unit": unit, "size": size, "files": files,
+                         "problem": problem, "fields": fields})
+    return findings
+
+
+def run_weight_check(hub: "Hub", models: list[dict], only: list[str], fix: bool, dry_run: bool,
+                     include_other: bool = False) -> None:
+    findings = check_weights(hub, models, only, include_other)
+    counts: dict[str, int] = {}
+    for f in findings:
+        counts[f["unit"]] = counts.get(f["unit"], 0) + 1
+        row = f["row"]
+        if f["unit"] == "GiB":
+            continue
+        if f["unit"] == "error":
+            detail = f["problem"]
+        else:
+            detail = f"file {f['size'] / 1024 ** 3:.2f} GiB = {f['size'] / 1e9:.2f} GB"
+            if f["fields"]:
+                detail += "  -> " + ", ".join(f"{k} {row.get(k)} -> {v}" for k, v in f["fields"].items())
+        print(f"  {f['unit']:5s} {row['id']:40s} {row['weight_gb']:>9}  {row['gguf_repo']}  {detail}")
+
+    nulls = sum(1 for r in models if not r.get("gguf_repo") and not (only and r["name"] not in only))
+    print(f"\n{counts.get('GiB', 0)} GiB, {counts.get('GB', 0)} decimal GB, {counts.get('other', 0)} other, "
+          f"{counts.get('error', 0)} not measurable; {nulls} rows without a gguf_repo not checked.")
+    if not fix:
+        return
+
+    by_id = {f["row"]["id"]: f["fields"] for f in findings if f["fields"]}
+    new_models = [{**row, **by_id.get(row["id"], {})} for row in models]
+    errors = []
+    for row in new_models:
+        others = [m for m in new_models if m is not row]
+        errors += [f"{row['id']}: {e}" for e in validate_model_entry(row, others)]
+    if errors:
+        print("\nValidation failed; nothing written:")
+        for error in errors:
+            print(f"  - {error}")
+        sys.exit(1)
+    if dry_run:
+        print(f"Dry run; would rewrite {len(by_id)} rows.")
+        return
+    save_models(new_models)
+    print(f"Rewrote weight_gb in GiB on {len(by_id)} rows.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--dry-run", action="store_true", help="Report without writing models.json")
@@ -361,10 +495,20 @@ def main() -> None:
     parser.add_argument("--tolerance", type=float, default=0.02, help="Max relative size difference (0.02)")
     parser.add_argument("--no-ollama-check", action="store_true", help="Skip the Hub's Ollama manifest check")
     parser.add_argument("--cache-dir", type=Path, default=None, help="Cache Hub responses here between runs")
+    parser.add_argument("--check-weights", action="store_true",
+                        help="Compare weight_gb with the Hub file size (GiB / decimal GB / other); write nothing")
+    parser.add_argument("--fix-weights", action="store_true",
+                        help="Like --check-weights, then rewrite decimal-GB rows in GiB (honours --dry-run)")
+    parser.add_argument("--include-other", action="store_true",
+                        help="With --fix-weights, also set mismatched (not GiB, not decimal) rows to the file size")
     args = parser.parse_args()
 
     hub = Hub(args.cache_dir)
     models = load_models()
+
+    if args.check_weights or args.fix_weights:
+        run_weight_check(hub, models, args.only, args.fix_weights, args.dry_run, args.include_other)
+        return
 
     families: dict[str, list[dict]] = {}
     for row in models:
