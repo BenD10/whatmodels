@@ -27,6 +27,7 @@ AUX_FILE_PATTERNS = (
     re.compile(r"(^|/)mmproj[-_.]", re.I),      # vision projector
     re.compile(r"(^|/)mtp[-_/]", re.I),         # multi-token-prediction head
     re.compile(r"(^|/)draft[-_.]", re.I),       # speculative-decoding draft model
+    re.compile(r"(^|/)dspark[-_/]", re.I),      # DSpark speculative-decoding draft head
 )
 
 SHARD_RE = re.compile(r"^(?P<base>.+)-(?P<idx>\d{5})-of-(?P<total>\d{5})\.gguf$", re.I)
@@ -156,6 +157,7 @@ def resolve_gguf_sizes(repo: str, repo_info: dict | None = None) -> dict[str, di
 KV_CACHING_LAYER_TYPES = frozenset({
     "full_attention",
     "deepseek_sparse_attention",
+    "indexed_attention",  # Mistral Large 4: MLA with a DeepSeek-style sparse indexer
     "attention",
 })
 NON_KV_LAYER_TYPES = frozenset({
@@ -228,7 +230,8 @@ def count_attention_layers(config: dict) -> tuple[int, int]:
     so leaving them out would understate memory.
 
     Gemma 3n/4 "E" models also share KV: the last num_kv_shared_layers layers
-    reuse earlier layers' cache and allocate none of their own.
+    reuse earlier layers' cache and allocate none of their own. Mistral Large 4
+    does the same through an explicit per-layer kv_source_layers map.
     """
     config = text_config_of(config)
     kinds = layer_kinds(config)
@@ -242,7 +245,17 @@ def count_attention_layers(config: dict) -> tuple[int, int]:
         caching_types = caching_types | {"sliding_attention"}
 
     own_cache = len(kinds) - (config.get("num_kv_shared_layers") or 0)
-    caching = sum(1 for t in kinds[:own_cache] if t in caching_types)
+    # Mistral Large 4: kv_source_layers[i] names the layer whose cache layer i
+    # reads; a layer pointing anywhere but itself allocates no cache of its own.
+    sources = config.get("kv_source_layers")
+    borrows = (
+        {i for i, src in enumerate(sources) if src != i}
+        if isinstance(sources, list) and len(sources) == len(kinds)
+        else set()
+    )
+    caching = sum(
+        1 for i, t in enumerate(kinds[:own_cache]) if t in caching_types and i not in borrows
+    )
     if caching:
         return total, caching
     # Unrecognised naming: fail loudly rather than silently returning zero KV cost.

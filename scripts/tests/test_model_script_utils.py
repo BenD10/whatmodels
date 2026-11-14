@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "models"))
 
 from add_model import context_k_from, derive_architecture  # noqa: E402
-from model_script_utils import count_attention_layers, text_config_of  # noqa: E402
+from model_script_utils import count_attention_layers, resolve_gguf_sizes, text_config_of  # noqa: E402
 
 CONFIGS = Path(__file__).parent / "configs"
 
@@ -35,6 +35,8 @@ class DeriveArchitectureTest(unittest.TestCase):
         # MLA: one compressed latent per token per layer (no ×2 for K+V)
         ("deepseek-r1", 0.065, 61, 61, 160),
         ("glm-5.1", 0.084, 78, 78, 198),
+        # MLA with explicit cross-layer sharing: 9 of 72 layers read layer 35's cache
+        ("mistral-large-4", 0.068, 63, 72, 1024),
         # Nemotron-H: layers_block_type, the older hybrid_override_pattern, and a VL wrapper
         ("nemotron-3.5-lightning", 0.006, 6, 52, 256),
         ("nemotron-cascade-2", 0.006, 6, 52, 256),
@@ -77,6 +79,36 @@ class LayerCountingTest(unittest.TestCase):
     def test_unknown_layer_types_fail_loudly(self):
         with self.assertRaises(ValueError):
             count_attention_layers({"num_hidden_layers": 2, "layer_types": ["weird_attention", "mamba"]})
+
+
+class ResolveGgufSizesTest(unittest.TestCase):
+    """Auxiliary GGUFs must never be counted as, or summed into, the weights."""
+
+    @staticmethod
+    def repo(*files):
+        return {"siblings": [{"rfilename": path, "size": gb * 1024 ** 3} for path, gb in files]}
+
+    def test_draft_heads_are_not_weights(self):
+        # Shape of unsloth/DeepSeek-V4.1-Flash-1017-GGUF: only UD quants plus
+        # DSpark draft heads, which once resolved as a 7.98 GB "Q8_0".
+        info = self.repo(
+            ("UD-Q4_K_XL/Model-UD-Q4_K_XL-00001-of-00002.gguf", 250),
+            ("UD-Q4_K_XL/Model-UD-Q4_K_XL-00002-of-00002.gguf", 250),
+            ("dspark-Model-Q8_0.gguf", 8),
+            ("dspark/dspark-Model-BF16.gguf", 8.5),
+            ("mmproj-BF16.gguf", 1),
+            ("mtp/Model-MTP-Q8_0.gguf", 2),
+            ("draft-Model-Q8_0.gguf", 1),
+        )
+        self.assertEqual(resolve_gguf_sizes("x", info), {})
+
+    def test_shards_are_summed(self):
+        info = self.repo(
+            ("Q8_0/Model-Q8_0-00001-of-00002.gguf", 100),
+            ("Q8_0/Model-Q8_0-00002-of-00002.gguf", 50),
+            ("dspark-Model-Q8_0.gguf", 8),
+        )
+        self.assertEqual(resolve_gguf_sizes("x", info)["Q8_0"], {"size_gb": 150.0, "files": 2, "complete": True})
 
 
 if __name__ == "__main__":
