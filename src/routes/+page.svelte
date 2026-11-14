@@ -1,12 +1,9 @@
 <script>
   import { browser } from '$app/environment';
-  import { base } from '$app/paths';
   import { afterNavigate, replaceState } from '$app/navigation';
   import gpus from '$lib/data/gpus.json';
   import { TIGHT_FIT_CONTEXT_K, calcMultiGpuResources, effectiveBandwidth } from '$lib/calculations.js';
-  import { gpuShortName, memOptionIndex, memParam } from '$lib/pages.js';
-  import { gpuPagePath } from '$lib/handoff.js';
-  import { trackGpuPageLink } from '$lib/analytics.js';
+  import { memOptionIndex, memParam } from '$lib/pages.js';
   import GpuInput from '$lib/components/GpuInput.svelte';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
@@ -135,11 +132,7 @@
   let systemRamGB = $state(urlParams.systemRam !== '' ? parseFloat(urlParams.systemRam) : null);
   let sortBy = $state(urlParams.sortBy);
   let gpuId = $state(urlParams.gpuId);
-  let memIdx = $state(urlParams.memIdx);
-  let selectedGpu = $derived(gpus.find((g) => g.id === gpuId) ?? null);
-  let gpuName = $derived(selectedGpu?.name ?? null);
-  // Catalogue GPU picked (not manual VRAM): link to its landing page
-  let gpuPageHref = $derived(selectedGpu ? `${base}${gpuPagePath(selectedGpu, memIdx)}` : null);
+  let gpuName = $derived(gpus.find((g) => g.id === gpuId)?.name ?? null);
 
   // Initial values passed to GpuInput (constant after parse, no need for $state)
   const initialGpuId = urlParams.gpuId;
@@ -167,7 +160,6 @@
   function onStateChange(state) {
     if (!browser) return;
     gpuId = state.gpuId || '';
-    memIdx = state.memIdx ?? '';
     updateUrl({
       gpu: state.gpuId || null,
       mem: memParam(gpus.find((g) => g.id === state.gpuId), state.memIdx),
@@ -258,14 +250,6 @@
   <section class="results-section">
     <h2>Results</h2>
     <ModelResults {vram} {bandwidth} {minContextK} {minTokPerSec} {requiredFeatures} {systemRamGB} bind:sortBy onsortchange={onSortChange}>
-      {#snippet afterSummary()}
-        {#if gpuPageHref}
-          <a class="gpu-page-link" href={gpuPageHref} onclick={() => trackGpuPageLink(gpuId, 'results_summary')}>
-            <span>Full {gpuShortName(selectedGpu)} page: every model, context and speed</span>
-            <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        {/if}
-      {/snippet}
       {#snippet beforeNoFit()}
         <NotifySignup {vram} gpuId={gpuId || null} {gpuName} pageType="home" />
       {/snippet}
@@ -285,35 +269,5 @@
     font-size: 1.2rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
-  }
-
-  .gpu-page-link {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-    padding: 0.65rem 0.85rem;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-weight: 600;
-    font-size: 0.9rem;
-    text-decoration: none;
-    transition: background 0.15s;
-  }
-
-  .gpu-page-link:hover {
-    background: var(--surface-hover);
-  }
-
-  .gpu-page-link:hover span:first-child {
-    text-decoration: underline;
-  }
-
-  .arrow {
-    color: var(--accent);
-    flex-shrink: 0;
   }
 </style>

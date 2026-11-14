@@ -8,7 +8,7 @@
   import ResultsSummary from '$lib/components/ResultsSummary.svelte';
   import CheapestGpus from '$lib/components/CheapestGpus.svelte';
 
-  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {}, beforeNoFit = null, afterSummary = null, showTopPicks = true, pageType = 'home' } = $props();
+  let { vram, bandwidth = null, minContextK = null, minTokPerSec = null, requiredFeatures = [], systemRamGB = null, sortBy = $bindable('mmlu'), onsortchange = () => {}, beforeNoFit = null, showTopPicks = true, pageType = 'home' } = $props();
 
   function onSortByChange(e) {
     sortBy = e.target.value;
@@ -275,8 +275,6 @@
       — sorted by quality
     </p>
     <ResultsSummary {summary} {showTopPicks} />
-    <!-- Optional content under the overview (e.g. the home tool's link to the GPU page) -->
-    {@render afterSummary?.()}
     <div class="results-meta">
       <div class="sort-control">
         <label for="sort-select">Ranked by</label>
