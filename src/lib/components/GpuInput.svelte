@@ -4,7 +4,7 @@
   import SearchSelect from './SearchSelect.svelte';
   import MultiSelect from './MultiSelect.svelte';
   import { trackGpuSelected, trackManualVram, trackFilterChanged, createInputTracker } from '$lib/analytics.js';
-  import { calcMultiGpuResources } from '$lib/calculations.js';
+  import { calcMultiGpuResources, effectiveBandwidth } from '$lib/calculations.js';
 
   const gpuItems = gpus.map((g) => ({
     id: g.id,
@@ -133,7 +133,7 @@
       baseBandwidth = null;
     } else {
       baseVram = gpu.vram_gb;
-      baseBandwidth = gpu.bandwidth_gbps;
+      baseBandwidth = effectiveBandwidth(gpu);
       trackGpuSelected(gpu.name, gpu.vram_gb, gpu.bandwidth_gbps);
     }
     applyMultiGpu();
@@ -158,7 +158,7 @@
       return;
     }
     baseVram = opt.vram_gb;
-    baseBandwidth = opt.bandwidth_gbps;
+    baseBandwidth = effectiveBandwidth(selectedGpu, opt);
     trackGpuSelected(selectedGpu.name, opt.vram_gb, opt.bandwidth_gbps);
     applyMultiGpu();
     fireStateChange();
@@ -216,12 +216,12 @@
             const opt = gpu.vram_options[Number(initialMemIdx)];
             if (opt) {
               baseVram = opt.vram_gb;
-              baseBandwidth = opt.bandwidth_gbps;
+              baseBandwidth = effectiveBandwidth(gpu, opt);
             }
           }
         } else {
           baseVram = gpu.vram_gb;
-          baseBandwidth = gpu.bandwidth_gbps;
+          baseBandwidth = effectiveBandwidth(gpu);
         }
       }
     } else if (initialManualVram) {

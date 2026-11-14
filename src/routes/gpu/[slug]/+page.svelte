@@ -2,7 +2,7 @@
   import { base } from '$app/paths';
   import { afterNavigate } from '$app/navigation';
   import allModels from '$lib/data/models.json';
-  import { bucketModels, contextLabel, gpuConfigs, groupVariants, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
+  import { APPLE_ULTRA_BANDWIDTH_EFFICIENCY, bucketModels, contextLabel, effectiveBandwidth, gpuConfigs, groupVariants, isAppleUltra, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
   import gpus from '$lib/data/gpus.json';
   import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, memOptionIndex, modelSlug, tierPath, toolQuery } from '$lib/pages.js';
   import { tierForVram } from '$lib/vram-tiers.js';
@@ -37,7 +37,7 @@
   let upgrades = $derived(
     upgradeOptionsFor(gpu, gpus).map((g) => ({
       gpu: g,
-      runsWell: summarizeResults(bucketModels(allModels, g.vram_gb, g.bandwidth_gbps, null, null)).counts.fits,
+      runsWell: summarizeResults(bucketModels(allModels, g.vram_gb, effectiveBandwidth(g), null, null)).counts.fits,
     }))
   );
   let runsTight = $derived(counts.tight);
@@ -125,8 +125,8 @@
   <header>
     <h1>{title}</h1>
     <p class="intro">
-      The {gpu.name} has <strong>{config.vram} GB</strong> of {configs.length > 1 ? 'unified memory' : 'VRAM'}{#if config.bandwidth != null}{' '}and
-        <strong>{config.bandwidth} GB/s</strong> memory bandwidth{/if}.
+      The {gpu.name} has <strong>{config.vram} GB</strong> of {configs.length > 1 ? 'unified memory' : 'VRAM'}{#if config.peakBandwidth != null}{' '}and
+        <strong>{config.peakBandwidth} GB/s</strong> memory bandwidth{#if isAppleUltra(gpu)}{' '}(speeds below assume {Math.round(APPLE_ULTRA_BANDWIDTH_EFFICIENCY * 100)}% of it, the share llama.cpp reaches on dual-die Ultra chips){/if}{/if}.
       <strong>{runsWell}</strong> models run well on it{#if runsTight > 0}{' '}and <strong>{runsTight}</strong> more are a tight fit{/if}.
       {#if tier != null}<a class="tier-link" href="{base}{tierPath(tier)}">{tier === config.vram ? `Other ${tier} GB options` : `Best models for ${tier} GB`} →</a>{/if}
     </p>

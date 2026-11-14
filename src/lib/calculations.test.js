@@ -25,9 +25,13 @@ import {
   GOOD_QUALITY_MMLU,
   INFERENCE_OVERHEAD_GB,
   MOE_TOKEN_OVERHEAD_MS,
+  APPLE_ULTRA_BANDWIDTH_EFFICIENCY,
+  effectiveBandwidth,
+  isAppleUltra,
   TIGHT_FIT_CONTEXT_K,
   MAX_OFFLOAD_RATIO,
 } from './calculations.js';
+import allGpus from './data/gpus.json';
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -303,6 +307,114 @@ describe('calcTokPerSec against published llama-bench tg128 results', () => {
       const predicted = calcTokPerSec(p, p.bw);
       expect(predicted / p.measured).toBeGreaterThan(0.65);
       expect(predicted / p.measured).toBeLessThan(1.35);
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// effectiveBandwidth (Apple Ultra Metal efficiency)
+// ---------------------------------------------------------------------------
+
+const m3Ultra = { id: 'm3-ultra', name: 'M3 Ultra', manufacturer: 'Apple', vram_options: [{ vram_gb: 96, bandwidth_gbps: 819 }, { vram_gb: 512, bandwidth_gbps: 819 }] };
+const m4Max = { id: 'm4-max', name: 'M4 Max', manufacturer: 'Apple', vram_options: [{ vram_gb: 36, bandwidth_gbps: 410 }, { vram_gb: 128, bandwidth_gbps: 546 }] };
+const rtx4090 = { id: 'rtx-4090', name: 'GeForce RTX 4090', manufacturer: 'NVIDIA', vram_gb: 24, bandwidth_gbps: 1008 };
+
+describe('effectiveBandwidth', () => {
+  it('uses the documented Apple Ultra efficiency constant', () => {
+    expect(APPLE_ULTRA_BANDWIDTH_EFFICIENCY).toBe(0.7);
+  });
+
+  it('scales an Apple Ultra memory option by the efficiency factor', () => {
+    // 819 GB/s × 0.70 = 573.3 GB/s
+    expect(effectiveBandwidth(m3Ultra, m3Ultra.vram_options[0])).toBeCloseTo(573.3);
+  });
+
+  it('leaves single-die Apple chips unchanged', () => {
+    // M4 Max 128 GB option: 546 GB/s as quoted
+    expect(effectiveBandwidth(m4Max, m4Max.vram_options[1])).toBe(546);
+  });
+
+  it('leaves discrete GPUs unchanged', () => {
+    expect(effectiveBandwidth(rtx4090)).toBe(1008);
+  });
+
+  it('returns null when the bandwidth is unknown', () => {
+    expect(effectiveBandwidth({ name: 'Mystery', manufacturer: 'NVIDIA', vram_gb: 8 })).toBeNull();
+    expect(effectiveBandwidth(m3Ultra, { vram_gb: 96 })).toBeNull();
+  });
+
+  it('only treats Apple parts named Ultra as Ultra', () => {
+    expect(isAppleUltra(m3Ultra)).toBe(true);
+    expect(isAppleUltra(m4Max)).toBe(false);
+    expect(isAppleUltra({ name: 'Ultra Card', manufacturer: 'NVIDIA' })).toBe(false);
+    expect(isAppleUltra(null)).toBe(false);
+  });
+
+  it('matches exactly the Ultra chips in gpus.json', () => {
+    const ultras = allGpus.filter(isAppleUltra).map((g) => g.id).sort();
+    expect(ultras).toEqual(['m1-ultra', 'm2-ultra', 'm3-ultra', 'm5-ultra']);
+  });
+
+  it('passes every non-Ultra GPU in gpus.json through unchanged', () => {
+    // NVIDIA, AMD, Intel and single-die Apple speeds must not move
+    for (const g of allGpus.filter((x) => !isAppleUltra(x))) {
+      if (g.vram_options) {
+        for (const o of g.vram_options) expect(effectiveBandwidth(g, o)).toBe(o.bandwidth_gbps ?? null);
+      } else {
+        expect(effectiveBandwidth(g)).toBe(g.bandwidth_gbps ?? null);
+      }
+    }
+  });
+
+  it('slows an M3 Ultra dense estimate and leaves an M4 Max alone', () => {
+    // Llama 3.1 8B Q4_K_M (4.92 GB): M3 Ultra 573.3 / 5.92 ≈ 96.8 → 97 (was 819 / 5.92 ≈ 138)
+    const llama8b = { weight_gb: 4.92 };
+    expect(calcTokPerSec(llama8b, effectiveBandwidth(m3Ultra, m3Ultra.vram_options[0]))).toBe(97);
+    // M4 Max 546 GB/s: 546 / 5.92 ≈ 92.2 → 92 (unchanged)
+    expect(calcTokPerSec(llama8b, effectiveBandwidth(m4Max, m4Max.vram_options[1]))).toBe(92);
+  });
+
+  it('slows an M3 Ultra MoE estimate', () => {
+    // Qwen3.5 35B A3B Q4_K_M, 1.76 GB active: 2.76 / 573.3 = 4.814 ms + 2.5 ms = 7.314 ms → 136.7 → 137
+    // (was 2.76 / 819 = 3.370 ms + 2.5 ms = 5.870 ms → 170)
+    expect(calcTokPerSec(moeModel, effectiveBandwidth(m3Ultra, m3Ultra.vram_options[0]))).toBe(137);
+  });
+});
+
+describe('gpuConfigs on Apple Ultra', () => {
+  it('carries the effective bandwidth for speed and the quoted one for display', () => {
+    expect(gpuConfigs(m3Ultra)).toEqual([
+      { vram: 96, bandwidth: 819 * APPLE_ULTRA_BANDWIDTH_EFFICIENCY, peakBandwidth: 819, memIdx: 0 },
+      { vram: 512, bandwidth: 819 * APPLE_ULTRA_BANDWIDTH_EFFICIENCY, peakBandwidth: 819, memIdx: 1 },
+    ]);
+  });
+});
+
+describe('calcTokPerSec against published Apple Silicon llama-bench results', () => {
+  // Recent llama.cpp builds (2026), from docs/speed-calibration.md. bw is the gpus.json
+  // figure; effectiveBandwidth applies APPLE_ULTRA_BANDWIDTH_EFFICIENCY to Ultra chips only.
+  const points = [
+    // Single-die: no correction needed
+    { name: 'Llama 2 7B Q4_0, M5 Max', gpu: 'M5 Max', bw: 614, weight_gb: 3.82, measured: 119.92 },
+    { name: 'Llama 2 7B Q8_0, M5 Pro', gpu: 'M5 Pro', bw: 307, weight_gb: 7.16, measured: 38.92 },
+    { name: 'Llama 2 7B F16, M6', gpu: 'M6', bw: 170, weight_gb: 13.48, measured: 11.59 },
+    { name: 'gpt-oss 20B MXFP4, M5 Max', gpu: 'M5 Max', bw: 614, weight_gb: 12.1, active_weight_gb: 2.08, measured: 150.75 },
+    { name: 'gpt-oss 120B MXFP4, M5 Max', gpu: 'M5 Max', bw: 614, weight_gb: 63.37, active_weight_gb: 2.77, measured: 104.9 },
+    // Ultra: corrected
+    { name: 'Llama 2 7B Q4_0, M1 Ultra', gpu: 'M1 Ultra', bw: 800, weight_gb: 3.82, measured: 113.79 },
+    { name: 'Llama 2 7B Q4_0, M5 Ultra', gpu: 'M5 Ultra', bw: 1200, weight_gb: 3.82, measured: 179.1 },
+    { name: 'Qwen3.8 27B Q4_0, M3 Ultra', gpu: 'M3 Ultra', bw: 819, weight_gb: 14.32, measured: 34.97 },
+    { name: 'gpt-oss 20B MXFP4, M2 Ultra', gpu: 'M2 Ultra', bw: 800, weight_gb: 12.1, active_weight_gb: 2.08, measured: 137.71 },
+    { name: 'Qwen3.5 35B-A3B Q8_0, M3 Ultra', gpu: 'M3 Ultra', bw: 819, weight_gb: 36.89, active_weight_gb: 3.16, measured: 85.5 },
+  ];
+
+  for (const p of points) {
+    it(`${p.name} is within ±25% of ${p.measured} tok/s`, () => {
+      // e.g. Llama 2 7B Q4_0 on an M1 Ultra: 800 × 0.70 = 560 GB/s, 560 / 4.82 ≈ 116 (+2%; was 166, +46%)
+      const bw = effectiveBandwidth({ name: p.gpu, manufacturer: 'Apple', bandwidth_gbps: p.bw });
+      const predicted = calcTokPerSec(p, bw);
+      expect(predicted / p.measured).toBeGreaterThan(0.75);
+      expect(predicted / p.measured).toBeLessThan(1.25);
     });
   }
 });
@@ -1013,14 +1125,14 @@ describe('calcVramForContext', () => {
 
 describe('gpuConfigs', () => {
   it('returns a single config for fixed-VRAM GPUs', () => {
-    expect(gpuConfigs({ vram_gb: 8, bandwidth_gbps: 272 })).toEqual([{ vram: 8, bandwidth: 272, memIdx: null }]);
+    expect(gpuConfigs({ vram_gb: 8, bandwidth_gbps: 272 })).toEqual([{ vram: 8, bandwidth: 272, peakBandwidth: 272, memIdx: null }]);
   });
 
   it('sorts vram_options ascending and keeps original indices', () => {
     const gpu = { vram_options: [{ vram_gb: 64, bandwidth_gbps: 400 }, { vram_gb: 32, bandwidth_gbps: 400 }] };
     expect(gpuConfigs(gpu)).toEqual([
-      { vram: 32, bandwidth: 400, memIdx: 1 },
-      { vram: 64, bandwidth: 400, memIdx: 0 },
+      { vram: 32, bandwidth: 400, peakBandwidth: 400, memIdx: 1 },
+      { vram: 64, bandwidth: 400, peakBandwidth: 400, memIdx: 0 },
     ]);
   });
 });

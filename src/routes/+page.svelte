@@ -3,7 +3,7 @@
   import { base } from '$app/paths';
   import { afterNavigate, replaceState } from '$app/navigation';
   import gpus from '$lib/data/gpus.json';
-  import { TIGHT_FIT_CONTEXT_K, calcMultiGpuResources } from '$lib/calculations.js';
+  import { TIGHT_FIT_CONTEXT_K, calcMultiGpuResources, effectiveBandwidth } from '$lib/calculations.js';
   import { gpuShortName, memOptionIndex, memParam } from '$lib/pages.js';
   import { gpuPagePath } from '$lib/handoff.js';
   import { trackGpuPageLink } from '$lib/analytics.js';
@@ -102,10 +102,10 @@
       const gpu = gpus.find((g) => g.id === p.gpuId);
       if (gpu?.vram_options && p.memIdx !== '') {
         const opt = gpu.vram_options[Number(p.memIdx)];
-        if (opt) { baseVram = opt.vram_gb; baseBandwidth = opt.bandwidth_gbps; }
+        if (opt) { baseVram = opt.vram_gb; baseBandwidth = effectiveBandwidth(gpu, opt); }
       } else if (gpu) {
         baseVram = gpu.vram_gb;
-        baseBandwidth = gpu.bandwidth_gbps;
+        baseBandwidth = effectiveBandwidth(gpu);
       }
     } else if (p.manualVram) {
       const val = parseFloat(p.manualVram);
