@@ -8,7 +8,7 @@ Scripts in this folder manage `src/lib/data/models.json`.
 |--------|---------|
 | `add_model.py` | Add a model (all its quantizations) from Hugging Face metadata |
 | `extract_model_ids.py` | Print all model IDs from `models.json` |
-| `list_recent_models.py` | List newly uploaded Hugging Face models |
+| `list_recent_models.py` | List recently modified Hugging Face models (noisy, see note below) |
 | `update_model_stats.py` | Set benchmark scores on existing entries, or report gaps |
 
 ## Usage
@@ -92,3 +92,6 @@ quantization imply — that almost always means a missing shard or an auxiliary 
   (variants of one model must agree on `params_b`, `max_context_k`, `mmlu_score`,
   `kv_per_1k_gb` and `features`, and a lighter quant must weigh less).
 - Only the stdlib is required; `list_recent_models.py` still uses `requests`.
+- `list_recent_models.py` sorts all of Hugging Face by `lastModified`, so its output
+  is mostly noise and it isn't useful for finding candidate models. Use the Hugging
+  Face author queries in the data-update runbook instead (the runbook is kept privately).

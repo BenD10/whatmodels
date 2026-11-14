@@ -2,6 +2,11 @@
 """
 List recently released models from Hugging Face.
 
+Caveat: this sorts all of Hugging Face by lastModified, so its output is mostly
+noise and it is not useful for finding candidate models. Use the Hugging Face
+author queries in the data-update runbook instead (the runbook is kept
+privately, outside this repo).
+
 Usage:
     python3 scripts/models/list_recent_models.py [--days N]
 

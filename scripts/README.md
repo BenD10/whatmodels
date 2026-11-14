@@ -39,5 +39,5 @@ python3 -m unittest discover -s scripts/tests
 
 ## Dependencies
 
-- Python 3.9+, stdlib only
+- Python 3.10+, stdlib only
 - `list_recent_models.py` also needs `requests` (`pip install requests`)
