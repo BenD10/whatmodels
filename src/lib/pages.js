@@ -67,6 +67,37 @@ export function gpuVramLabel(gpu) {
 }
 
 /**
+ * Resolve a `mem` URL param to an index into gpu.vram_options. The param
+ * is the memory size in GB (`mem=128`); older links used the option index
+ * (`mem=1`), which is still accepted when no size matches. The two can't
+ * collide: every option is larger than any GPU's option count (pinned in
+ * data.test.js).
+ * @param {object} gpu
+ * @param {string|null} raw  The raw `mem` param
+ * @returns {number|null} Option index, or null if the param is invalid
+ */
+export function memOptionIndex(gpu, raw) {
+  const options = gpu?.vram_options;
+  if (!options || raw == null || raw === '') return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return null;
+  const byGb = options.findIndex((o) => o.vram_gb === n);
+  if (byGb !== -1) return byGb;
+  return Number.isInteger(n) && n >= 0 && n < options.length ? n : null;
+}
+
+/**
+ * The `mem` URL param for a memory option: its size in GB.
+ * @param {object} gpu
+ * @param {number|string|null} memIdx  Index into gpu.vram_options, or null/''
+ * @returns {number|null}
+ */
+export function memParam(gpu, memIdx) {
+  if (memIdx == null || memIdx === '') return null;
+  return gpu?.vram_options?.[Number(memIdx)]?.vram_gb ?? null;
+}
+
+/**
  * Query string that opens the main tool with this GPU (and memory option) selected.
  * @param {object} gpu
  * @param {number|null} memIdx  Index into gpu.vram_options, or null
@@ -74,7 +105,8 @@ export function gpuVramLabel(gpu) {
  */
 export function toolQuery(gpu, memIdx = null) {
   const params = new URLSearchParams({ gpu: gpu.id });
-  if (memIdx != null) params.set('mem', String(memIdx));
+  const mem = memParam(gpu, memIdx);
+  if (mem != null) params.set('mem', String(mem));
   return `?${params}`;
 }
 

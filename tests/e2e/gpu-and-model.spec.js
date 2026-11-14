@@ -9,7 +9,7 @@ test('memory switcher updates results and the tool link', async ({ page }) => {
   await page.locator('.configs button', { hasText: '96 GB' }).click();
   await expect(intro).toContainText('96 GB');
   await expect(page.locator('.configs button.active')).toHaveText('96 GB');
-  await expect(page.locator('.cta')).toHaveAttribute('href', /\?gpu=m3-ultra&mem=0$/);
+  await expect(page.locator('.cta')).toHaveAttribute('href', /\?gpu=m3-ultra&mem=96$/);
 });
 
 test('model page lists quantizations and GPUs that run it', async ({ page }) => {

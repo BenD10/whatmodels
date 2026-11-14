@@ -170,6 +170,17 @@ describe('gpus.json', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  // The `mem` URL param is a size in GB, with legacy option indices as a
+  // fallback (memOptionIndex in pages.js). That only works while no size
+  // can be mistaken for an index.
+  it('has every memory option larger than any option index', () => {
+    const multi = gpus.filter((g) => g.vram_options);
+    const maxOptions = Math.max(...multi.map((g) => g.vram_options.length));
+    for (const gpu of multi) {
+      for (const opt of gpu.vram_options) expect(opt.vram_gb).toBeGreaterThan(maxOptions);
+    }
+  });
+
   describe.each(gpus)('$id', (gpu) => {
     it('has a kebab-case string id', () => {
       expect(typeof gpu.id).toBe('string');

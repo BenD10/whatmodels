@@ -41,7 +41,25 @@ test.describe('GPU search on the home page', () => {
     await expect(page.locator('.empty')).toBeVisible(); // no results until a size is picked
 
     await memory.selectOption('0'); // 96 GB
-    await expect(page).toHaveURL(/[?&]gpu=m3-ultra&mem=0\b/);
+    await expect(page).toHaveURL(/[?&]gpu=m3-ultra&mem=96\b/);
     await expect(page.locator('.overview')).toBeVisible();
+  });
+});
+
+test.describe('shared links with a memory size', () => {
+  test('a GB link opens that configuration', async ({ page }) => {
+    await page.goto('/?gpu=m3-ultra&mem=256');
+    await expect(page.locator('#memory-select')).toHaveValue('1');
+    await expect(page.locator('.overview')).toBeVisible();
+    await expect(page).toHaveURL(/[?&]gpu=m3-ultra&mem=256\b/);
+  });
+
+  test('a legacy index link opens the right configuration and is rewritten to GB', async ({ page, consoleErrors }) => {
+    await page.goto('/?gpu=m3-ultra&mem=1');
+    await expect(page.locator('#memory-select')).toHaveValue('1'); // 256 GB
+    await expect(page.locator('#memory-select option:checked')).toContainText('256');
+    await expect(page.locator('.overview')).toBeVisible();
+    await expect(page).toHaveURL(/[?&]gpu=m3-ultra&mem=256\b/);
+    expect(consoleErrors).toEqual([]);
   });
 });
