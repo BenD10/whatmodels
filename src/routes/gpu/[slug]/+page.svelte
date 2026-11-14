@@ -1,9 +1,11 @@
 <script>
   import { base } from '$app/paths';
+  import { afterNavigate } from '$app/navigation';
   import allModels from '$lib/data/models.json';
   import { bucketModels, contextLabel, gpuConfigs, groupVariants, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
   import gpus from '$lib/data/gpus.json';
-  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, modelSlug, toolQuery } from '$lib/pages.js';
+  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, gpuVramLabel, indefiniteArticle, jsonLdScript, memOptionIndex, modelSlug, tierPath, toolQuery } from '$lib/pages.js';
+  import { tierForVram } from '$lib/vram-tiers.js';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
   import AmazonButton from '$lib/components/AmazonButton.svelte';
@@ -18,6 +20,11 @@
   // Multi-config GPUs prerender with the largest memory option selected
   let selectedMemIdx = $state(null);
   let config = $derived(configs.find((c) => c.memIdx === selectedMemIdx) ?? configs.at(-1));
+  // `?mem=<GB>` (from the VRAM tier pages) opens on that option; read in the browser, as prerendering has no query string
+  afterNavigate(({ to }) => {
+    selectedMemIdx = memOptionIndex(gpu, to?.url.searchParams.get('mem') ?? null);
+  });
+  let tier = $derived(tierForVram(config.vram));
 
   let sortBy = $state('mmlu');
 
@@ -121,6 +128,7 @@
       The {gpu.name} has <strong>{config.vram} GB</strong> of {configs.length > 1 ? 'unified memory' : 'VRAM'}{#if config.bandwidth != null}{' '}and
         <strong>{config.bandwidth} GB/s</strong> memory bandwidth{/if}.
       <strong>{runsWell}</strong> models run well on it{#if runsTight > 0}{' '}and <strong>{runsTight}</strong> more are a tight fit{/if}.
+      {#if tier != null}<a class="tier-link" href="{base}{tierPath(tier)}">{tier === config.vram ? `Other ${tier} GB options` : `Best models for ${tier} GB`} →</a>{/if}
     </p>
   </header>
 
@@ -203,12 +211,14 @@
   }
 
   .crumbs a,
+  .tier-link,
   .pick-name {
     color: var(--accent);
     text-decoration: none;
   }
 
   .crumbs a:hover,
+  .tier-link:hover,
   .pick-name:hover {
     text-decoration: underline;
   }
@@ -227,6 +237,10 @@
 
   .intro strong {
     color: var(--text);
+  }
+
+  .tier-link {
+    white-space: nowrap;
   }
 
   .configs {

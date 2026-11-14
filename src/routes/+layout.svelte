@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { afterNavigate } from '$app/navigation';
   import { resetPageView } from '$lib/analytics.js';
-  import { DATA_UPDATED, monthYearLabel } from '$lib/pages.js';
+  import { DATA_UPDATED, VRAM_TIERS, monthYearLabel, tierPath } from '$lib/pages.js';
   import '../app.css';
 
   let { children } = $props();
@@ -43,6 +43,10 @@
   </div>
 
   <footer>
+    <p class="tiers">
+      Best models by VRAM:
+      {#each VRAM_TIERS as t, i}{#if i > 0}{' '}·{' '}{/if}<a href="{base}{tierPath(t)}">{t} GB</a>{/each}
+    </p>
     <p>
       Data last updated {monthYearLabel(DATA_UPDATED)}.
       <a href="https://github.com/BenD10/whatmodels" target="_blank" rel="noopener">&#9829; GitHub</a> ·
@@ -152,6 +156,10 @@
     text-align: center;
     color: var(--text-muted);
     font-size: 0.8rem;
+  }
+
+  footer .tiers {
+    margin-bottom: 0.5rem;
   }
 
   footer a {

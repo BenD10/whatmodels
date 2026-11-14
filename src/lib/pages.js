@@ -42,11 +42,39 @@ export function sitemapEntries(gpus, models, dataUpdated = DATA_UPDATED) {
     data('/', '1.0', 'weekly'),
     data('/gpus', '0.8', 'weekly'),
     data('/models', '0.8', 'weekly'),
+    ...VRAM_TIERS.map((size) => data(tierPath(size), '0.8', 'monthly')),
     fixed('/primer', '0.8', 'monthly'),
     fixed('/privacy', '0.3', 'yearly'),
     ...gpus.map((g) => data(`/gpu/${g.id}`, '0.7', 'monthly')),
     ...modelPages(models).map((m) => data(`/model/${m.slug}`, '0.7', 'monthly')),
   ];
+}
+
+/**
+ * VRAM sizes (GB) that get a landing page at /vram/<size>gb: the sizes people
+ * search for ("best llm for 16gb vram"), each with GPUs in the database.
+ */
+export const VRAM_TIERS = [8, 12, 16, 24, 32, 48, 64, 96, 128];
+
+/** URL slug for a VRAM tier: 16 → "16gb", matching how the size is searched. */
+export function tierSlug(size) {
+  return `${size}gb`;
+}
+
+/** Path of a VRAM tier page: 16 → "/vram/16gb". */
+export function tierPath(size) {
+  return `/vram/${tierSlug(size)}`;
+}
+
+/**
+ * Parse a tier slug back to its size. Only listed tiers parse, and only in
+ * their canonical spelling ("16gb", not "16", "16GB" or "016gb").
+ * @param {string} slug
+ * @returns {number|null}
+ */
+export function parseTierSlug(slug) {
+  const size = VRAM_TIERS.find((t) => tierSlug(t) === slug);
+  return size ?? null;
 }
 
 /**

@@ -15,6 +15,10 @@ import {
   largestGpuMemory,
   quotedContextK,
   modelDescription,
+  VRAM_TIERS,
+  tierSlug,
+  tierPath,
+  parseTierSlug,
 } from './pages.js';
 import gpusData from './data/gpus.json';
 import modelsData from './data/models.json';
@@ -131,7 +135,9 @@ describe('sitemapEntries', () => {
 
   it('lists every GPU and model page once, plus the static pages', () => {
     const expected = [
-      '/', '/gpus', '/models', '/primer', '/privacy',
+      '/', '/gpus', '/models',
+      '/vram/8gb', '/vram/12gb', '/vram/16gb', '/vram/24gb', '/vram/32gb', '/vram/48gb', '/vram/64gb', '/vram/96gb', '/vram/128gb',
+      '/primer', '/privacy',
       ...gpusData.map((g) => `/gpu/${g.id}`),
       ...modelPages(modelsData).map((m) => `/model/${m.slug}`),
     ];
@@ -141,7 +147,7 @@ describe('sitemapEntries', () => {
 
   it('dates data-driven pages by the data release, and invents no date for the rest', () => {
     for (const e of entries) {
-      const fromData = e.path === '/' || e.path.startsWith('/gpu') || e.path.startsWith('/model');
+      const fromData = e.path === '/' || ['/gpu', '/model', '/vram/'].some((p) => e.path.startsWith(p));
       expect(e.lastmod, e.path).toBe(fromData ? '2026-11-13' : null);
     }
     expect(sitemapEntries([], [])[0].lastmod).toBe(DATA_UPDATED);
@@ -189,5 +195,21 @@ describe('model page description', () => {
   it('is unique for every real model page', () => {
     const descs = modelPages(modelsData).map((m) => modelDescription(m, { gpuCount: gpusData.length, runnerCount: 1 }));
     expect(new Set(descs).size).toBe(descs.length);
+  });
+});
+
+describe('VRAM tier slugs', () => {
+  it('lists the searched-for sizes, smallest first', () => {
+    expect(VRAM_TIERS).toEqual([8, 12, 16, 24, 32, 48, 64, 96, 128]);
+  });
+
+  it('round-trips every tier through its slug', () => {
+    expect(tierSlug(16)).toBe('16gb');
+    expect(tierPath(16)).toBe('/vram/16gb');
+    for (const t of VRAM_TIERS) expect(parseTierSlug(tierSlug(t))).toBe(t);
+  });
+
+  it('rejects unlisted sizes and other spellings', () => {
+    for (const bad of ['10gb', '16', '16GB', '016gb', '', 'gb', '16gbx']) expect(parseTierSlug(bad), bad).toBeNull();
   });
 });
