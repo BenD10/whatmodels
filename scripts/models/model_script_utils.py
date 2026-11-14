@@ -466,7 +466,7 @@ def _validate_against_variants(entry: dict, existing: list[dict], allow_existing
     if not variants:
         return errors
 
-    for field in ("params_b", "max_context_k", "mmlu_score", "kv_per_1k_gb"):
+    for field in ("params_b", "max_context_k", "mmlu_score", "swe_bench_score", "kv_per_1k_gb"):
         others = {m.get(field) for m in variants}
         if entry.get(field) not in others:
             errors.append(
