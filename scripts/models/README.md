@@ -86,8 +86,8 @@ quantization imply — that almost always means a missing shard or an auxiliary 
 
 ## Notes
 
-- These commands delegate to the top-level scripts in `scripts/`; shared logic lives
-  in `scripts/model_script_utils.py`.
+- Shared logic (HF fetching, KV derivation, validation) lives in `model_script_utils.py`
+  in this folder.
 - Validation mirrors `src/lib/data/data.test.js`, including the cross-variant rules
   (variants of one model must agree on `params_b`, `max_context_k`, `mmlu_score`,
   `kv_per_1k_gb` and `features`, and a lighter quant must weigh less).

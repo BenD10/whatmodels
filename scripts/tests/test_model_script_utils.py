@@ -13,7 +13,7 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "models"))
 
 from add_model import context_k_from, derive_architecture  # noqa: E402
 from model_script_utils import count_attention_layers, text_config_of  # noqa: E402

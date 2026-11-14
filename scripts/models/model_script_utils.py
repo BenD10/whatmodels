@@ -7,7 +7,7 @@ import urllib.request
 from collections import defaultdict
 from pathlib import Path
 
-MODEL_DATA_PATH = Path(__file__).parent.parent / "src" / "lib" / "data" / "models.json"
+MODEL_DATA_PATH = Path(__file__).resolve().parents[2] / "src" / "lib" / "data" / "models.json"
 VALID_FEATURES = ("vision", "reasoning", "tool_use")
 VALID_QUANTIZATIONS = ("Q4_K_M", "Q4_K_S", "Q8_0", "fp16")
 MODEL_ID_PATTERN = re.compile(r"^[a-z0-9]+([-.][a-z0-9]+)*$")

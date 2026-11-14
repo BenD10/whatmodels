@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
-"""Run the legacy scripts/extract_gpu_ids.py script."""
+"""Extract all GPU IDs from src/lib/data/gpus.json."""
 
-import os
-import sys
-from pathlib import Path
+from gpu_script_utils import load_gpus
+
+
+def extract_gpu_ids() -> list[str]:
+    gpus = load_gpus()
+    return [gpu["id"] for gpu in gpus]
 
 
 def main() -> None:
-    target = Path(__file__).resolve().parents[1] / "extract_gpu_ids.py"
-    os.execv(sys.executable, [sys.executable, str(target), *sys.argv[1:]])
+    ids = extract_gpu_ids()
+    print(f"Found {len(ids)} GPU IDs:")
+    for i, gpu_id in enumerate(ids, start=1):
+        print(f"{i}. {gpu_id}")
 
 
 if __name__ == "__main__":

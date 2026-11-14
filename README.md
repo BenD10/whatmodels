@@ -1,6 +1,6 @@
 # What Models?
 
-[![Deploy](https://github.com/BenD10/whatmodel/actions/workflows/deploy.yml/badge.svg)](https://github.com/BenD10/whatmodel/actions/workflows/deploy.yml)
+[![Deploy](https://github.com/BenD10/whatmodels/actions/workflows/deploy.yml/badge.svg)](https://github.com/BenD10/whatmodels/actions/workflows/deploy.yml)
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fwhatmodelscanirun.com&label=whatmodelscanirun.com)](https://whatmodelscanirun.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
@@ -15,7 +15,7 @@ A static website that helps users find out which AI models their GPU can run —
 ### Tech stack
 
 - **SvelteKit** (Svelte 5) with `adapter-static` — builds to pure HTML/JS/CSS, no server required
-- **Vite 6** — dev server and bundler
+- **Vite 8** — dev server and bundler
 - **Static JSON** — GPU and model data imported at build time (no runtime fetches)
 
 ### Project structure
@@ -24,18 +24,30 @@ A static website that helps users find out which AI models their GPU can run —
 src/
 ├── app.html                        # HTML shell
 ├── app.css                         # Global styles / design tokens
+├── service-worker.js               # Offline cache (network-first for pages)
 ├── routes/
 │   ├── +layout.js                  # prerender = true (static output)
-│   ├── +layout.svelte              # Shell: header, logo, global CSS import
-│   └── +page.svelte                # Main page: wires GpuInput ↔ ModelResults
+│   ├── +layout.svelte              # Shell: header, nav, footer, global CSS import
+│   ├── +page.svelte                # Main page: wires GpuInput ↔ ModelResults
+│   ├── gpus/ , gpu/[slug]/         # GPU index and one landing page per GPU
+│   ├── models/ , model/[slug]/     # Model index and one landing page per model
+│   ├── primer/ , privacy/          # Static content pages
+│   └── sitemap.xml/                # Prerendered sitemap
 └── lib/
+    ├── calculations.js             # All fit / context / speed logic (pure functions)
+    ├── pages.js                    # Slugs, URLs and structured data for landing pages
+    ├── affiliate.js , notify.js    # Amazon links; email-alert signup helpers
+    ├── analytics.js                # PostHog event helpers
     ├── data/
     │   ├── gpus.json               # GPU database (VRAM, bandwidth, manufacturer)
     │   └── models.json             # Model database (weights, KV cache, quantizations)
     └── components/
         ├── GpuInput.svelte         # GPU picker + manual VRAM + context filter
         ├── SearchSelect.svelte     # Reusable searchable dropdown with grouping
-        └── ModelResults.svelte     # Matching logic + results display
+        ├── ModelResults.svelte     # Results display
+        └── …                       # Summary, signup and affiliate components
+scripts/                            # Python tools that maintain the JSON data
+tests/e2e/                          # Playwright tests against the production build
 ```
 
 ### Data flow
@@ -236,8 +248,6 @@ For full usage examples and flags, see:
 - `scripts/README.md`
 - `scripts/models/README.md`
 - `scripts/gpus/README.md`
-
-Top-level scripts under `scripts/` remain available for backward compatibility, but `scripts/models/` and `scripts/gpus/` are the preferred entry points for agents and contributors.
 
 ---
 
