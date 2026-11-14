@@ -15,7 +15,7 @@ export const SITE_NAME = 'What Models?';
  * "Data last updated" month and the sitemap's <lastmod> for every page
  * whose content comes from the data.
  */
-export const DATA_UPDATED = '2026-11-13';
+export const DATA_UPDATED = '2026-11-14';
 
 /**
  * "November 2026" for a YYYY-MM-DD date.
