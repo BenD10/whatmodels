@@ -1,9 +1,9 @@
 <script>
-  import { onMount, untrack } from 'svelte';
+  import { onMount, onDestroy, untrack } from 'svelte';
   import gpus from '$lib/data/gpus.json';
   import SearchSelect from './SearchSelect.svelte';
   import MultiSelect from './MultiSelect.svelte';
-  import { trackGpuSelected, trackManualVram, trackFilterChanged } from '$lib/analytics.js';
+  import { trackGpuSelected, trackManualVram, trackFilterChanged, createInputTracker } from '$lib/analytics.js';
   import { calcMultiGpuResources } from '$lib/calculations.js';
 
   const gpuItems = gpus.map((g) => ({
@@ -66,6 +66,26 @@
   let featureSelection = $state(untrack(() => (initialFeatures.length > 0 ? [...initialFeatures] : [])));
   let systemRamInput = $state(untrack(() => initialSystemRam));
   let gpuQuantity = $state(untrack(() => initialGpuQuantity !== '' ? Number(initialGpuQuantity) : 1));
+
+  // Number inputs update the results on every keystroke, but are tracked once per
+  // change: after a quiet period, or straight away on blur (see createInputTracker).
+  const manualVramTracker = createInputTracker((v) => trackManualVram(v));
+  const systemRamTracker = createInputTracker((v) => trackFilterChanged('system_ram', v), {
+    initial: untrack(() => {
+      const val = parseFloat(initialSystemRam);
+      return !Number.isNaN(val) && val > 0 ? val : null;
+    }),
+  });
+  const quantityTracker = createInputTracker((v) => trackFilterChanged('gpu_quantity', v), {
+    initial: untrack(() => gpuQuantity),
+  });
+
+  // Don't lose a pending event on client-side navigation
+  onDestroy(() => {
+    manualVramTracker.flush();
+    systemRamTracker.flush();
+    quantityTracker.flush();
+  });
 
   // Track per-GPU base VRAM/bandwidth so we can recalculate when quantity changes
   let baseVram = $state(null);
@@ -150,9 +170,7 @@
     baseVram = !Number.isNaN(val) && val > 0 ? val : null;
     baseBandwidth = null; // unknown for manual entry
     applyMultiGpu();
-    if (vram != null) {
-      trackManualVram(vram);
-    }
+    manualVramTracker.update(vram);
     fireStateChange();
   }
 
@@ -177,16 +195,14 @@
   function onSystemRamInput() {
     const val = parseFloat(systemRamInput);
     systemRamGB = !Number.isNaN(val) && val > 0 ? val : null;
-    if (systemRamGB != null) {
-      trackFilterChanged('system_ram', systemRamGB);
-    }
+    systemRamTracker.update(systemRamGB);
     fireStateChange();
   }
 
   function onQuantityChange() {
     gpuQuantity = Math.max(1, Math.min(8, Math.floor(Number(gpuQuantity) || 1)));
     applyMultiGpu();
-    trackFilterChanged('gpu_quantity', gpuQuantity);
+    quantityTracker.update(gpuQuantity);
     fireStateChange();
   }
 
@@ -283,6 +299,7 @@
             step="1"
             bind:value={gpuQuantity}
             oninput={onQuantityChange}
+            onblur={quantityTracker.flush}
           />
           {#if gpuQuantity > 1}
             <span class="quantity-hint">= {vram != null ? vram : '?'} GB</span>
@@ -303,6 +320,7 @@
         placeholder="e.g. 8"
         bind:value={manualVram}
         oninput={onManualInput}
+        onblur={manualVramTracker.flush}
       />
     </div>
   </div>
@@ -355,6 +373,7 @@
           placeholder="e.g. 32"
           bind:value={systemRamInput}
           oninput={onSystemRamInput}
+          onblur={systemRamTracker.flush}
         />
         <span class="input-suffix">GB</span>
       </div>
