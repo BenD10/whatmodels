@@ -70,10 +70,13 @@ for (const path of RESULT_PAGES) {
       const total = Number(await page.locator('#group-fits .group-count').first().textContent());
       await expect(dialog.locator('.dialog-list > li')).toHaveCount(total);
 
-      // Centred horizontally and fully inside the viewport
+      // Centred on the page and fully inside the viewport. The scrollbar gutter
+      // stays reserved (scrollbar-gutter: stable), so compare with the body,
+      // which spans the same width as the dialog's containing block
       const box = await dialog.boundingBox();
       const viewport = page.viewportSize();
-      expect(Math.abs(box.x - (viewport.width - box.x - box.width))).toBeLessThanOrEqual(2);
+      const body = await page.evaluate(() => { const r = document.body.getBoundingClientRect(); return { x: r.x, width: r.width }; });
+      expect(Math.abs(box.x + box.width / 2 - (body.x + body.width / 2))).toBeLessThanOrEqual(1);
       expect(box.y).toBeGreaterThanOrEqual(0);
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
 

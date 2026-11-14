@@ -166,32 +166,32 @@
 
   <section class="picks">
     <div class="pick-card">
-      <h3>Best overall</h3>
+      <h2>Best overall</h2>
       <p class="muted">Highest MMLU-Pro score among models that run well</p>
       {@render pickList(bestGeneral, 'mmlu_score', 'MMLU')}
     </div>
     <div class="pick-card">
-      <h3>Best for coding</h3>
+      <h2>Best for coding</h2>
       <p class="muted">Highest SWE-bench Verified score among models that run well</p>
       {@render pickList(bestCoding, 'swe_bench_score', 'SWE-bench')}
     </div>
   </section>
 
   <section class="gpus">
-    <h3 class="section-title">GPUs with {size} GB of memory</h3>
+    <h2 class="section-title">GPUs with {size} GB of memory</h2>
     {#if configs.length === 0}
       <p class="muted">No GPU in our database has exactly {size} GB.</p>
     {:else}
       <div class="gpu-cols">
         {#if discrete.length > 0}
           <div>
-            <h4>Graphics cards</h4>
+            <h3>Graphics cards</h3>
             {@render gpuList(discrete)}
           </div>
         {/if}
         {#if unified.length > 0}
           <div>
-            <h4>Unified memory (Apple Silicon, Ryzen AI Max, RTX Spark)</h4>
+            <h3>Unified memory (Apple Silicon, Ryzen AI Max, RTX Spark)</h3>
             {@render gpuList(unified)}
           </div>
         {/if}
@@ -201,7 +201,7 @@
 
   {#if (unlocks && unlocks.count > 0) || upgrades.length > 0}
     <section class="upgrades">
-      <h3 class="section-title">Upgrade options</h3>
+      <h2 class="section-title">Upgrade options</h2>
       {#if unlocks && unlocks.count > 0}
         <p class="unlock">
           <a class="pick-name" href="{base}{tierPath(next)}">{next} GB</a> runs <strong>{unlocks.count}</strong> more
@@ -231,7 +231,7 @@
   {/if}
 
   <section>
-    <h3 class="section-title">Every model in {size} GB</h3>
+    <h2 class="section-title">Every model in {size} GB</h2>
     <ModelResults vram={size} {bandwidth} bind:sortBy showTopPicks={false} pageType="vram">
       {#snippet beforeNoFit()}
         <NotifySignup vram={size} pageType="vram" />
@@ -264,6 +264,12 @@
   .pick-name:hover,
   .unlock a:hover,
   .gpu-list a:hover {
+    text-decoration: underline;
+  }
+
+  /* Breadcrumb links sit in muted text: underline so they aren't told apart by colour alone */
+  .crumbs a,
+  .unlock a {
     text-decoration: underline;
   }
 
@@ -362,7 +368,7 @@
     background: rgba(0, 0, 0, 0.2);
   }
 
-  .pick-card h3,
+  .pick-card h2,
   .section-title {
     font-size: 1rem;
     font-weight: 600;
@@ -372,7 +378,7 @@
     margin-bottom: 0.75rem;
   }
 
-  h4 {
+  h3 {
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;

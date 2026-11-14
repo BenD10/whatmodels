@@ -28,7 +28,7 @@
 <div class="shell">
   <header>
     <a href="{base}/" class="brand">
-      <img src="{base}/logo.png" alt="What Models? logo" class="logo" width="96" height="96" />
+      <img src="{base}/logo.webp" alt="What Models? logo" class="logo" width="96" height="96" fetchpriority="high" />
       <div>
         <!-- The wordmark is the page heading only on the tool; every other page has its own <h1> -->
         <svelte:element this={isHome ? 'h1' : 'p'} class="wordmark">
