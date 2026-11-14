@@ -60,6 +60,10 @@ test('GPU page links to its VRAM tier, and ?mem opens that memory option', async
   await page.goto('/gpu/m3-ultra?mem=96');
   await expect(page.locator('.configs button.active')).toHaveText('96 GB');
   await expect(page.locator('.tier-link')).toHaveAttribute('href', /\/vram\/96gb$/);
+
+  // An unknown size falls back to the default (largest) option
+  await page.goto('/gpu/m3-ultra?mem=999');
+  await expect(page.locator('.configs button.active')).toHaveText('512 GB');
 });
 
 test('/gpus and the footer link to every tier', async ({ page }) => {
