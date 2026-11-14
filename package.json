@@ -9,9 +9,12 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:perf": "playwright test tests/e2e/perf.spec.js && node scripts/perf/check-budgets.js --report",
+    "perf:budgets": "node scripts/perf/check-budgets.js --report"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.65.0",
     "@resvg/resvg-js": "^2.6.2",
     "@sveltejs/adapter-static": "^3.0.11",

@@ -46,8 +46,15 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      # Builds the site and serves it with `vite preview` (see playwright.config.js)
+      # Builds the site and serves it with `vite preview` (see playwright.config.js).
+      # Includes tests/e2e/perf.spec.js: layout shift, overflow and accessibility.
       - run: npm run test:e2e
+
+      # Page-weight budgets against the build the e2e step just made
+      # (scripts/perf/budgets.js). Runs even if e2e failed, so both results show.
+      - name: Page-weight budgets
+        if: ${{ !cancelled() }}
+        run: node scripts/perf/check-budgets.js --report
 
       - name: Upload traces from failed tests
         if: failure()
