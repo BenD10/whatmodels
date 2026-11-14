@@ -48,8 +48,20 @@
     collect anonymous usage analytics — things like which GPU was selected and which filters
     were used, and whether the email alert form was seen or submitted. Your email address is never
     sent to PostHog. No other personally identifiable information is collected. PostHog may set a cookie or
-    use local storage to distinguish sessions. You can opt out by enabling the "Do Not Track"
-    setting in your browser, which the site honours, or by using an ad blocker.
+    use local storage to distinguish sessions.
+  </p>
+  <p>
+    If you're in the European Economic Area, the UK or Switzerland, analytics only start after
+    you agree to them in the consent message (the same one that asks about ads). Until then
+    PostHog isn't loaded at all: nothing is stored on your device and nothing is sent, and
+    anything you did before agreeing isn't sent later. If you withdraw consent with the privacy
+    settings link, analytics stop. If the consent message can't load (an ad blocker often stops
+    it), visitors whose browser time zone is in Europe are treated the same way and aren't tracked.
+  </p>
+  <p>
+    Everywhere else, analytics run when the page loads. You can opt out by enabling the
+    "Do Not Track" setting in your browser, which the site honours wherever you are, or by
+    using an ad blocker.
   </p>
 
   <h3>Advertising</h3>
