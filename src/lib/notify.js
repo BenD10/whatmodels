@@ -14,8 +14,8 @@ export const BUTTONDOWN_ACTION = `https://buttondown.com/api/emails/embed-subscr
  * memory meets, so "vram-12" means "at least 12 GB": anything announced
  * for that tier fits everyone tagged with it.
  */
-const VRAM_TIERS = [4, 6, 8, 12, 16, 24];
-const TOP_TIER_GB = 32;
+export const VRAM_TIERS = [4, 6, 8, 12, 16, 24];
+export const TOP_TIER_GB = 32;
 
 /**
  * Tier tag for a memory size: 10 GB → "vram-8", 24 GB → "vram-24",
