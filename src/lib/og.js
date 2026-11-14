@@ -87,7 +87,12 @@ const plural = (n, one, many) => (n === 1 ? one : many);
 export function gpuCard(gpu, { config, multiConfig, runsWell, tight, topNames }) {
   const name = gpuShortName(gpu);
   const memory = multiConfig ? `${gpuVramLabel(gpu)} unified memory` : `${config.vram} GB VRAM`;
-  const subtitle = config.peakBandwidth != null ? `${memory} · ${config.peakBandwidth} GB/s` : memory;
+  // Unified-memory bins can differ in bandwidth (M3 Max: 300 or 400 GB/s), so show the range
+  const bws = multiConfig ? gpu.vram_options.map((o) => o.bandwidth_gbps).filter((b) => b != null) : [];
+  const lo = Math.min(...bws);
+  const hi = Math.max(...bws);
+  const bandwidth = bws.length > 0 && lo !== hi ? `${lo}–${hi}` : config.peakBandwidth;
+  const subtitle = bandwidth != null ? `${memory} · ${bandwidth} GB/s` : memory;
   const at = multiConfig ? ` with ${config.vram} GB` : '';
   const stats = [{ value: String(runsWell), label: `${plural(runsWell, 'model runs', 'models run')} well${at}`, tone: 'fits' }];
   if (tight > 0) stats.push({ value: String(tight), label: 'more are a tight fit', tone: 'tight' });

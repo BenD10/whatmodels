@@ -89,10 +89,17 @@ describe('gpuCard', () => {
     const chip = { id: 'm3-max', name: 'M3 Max', manufacturer: 'Apple', vram_options: [{ vram_gb: 36, bandwidth_gbps: 300 }, { vram_gb: 128, bandwidth_gbps: 400 }] };
     const c = gpuCard(chip, { config: { vram: 128, peakBandwidth: 400 }, multiConfig: true, runsWell: 85, tight: 0, topNames: [] });
     expect(c.eyebrow).toBe('Apple chip');
-    expect(c.subtitle).toBe('36–128 GB unified memory · 400 GB/s');
+    // Bins at 300 and 400 GB/s → a range, not the 128 GB option's 400
+    expect(c.subtitle).toBe('36–128 GB unified memory · 300–400 GB/s');
     expect(c.stats).toEqual([{ value: '85', label: 'models run well with 128 GB', tone: 'fits' }]);
     expect(c.picksLabel).toBeNull();
     expect(c.alt).toBe('M3 Max (36–128 GB): 85 local AI models run well with 128 GB.');
+  });
+
+  it('shows one bandwidth when every memory option shares it', () => {
+    const chip = { id: 'm4-pro', name: 'M4 Pro', manufacturer: 'Apple', vram_options: [{ vram_gb: 24, bandwidth_gbps: 273 }, { vram_gb: 64, bandwidth_gbps: 273 }] };
+    const c = gpuCard(chip, { config: { vram: 64, peakBandwidth: 273 }, multiConfig: true, runsWell: 60, tight: 0, topNames: [] });
+    expect(c.subtitle).toBe('24–64 GB unified memory · 273 GB/s');
   });
 
   it('handles unknown bandwidth and a single model', () => {
