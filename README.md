@@ -137,28 +137,59 @@ This is capped at the model's trained context limit (`max_context_k` in the data
 
 ### 4. Estimated generation speed
 
-LLM token generation (decode phase) is memory-bandwidth bound — every token requires reading all model weights from VRAM. The raw theoretical ceiling is `bandwidth / weight_gb`, but real-world inference also reads KV cache entries, moves activations, and incurs engine overhead. We model this as a fixed effective overhead added to the weight size:
+Generating a token (the decode phase) is limited by memory bandwidth, not compute: each token reads the model's weights from memory once. The estimate is that read time plus a small, empirically fitted overhead. The code is `calcTokPerSec` in [`src/lib/calculations.js`](src/lib/calculations.js).
+
+**Dense models:**
 
 ```
-tokens_per_sec ≈ memory_bandwidth_gbps / (weight_gb + overhead_gb)
+tok/s ≈ bandwidth_gbps / (weight_gb × 1.0737 + 1.0)
 ```
 
-Where **`overhead_gb`** ≈ **1.0 GB** is an empirical constant representing the additional per-token memory traffic beyond reading weights (KV cache at typical context lengths, intermediate activations, and inference engine overhead).
+**Sparse MoE models** (rows with `active_weight_gb`): only the active experts are read per token, but routing, top-k selection and one small kernel per expert add a near-constant time per token:
 
-This was calibrated against real-world benchmarks on a Radeon RX 9070 XT (640 GB/s) running LM Studio:
+```
+seconds/token ≈ (active_weight_gb × 1.0737 + 1.0) / bandwidth_gbps + 0.0025
+```
 
-| Model | Weight GB | Predicted tok/s | Actual tok/s | Error |
-|---|---|---|---|---|
-| Llama 3.1 8B Q8_0 | 8.54 | 67 | 67.89 | −1.3% |
-| Qwen 2.5 7B Q8_0 | 8.10 | 70 | 72.44 | −3.4% |
-| Qwen 2.5 7B Q6_K | 6.25 | 88 | 89.50 | −1.7% |
-| Llama 3.1 8B Q4_K_M | 4.92 | 108 | 109.07 | −0.9% |
-| Qwen 2.5 7B Q4_K_M | 4.68 | 113 | 107.51 | +5.1% |
-| Llama 3.2 3B Q8_0 | 3.42 | 145 | 143.85 | +0.8% |
-| Llama 3.2 3B Q4_K_M | 2.02 | 212 | 205.60 | +3.1% |
-| Llama 3.2 1B Q4_K_M | 0.77 | 362 | 391.48 | −7.5% |
+`active_weight_gb` is the GGUF size scaled by active / total parameters (Qwen3.5 35B A3B Q4_K_M: 20.5 GiB × 3/35 = 1.76 GiB). The 2.5 ms caps any MoE model below 400 tok/s, which matches the fastest published results. All the weights still have to fit in memory; only the speed uses the active subset.
 
-All predictions within ±5% for models 2–8.5 GB, and within ±7.5% at the extreme small end (0.77 GB). Tested across two model families (Llama, Qwen), three quantization formats (Q4_K_M, Q6_K, Q8_0), and four model sizes (1B, 3B, 7B, 8B). For comparison, the raw `bandwidth / weight_gb` formula overestimated by 10–35% on the same benchmarks.
+**Apple Ultra chips** (M1, M2, M3 and M5 Ultra) use 70% of their quoted bandwidth. An Ultra is two dies joined together, and its quoted figure is the sum of both, which a single decode stream doesn't reach. Single-die Apple chips (M5 Max, M5 Pro and so on) and every NVIDIA, AMD and Intel GPU use the quoted figure.
+
+**Units.** `weight_gb` is in GiB (2^30 bytes), because it is compared with VRAM, and a "24 GB" card holds 24 GiB. Bandwidth is quoted in decimal GB/s (10^9 bytes/s). So the weights are multiplied by 2^30 / 10^9 = 1.0737 to get the bytes read per token in the same unit as the bandwidth. Leaving that out would make every estimate about 7% optimistic. The 1.0 GB overhead (KV cache reads at short context, activations, engine overhead) and the 2.5 ms are both in decimal units, as fitted.
+
+**How well it matches.** The constants are checked against published `llama-bench` `tg128` results across NVIDIA, AMD and Apple hardware. The data, sources and fits are in [`docs/speed-calibration.md`](docs/speed-calibration.md). In summary (median absolute error / worst case):
+
+| Set | Points | Error |
+|---|---|---|
+| Dense, NVIDIA and DGX Spark | 8 | 8% / +28% |
+| Dense, Apple single-die chips, 2026 builds | 14 | 2% / +14% |
+| Dense, Apple Ultra chips, 2026 builds | 11 | 13% / −23% |
+| MoE, NVIDIA and AMD | 18 | 16% / −37% |
+| MoE, not used in the fit | 11 | 17% / +32% |
+
+The first calibration of the dense formula was a set of LM Studio runs on a Radeon RX 9070 XT (640 GB/s). It still holds with the current formula:
+
+| Model | GiB | GB | Predicted tok/s | Actual tok/s | Error |
+|---|---|---|---|---|---|
+| Llama 3.1 8B Q8_0 | 7.95 | 8.54 | 67 | 67.89 | −1.3% |
+| Qwen 2.5 7B Q8_0 | 7.54 | 8.10 | 70 | 72.44 | −3.4% |
+| Qwen 2.5 7B Q6_K | 5.82 | 6.25 | 88 | 89.50 | −1.7% |
+| Llama 3.1 8B Q4_K_M | 4.58 | 4.92 | 108 | 109.07 | −1.0% |
+| Qwen 2.5 7B Q4_K_M | 4.36 | 4.68 | 113 | 107.51 | +5.1% |
+| Llama 3.2 3B Q8_0 | 3.19 | 3.42 | 145 | 143.85 | +0.8% |
+| Llama 3.2 3B Q4_K_M | 1.88 | 2.02 | 212 | 205.60 | +3.1% |
+| Llama 3.2 1B Q4_K_M | 0.72 | 0.77 | 361 | 391.48 | −7.8% |
+
+For comparison, the raw `bandwidth / weight` ceiling overestimated these by 10–35%.
+
+**What it doesn't cover:**
+
+- **Decode only.** There is no estimate of prompt processing or time to first token, which depend on compute rather than bandwidth. A long prompt on a slow GPU can take far longer than the tok/s figure suggests.
+- **Short context.** The figures are for an almost empty context. Decode slows as the KV cache grows, most on models with full attention in every layer.
+- **fp16 KV cache only.** The memory maths and the overhead both assume an fp16 KV cache. A quantized cache (`-ctk q8_0`) fits more context than the site shows.
+- **Fast NVIDIA cards are 10–30% optimistic** on dense models (RTX 3090, 4090 and 5090). Something per token that doesn't scale with bytes is slowing them down, and the formula doesn't model it.
+- **Software matters.** The estimates assume a recent llama.cpp build. Apps that bundle an older one, and some Ollama and LM Studio runtimes, can be noticeably slower, especially on Apple Silicon. MoE speeds also move between llama.cpp releases, and MLA (GLM, DeepSeek) and hybrid linear-attention models run 15–40% below their active-weight estimate.
+- **Multi-GPU** pools VRAM and scales bandwidth by an efficiency factor (85% for two cards, 75% for three, 70% for four or more). That's a rough guide, not a calibrated figure. Weight offload to system RAM applies an uncalibrated 12–50% penalty on top.
 
 Speed estimates are only shown when a GPU is selected from the list (which provides bandwidth). Manual VRAM entry does not produce speed estimates.
 
@@ -222,7 +253,7 @@ Apple Silicon chips use `vram_options` instead — an array of memory configurat
   "name": "Llama 3.1 8B",
   "params_b": 8.03,
   "quantization": "Q4_K_M",
-  "weight_gb": 4.92,
+  "weight_gb": 4.58,
   "kv_per_1k_gb": 0.122,
   "max_context_k": 128,
   "notes": "32 layers, 8 KV heads, head_dim 128. GGUF Q4_K_M file size."
@@ -235,7 +266,7 @@ Apple Silicon chips use `vram_options` instead — an array of memory configurat
 | `name` | string | Model family and size |
 | `params_b` | number | Parameter count in billions |
 | `quantization` | string | Quantization format (fp16, Q8_0, Q4_K_M, etc.) |
-| `weight_gb` | number | Weight file size in GB (≈ VRAM for weights) |
+| `weight_gb` | number | Weight file size in GiB (bytes / 2^30, ≈ VRAM for weights) |
 | `kv_per_1k_gb` | number | KV cache cost per 1K tokens in GB (fp16 KV cache) |
 | `max_context_k` | number | Model's trained max context length in thousands |
 | `notes` | string | Architecture details and data sources |
