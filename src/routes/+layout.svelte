@@ -1,9 +1,11 @@
 <script>
   import { base } from '$app/paths';
   import { page } from '$app/stores';
+  import { onMount } from 'svelte';
   import { afterNavigate } from '$app/navigation';
   import { resetPageView } from '$lib/analytics.js';
   import { DATA_UPDATED, VRAM_TIERS, monthYearLabel, tierPath } from '$lib/pages.js';
+  import { watchAnalyticsConsent } from '$lib/consent.js';
   import '../app.css';
 
   let { children } = $props();
@@ -13,6 +15,14 @@
   // Route id, not pathname: during prerender `base` is relative, so pathname checks misfire
   let isHome = $derived($page.route.id === '/');
   const section = (prefix) => $page.route.id?.startsWith(prefix) ?? false;
+
+  // PostHog waits for consent where it's needed (see consent.js and app.html)
+  onMount(() =>
+    watchAnalyticsConsent({
+      start: () => (window.posthog ? window.posthog.opt_in_capturing() : window.loadPostHog?.()),
+      stop: () => window.posthog?.opt_out_capturing(),
+    })
+  );
 </script>
 
 <div class="shell">
