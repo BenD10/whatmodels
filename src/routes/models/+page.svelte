@@ -2,10 +2,14 @@
   import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
   import { TIGHT_FIT_CONTEXT_K, calcVramForContext, contextLabel } from '$lib/calculations.js';
-  import { SITE_NAME, SITE_URL, jsonLdScript, modelPages } from '$lib/pages.js';
+  import { SITE_NAME, SITE_URL, jsonLdScript, modelPages, releasePath } from '$lib/pages.js';
+  import { namesList, releaseDateLabel } from '$lib/releases.js';
   import OgImage from '$lib/components/OgImage.svelte';
 
+  let { data } = $props();
+
   const models = modelPages(allModels);
+  let latest = $derived(data.latestRelease);
 
   const title = 'How much VRAM do you need? Every local LLM, compared';
   const description = `VRAM requirements for ${models.length} open-weight LLMs at every quantization, and which GPUs can run each one.`;
@@ -39,6 +43,12 @@
 <div class="page">
   <h1>Browse by model</h1>
   <p class="intro">Pick a model to see the VRAM it needs and which GPUs can run it. Minimum VRAM is for the smallest quantization with {contextLabel(TIGHT_FIT_CONTEXT_K)} context.</p>
+  {#if latest.models.length > 0}
+    <p class="whats-new">
+      New in the {releaseDateLabel(latest.date)} release:
+      <a href="{base}{releasePath(latest.date)}">{namesList(latest.models)}</a>
+    </p>
+  {/if}
 
   <ul>
     {#each models as m}
@@ -65,6 +75,16 @@
   .intro {
     color: var(--text-muted);
     margin-top: -0.75rem;
+  }
+
+  .whats-new {
+    margin-top: -0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .whats-new a {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
 
   a {

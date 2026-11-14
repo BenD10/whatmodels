@@ -11,6 +11,8 @@ const PAGES = [
   '/models',
   '/primer',
   '/data/',
+  '/new/',
+  '/new/2026-10-24',
   '/privacy',
 ];
 

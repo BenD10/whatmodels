@@ -159,6 +159,19 @@ describe('sitemapEntries', () => {
     }
     expect(sitemapEntries([], [])[0].lastmod).toBe(DATA_UPDATED);
   });
+
+  it("lists the What's new index and each release, dated by the release", () => {
+    const releases = [{ date: '2026-11-13' }, { date: '2026-10-24' }];
+    const withNew = sitemapEntries([], [], '2026-11-13', releases);
+    const news = withNew.filter((e) => e.path.startsWith('/new'));
+    expect(news.map((e) => [e.path, e.lastmod])).toEqual([
+      ['/new/', '2026-11-13'],
+      ['/new/2026-11-13', '2026-11-13'],
+      ['/new/2026-10-24', '2026-10-24'],
+    ]);
+    // No releases, no index page
+    expect(paths.some((p) => p.startsWith('/new'))).toBe(false);
+  });
 });
 
 describe('largestGpuMemory', () => {

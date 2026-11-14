@@ -30,13 +30,15 @@ export function monthYearLabel(isoDate) {
  * Every URL in the sitemap. Pages built from the data (including the /data
  * dataset docs, whose counts and date come from it) carry DATA_UPDATED as
  * their lastmod; hand-written pages (primer, privacy) have no reliable date,
- * so they carry none rather than a made-up one.
+ * so they carry none rather than a made-up one. "What's new" pages carry
+ * their release's date, and the index the newest one.
  * @param {Array} gpus  gpus.json
  * @param {Array} models  models.json
  * @param {string} [dataUpdated]
+ * @param {Array<{ date: string }>} [releases]  releases.json, newest first
  * @returns {Array<{ path: string, priority: string, changefreq: string, lastmod: string|null }>}
  */
-export function sitemapEntries(gpus, models, dataUpdated = DATA_UPDATED) {
+export function sitemapEntries(gpus, models, dataUpdated = DATA_UPDATED, releases = []) {
   const data = (path, priority, changefreq) => ({ path, priority, changefreq, lastmod: dataUpdated });
   const fixed = (path, priority, changefreq) => ({ path, priority, changefreq, lastmod: null });
   return [
@@ -46,10 +48,26 @@ export function sitemapEntries(gpus, models, dataUpdated = DATA_UPDATED) {
     ...VRAM_TIERS.map((size) => data(tierPath(size), '0.8', 'monthly')),
     fixed('/primer', '0.8', 'monthly'),
     data('/data/', '0.6', 'monthly'),
+    ...(releases.length > 0 ? [{ path: NEW_PATH, priority: '0.6', changefreq: 'weekly', lastmod: releases[0].date }] : []),
+    ...releases.map((r) => ({ path: releasePath(r.date), priority: '0.5', changefreq: 'yearly', lastmod: r.date })),
     fixed('/privacy', '0.3', 'yearly'),
     ...gpus.map((g) => data(`/gpu/${g.id}`, '0.7', 'monthly')),
     ...modelPages(models).map((m) => data(`/model/${m.slug}`, '0.7', 'monthly')),
   ];
+}
+
+/**
+ * The "What's new" index. A directory with an index page (/new/), like
+ * /data/: GitHub Pages redirects /new to /new/ once /new/<date> pages exist.
+ */
+export const NEW_PATH = '/new/';
+
+/** The "What's new" RSS feed. */
+export const FEED_PATH = '/new.xml';
+
+/** Path of one data release's page: "2026-11-13" → "/new/2026-11-13". */
+export function releasePath(date) {
+  return `/new/${date}`;
 }
 
 /**

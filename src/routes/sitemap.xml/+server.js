@@ -1,10 +1,11 @@
 import gpus from '$lib/data/gpus.json';
 import allModels from '$lib/data/models.json';
-import { SITE_URL as SITE, sitemapEntries } from '$lib/pages.js';
+import releases from '$lib/data/releases.json';
+import { DATA_UPDATED, SITE_URL as SITE, sitemapEntries } from '$lib/pages.js';
 
 export const prerender = true;
 
-const pages = sitemapEntries(gpus, allModels);
+const pages = sitemapEntries(gpus, allModels, DATA_UPDATED, releases);
 
 export function GET() {
   const urls = pages

@@ -4,7 +4,7 @@
   import { onMount } from 'svelte';
   import { afterNavigate } from '$app/navigation';
   import { resetPageView } from '$lib/analytics.js';
-  import { DATA_UPDATED, VRAM_TIERS, monthYearLabel, tierPath } from '$lib/pages.js';
+  import { DATA_UPDATED, FEED_PATH, NEW_PATH, SITE_URL, VRAM_TIERS, monthYearLabel, tierPath } from '$lib/pages.js';
   import { watchAnalyticsConsent } from '$lib/consent.js';
   import '../app.css';
 
@@ -24,6 +24,11 @@
     })
   );
 </script>
+
+<svelte:head>
+  <!-- Feed autodiscovery on every page: one item per data release -->
+  <link rel="alternate" type="application/rss+xml" title="What Models? What's new" href="{SITE_URL}{FEED_PATH}" />
+</svelte:head>
 
 <div class="shell">
   <header>
@@ -59,6 +64,7 @@
     </p>
     <p>
       Data last updated {monthYearLabel(DATA_UPDATED)}.
+      <a href="{base}{NEW_PATH}">What's new</a> ·
       <a href="{base}/data/">Open dataset</a> ·
       <a href="https://github.com/BenD10/whatmodels" target="_blank" rel="noopener">&#9829; GitHub</a> ·
       <a href="https://github.com/BenD10/whatmodels/issues" target="_blank" rel="noopener">Report an issue</a> ·
