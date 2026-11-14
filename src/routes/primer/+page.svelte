@@ -1,3 +1,7 @@
+<script>
+  import OgImage from '$lib/components/OgImage.svelte';
+</script>
+
 <svelte:head>
   <title>LLM Primer — What Models?</title>
   <meta name="description" content="A practical guide to running large language models locally — VRAM, quantization, bandwidth, context windows, and how to pick the right model for your GPU." />
@@ -8,6 +12,8 @@
   <meta property="og:description" content="A practical guide to running large language models locally — VRAM, quantization, bandwidth, context windows, and how to pick the right model for your GPU." />
   <meta property="og:site_name" content="What Models?" />
 </svelte:head>
+
+<OgImage />
 
 <div class="prose">
   <h1>LLM Primer</h1>

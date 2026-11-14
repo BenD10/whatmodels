@@ -1,9 +1,11 @@
 <script>
   import { base } from '$app/paths';
   import gpus from '$lib/data/gpus.json';
-  import { TIGHT_FIT_CONTEXT_K, calcVramForContext, cheapestGpusFor, contextLabel, gpusForModel, tokLabel } from '$lib/calculations.js';
+  import { TIGHT_FIT_CONTEXT_K, calcVramForContext, cheapestGpusFor, contextLabel, tokLabel } from '$lib/calculations.js';
   import CheapestGpus from '$lib/components/CheapestGpus.svelte';
-  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, jsonLdScript, largestGpuMemory, modelDescription, quotedContextK } from '$lib/pages.js';
+  import OgImage from '$lib/components/OgImage.svelte';
+  import { modelCard, modelOgPath } from '$lib/og.js';
+  import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, jsonLdScript, largestGpuMemory, modelDescription, modelPageFacts, quotedContextK } from '$lib/pages.js';
   import { modelPageHeading, modelPageTitle } from '$lib/titles.js';
 
   let { data } = $props();
@@ -21,12 +23,12 @@
   let shortContext = $derived(model.max_context_k < TIGHT_FIT_CONTEXT_K);
   let largest = largestGpuMemory(gpus);
 
-  let runners = $derived(gpusForModel(variants, gpus));
+  // Shared with the preview image, so the two never disagree
+  let facts = $derived(modelPageFacts(model, gpus));
+  let runners = $derived(facts.runners);
+  let runnersWell = $derived(facts.runnersWell);
+  let cheapest = $derived(facts.cheapest);
   let cheapestToBuy = $derived(cheapestGpusFor(variants, gpus));
-  let runnersWell = $derived(runners.filter((r) => r.status === 'fits'));
-  let cheapest = $derived(
-    runnersWell.reduce((best, r) => (best == null || r.config.vram < best.config.vram ? r : best), null)
-  );
 
   // Manufacturers in gpus.json order; GPUs within each by memory ascending
   let byManufacturer = $derived.by(() => {
@@ -45,8 +47,9 @@
   let docTitle = $derived(modelPageTitle(model.name));
   let description = $derived(modelDescription(model, { gpuCount: gpus.length, runnerCount: runners.length }));
   // Smallest memory that can load it at all (for models every GPU lists as a tight fit)
-  let smallestRunner = $derived(
-    runners.reduce((best, r) => (best == null || r.config.vram < best.config.vram ? r : best), null)
+  let smallestRunner = $derived(facts.smallestRunner);
+  let ogAlt = $derived(
+    modelCard(model, facts, { gpuCount: gpus.length, minVramGb: calcVramForContext(smallest, quotedContextK(model)) }).alt
   );
 
   let jsonLd = $derived({
@@ -81,13 +84,14 @@
   <meta property="og:site_name" content={SITE_NAME} />
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
 
   <!-- Structured Data -->
   {@html jsonLdScript(jsonLd)}
 </svelte:head>
+
+<OgImage path={modelOgPath(model)} alt={ogAlt} />
 
 <article class="page">
   <nav class="crumbs" aria-label="Breadcrumb">

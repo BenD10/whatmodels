@@ -3,6 +3,7 @@
   import allModels from '$lib/data/models.json';
   import { TIGHT_FIT_CONTEXT_K, calcVramForContext, contextLabel } from '$lib/calculations.js';
   import { SITE_NAME, SITE_URL, jsonLdScript, modelPages } from '$lib/pages.js';
+  import OgImage from '$lib/components/OgImage.svelte';
 
   const models = modelPages(allModels);
 
@@ -28,11 +29,12 @@
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:site_name" content={SITE_NAME} />
-  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
   {@html jsonLdScript(jsonLd)}
 </svelte:head>
+
+<OgImage />
 
 <div class="page">
   <h1>Browse by model</h1>

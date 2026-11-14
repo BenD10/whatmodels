@@ -1,3 +1,7 @@
+<script>
+  import OgImage from '$lib/components/OgImage.svelte';
+</script>
+
 <svelte:head>
   <title>Privacy Policy — What Models?</title>
   <meta name="description" content="Privacy policy for whatmodelscanirun.com." />
@@ -8,6 +12,8 @@
   <meta property="og:description" content="Privacy policy for whatmodelscanirun.com." />
   <meta property="og:site_name" content="What Models?" />
 </svelte:head>
+
+<OgImage />
 
 <div class="prose">
   <h1>Privacy Policy</h1>
