@@ -2,9 +2,9 @@
   import { base } from '$app/paths';
   import allModels from '$lib/data/models.json';
   import gpus from '$lib/data/gpus.json';
-  import { bucketModels, contextLabel, groupVariants, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
+  import { bucketModels, contextLabel, summarizeResults, tokLabel, topModelsByScore, upgradeOptionsFor } from '$lib/calculations.js';
   import { tierCard, tierOgPath } from '$lib/og.js';
-  import { SITE_NAME, SITE_URL, VRAM_TIERS, breadcrumbLd, gpuShortName, jsonLdScript, modelSlug, tierPath } from '$lib/pages.js';
+  import { SITE_NAME, SITE_URL, VRAM_TIERS, breadcrumbLd, gpuShortName, jsonLdScript, modelItemListLd, modelSlug, tierPath } from '$lib/pages.js';
   import { gpuPagePath, nextTier, representativeBandwidth, tierDescription, tierPageFacts, tierTitle, tierToolQuery, tierUnlocks } from '$lib/vram-tiers.js';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
@@ -63,18 +63,9 @@
         { name: 'GPUs', path: '/gpus' },
         { name: `${size} GB VRAM`, path },
       ]),
-      {
-        '@type': 'ItemList',
-        name: `Local LLMs that run well in ${size} GB of VRAM`,
-        // bucketModels sorts by MMLU-Pro, best first
-        itemListElement: groupVariants(results.fits).map((g, i) => ({
-          '@type': 'ListItem',
-          position: i + 1,
-          name: g.name,
-          url: `${SITE_URL}/model/${modelSlug(g.name)}`,
-        })),
-      },
-    ],
+      // bucketModels sorts by MMLU-Pro, best first; omitted when nothing runs well
+      modelItemListLd(`Local LLMs that run well in ${size} GB of VRAM`, results.fits),
+    ].filter(Boolean),
   });
 </script>
 
