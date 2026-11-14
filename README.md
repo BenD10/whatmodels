@@ -199,9 +199,9 @@ Each model is placed into one of three buckets:
 
 | Bucket | Condition |
 |---|---|
-| **Runs well** | Fits in VRAM with ≥ 4K context, meets any user-set minimums |
-| **Tight fit** | Fits but with < 4K context, or below user's minimum context/speed |
-| **Doesn't fit** | Weights alone exceed available VRAM |
+| **Runs well** | Fits in VRAM with ≥ 16K context (`TIGHT_FIT_CONTEXT_K`), and meets any user-set minimum context, speed and features |
+| **Tight fit** | Runs, but with < 16K context, below a user-set minimum, or only by offloading weights to system RAM |
+| **Doesn't fit** | Weights don't fit even with offloading, or there's no room left for any KV cache |
 
 ---
 
