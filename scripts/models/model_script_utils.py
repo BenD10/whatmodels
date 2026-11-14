@@ -4,7 +4,6 @@
 import json
 import re
 import urllib.request
-from collections import defaultdict
 from pathlib import Path
 
 MODEL_DATA_PATH = Path(__file__).resolve().parents[2] / "src" / "lib" / "data" / "models.json"
@@ -97,21 +96,17 @@ def _is_auxiliary(path: str) -> bool:
     return any(pattern.search(path) for pattern in AUX_FILE_PATTERNS)
 
 
-def resolve_gguf_sizes(repo: str, repo_info: dict | None = None) -> dict[str, dict]:
-    """Return {quantization: {"size_gb", "files", "complete"}} for a GGUF repo.
+def gguf_families(repo_info: dict) -> list[dict]:
+    """Group a repo's weight GGUFs into shard families, one per file set.
 
-    Multi-part GGUFs are summed across their shard set, auxiliary files
-    (mmproj / MTP / draft heads) are excluded, and when a repo holds several
-    distinct GGUFs for one quantization the largest shard family wins.
+    Returns [{"quant", "key", "files", "size", "count", "total", "complete"}],
+    sorted by quant then key. Auxiliary files (mmproj / MTP / draft / dspark
+    heads) and GGUFs with no recognised quantization are left out; a multi-part
+    GGUF ("-00001-of-00009.gguf") is one family whose size is its shards' sum.
     """
-    info = repo_info if repo_info is not None else fetch_repo_info(repo)
+    families: dict[tuple[str, str], dict] = {}
 
-    # family key -> {"size": bytes, "count": n, "total": expected shards, "files": [...]}
-    families: dict[tuple[str, str], dict] = defaultdict(
-        lambda: {"size": 0, "count": 0, "total": 1, "files": []}
-    )
-
-    for sibling in info.get("siblings", []) or []:
+    for sibling in repo_info.get("siblings", []) or []:
         path = str(sibling.get("rfilename", ""))
         if not path.lower().endswith(".gguf") or _is_auxiliary(path):
             continue
@@ -127,24 +122,97 @@ def resolve_gguf_sizes(repo: str, repo_info: dict | None = None) -> dict[str, di
         filename = path.rsplit("/", 1)[-1]
         shard = SHARD_RE.match(filename)
         base = shard.group("base") if shard else filename
-        family = families[(quant, f"{path.rsplit('/', 1)[0] if '/' in path else ''}/{base}")]
+        key = f"{path.rsplit('/', 1)[0] if '/' in path else ''}/{base}"
+        family = families.setdefault(
+            (quant, key),
+            {"quant": quant, "key": key, "files": [], "size": 0, "count": 0, "total": 1},
+        )
         family["size"] += size
         family["count"] += 1
         family["files"].append(path)
         if shard:
             family["total"] = int(shard.group("total"))
 
+    result = []
+    for _key, family in sorted(families.items()):
+        family["files"].sort()
+        family["complete"] = family["count"] == family["total"]
+        result.append(family)
+    return result
+
+
+def resolve_gguf_sizes(repo: str, repo_info: dict | None = None) -> dict[str, dict]:
+    """Return {quantization: {"size_gb", "files", "complete"}} for a GGUF repo.
+
+    Multi-part GGUFs are summed across their shard set, auxiliary files
+    (mmproj / MTP / draft heads) are excluded, and when a repo holds several
+    distinct GGUFs for one quantization the largest shard family wins.
+    """
+    info = repo_info if repo_info is not None else fetch_repo_info(repo)
+
     results: dict[str, dict] = {}
-    for (quant, _key), family in families.items():
+    for family in gguf_families(info):
         candidate = {
             "size_gb": round(family["size"] / (1024 ** 3), 2),
             "files": len(family["files"]),
-            "complete": family["count"] == family["total"],
+            "complete": family["complete"],
         }
-        # Largest complete family wins; a repo can hold several GGUFs per quant.
+        # Largest family wins; a repo can hold several GGUFs per quant.
+        quant = family["quant"]
         if quant not in results or candidate["size_gb"] > results[quant]["size_gb"]:
             results[quant] = candidate
     return results
+
+
+# ---------------------------------------------------------------------------
+# run commands (Ollama / llama.cpp "repo:tag" form)
+# ---------------------------------------------------------------------------
+
+# "owner/name" as Hugging Face allows it; data.test.js enforces the same rule.
+GGUF_REPO_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+# The tag a run command passes for each stored quantization. Keep in step with
+# RUN_TAGS in src/lib/runCommands.js.
+RUN_TAGS = {"Q4_K_M": "Q4_K_M", "Q4_K_S": "Q4_K_S", "Q8_0": "Q8_0", "fp16": "F16"}
+
+# llama.cpp skips these when it picks the model file for "-hf repo:tag"
+# (common/download.cpp: imatrix files plus its sidecar keywords).
+_LLAMACPP_SIDECAR_KEYWORDS = ("imatrix", "mmproj", "mtp-", "dflash-", "eagle3-", "dspark-")
+_LLAMACPP_SPLIT_RE = re.compile(r"^(.+)-([0-9]{5})-of-([0-9]{5})$", re.I)
+
+
+def _llamacpp_split(path: str) -> tuple[str, int, int]:
+    prefix = path[:-5] if path.lower().endswith(".gguf") else path
+    match = _LLAMACPP_SPLIT_RE.match(prefix)
+    if match:
+        return match.group(1), int(match.group(2)), int(match.group(3))
+    return prefix, 1, 1
+
+
+def llamacpp_resolve(paths: list[str], tag: str) -> list[str]:
+    """Files that "llama-server -hf repo:tag" downloads as the model, or [].
+
+    A port of find_best_model + get_split_files in llama.cpp's
+    common/download.cpp: the first non-sidecar GGUF, in the Hub's sorted path
+    order, whose path holds the tag as a whole token, then the rest of its
+    shard set. That token rule lets "Q4_K_M" match a "UD-Q4_K_M" file too, so
+    in a repo holding both only the sort order decides.
+    """
+    pattern = re.compile(rf"(^|[-./]){re.escape(tag)}[.-]", re.I)
+    ordered = sorted(paths)
+    for path in ordered:
+        filename = path.rsplit("/", 1)[-1]
+        if not path.endswith(".gguf") or any(k in filename for k in _LLAMACPP_SIDECAR_KEYWORDS):
+            continue
+        if not pattern.search(path):
+            continue
+        prefix, index, count = _llamacpp_split(path)
+        if count > 1 and index != 1:
+            continue
+        if count <= 1:
+            return [path]
+        return [p for p in ordered if _llamacpp_split(p)[0] == prefix and _llamacpp_split(p)[2] == count]
+    return []
 
 
 # ---------------------------------------------------------------------------
@@ -447,6 +515,16 @@ def validate_model_entry(
                 errors.append(f"Unknown feature '{feature}'. Valid: {', '.join(VALID_FEATURES)}.")
         if len(set(features)) != len(features):
             errors.append("'features' must not contain duplicates.")
+
+    gguf_repo = entry.get("gguf_repo")
+    if gguf_repo is not None and (not isinstance(gguf_repo, str) or not GGUF_REPO_PATTERN.match(gguf_repo)):
+        errors.append("'gguf_repo' must be null or a Hugging Face repo id like 'owner/name'.")
+
+    shards = entry.get("gguf_shards")
+    if gguf_repo is None and shards is not None:
+        errors.append("'gguf_shards' must be null when 'gguf_repo' is null.")
+    elif gguf_repo is not None and (isinstance(shards, bool) or not isinstance(shards, int) or shards < 1):
+        errors.append("'gguf_shards' must be a whole number of files (1 or more) when 'gguf_repo' is set.")
 
     notes = entry.get("notes")
     if not isinstance(notes, str) or not notes.strip():

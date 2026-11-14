@@ -48,7 +48,9 @@ from model_script_utils import (
     head_dim_of,
     is_mla,
     kv_heads_of,
+    llamacpp_resolve,
     text_config_of,
+    RUN_TAGS,
     load_models,
     plausibility_warnings,
     read_gguf_metadata,
@@ -186,10 +188,12 @@ def main() -> None:
     # --- GGUF sizes ---------------------------------------------------------
     sizes: dict[str, dict] = {}
     repo_cache: dict[str, dict] = {}
+    info_cache: dict[str, dict] = {}
     for quant in args.quant:
         repo = overrides.get(quant, args.gguf_repo)
         if repo not in repo_cache:
-            repo_cache[repo] = resolve_gguf_sizes(repo)
+            info_cache[repo] = fetch_repo_info(repo)
+            repo_cache[repo] = resolve_gguf_sizes(repo, info_cache[repo])
         found = repo_cache[repo].get(quant)
         if not found:
             print(f"  ERROR: no {quant} GGUF found in {repo}.")
@@ -198,6 +202,16 @@ def main() -> None:
             sys.exit(1)
         if not found["complete"]:
             print(f"  WARNING: {quant} shard set in {repo} looks incomplete.")
+        # The site prints "llama-server -hf repo:TAG"; check that tag lands on these files
+        file_sizes = {
+            s.get("rfilename", ""): s.get("size") or (s.get("lfs") or {}).get("size") or 0
+            for s in info_cache[repo].get("siblings", [])
+        }
+        picked = llamacpp_resolve(list(file_sizes), RUN_TAGS[quant])
+        picked_gb = round(sum(file_sizes[p] for p in picked) / (1024 ** 3), 2)
+        if len(picked) != found["files"] or picked_gb != found["size_gb"]:
+            print(f"  WARNING: llama.cpp's -hf {repo}:{RUN_TAGS[quant]} picks {picked[:1] or 'nothing'}, "
+                  f"not the {found['files']}-file {quant} set measured here; the run command would be wrong.")
         sizes[quant] = {**found, "repo": repo}
         print(f"  {quant:7s} {found['size_gb']:>8.2f} GB  ({found['files']} file(s), {repo})")
 
@@ -259,6 +273,9 @@ def main() -> None:
             "params_b": params_b,
             "quantization": quant,
             "weight_gb": sizes[quant]["size_gb"],
+            # The repo the weights came from: the site builds its run commands from it
+            "gguf_repo": sizes[quant]["repo"],
+            "gguf_shards": sizes[quant]["files"],
             "kv_per_1k_gb": kv,
             "max_context_k": context_k,
             "layers": layers,
