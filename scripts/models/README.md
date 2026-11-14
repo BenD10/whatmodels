@@ -75,6 +75,19 @@ python3 scripts/models/backfill_gguf_repo.py --cache-dir /tmp/hf-cache   # reuse
 
 Anonymous Hub calls are rate limited; the script waits and retries when told to.
 
+`weight_gb` is GiB (bytes / 1024³). The same script checks that against the Hub for every
+row with a `gguf_repo`: it sums the file set the row's run command downloads and reports each
+row as GiB (within 1%), decimal GB (bytes / 10⁹, the unit some pre-Sep 2026 rows used) or
+another mismatch. `--fix-weights` rewrites the decimal rows in GiB and recomputes
+`active_weight_gb` with `add_model.py`'s rule; `--include-other` also sets mismatched rows to
+the measured size once you have checked the repo holds the right file.
+
+```bash
+python3 scripts/models/backfill_gguf_repo.py --check-weights             # report only
+python3 scripts/models/backfill_gguf_repo.py --fix-weights --dry-run     # show the rewrite
+python3 scripts/models/backfill_gguf_repo.py --fix-weights               # write models.json
+```
+
 `mmlu_score` and `swe_bench_score` are **never** auto-populated — pass `--mmlu` /
 `--swe-bench` with values from benchmark leaderboards, or leave them null.
 
