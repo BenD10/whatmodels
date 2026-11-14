@@ -6,6 +6,8 @@ import {
   indefiniteArticle,
   gpuVramLabel,
   toolQuery,
+  memOptionIndex,
+  memParam,
   jsonLdScript,
 } from './pages.js';
 
@@ -49,10 +51,48 @@ describe('gpu naming', () => {
   });
 });
 
+const m3Ultra = { id: 'm3-ultra', vram_options: [{ vram_gb: 96 }, { vram_gb: 256 }, { vram_gb: 512 }] };
+
 describe('toolQuery', () => {
-  it('builds the main-tool URL params', () => {
+  it('builds the main-tool URL params with memory in GB', () => {
     expect(toolQuery({ id: 'rtx-4060' })).toBe('?gpu=rtx-4060');
-    expect(toolQuery({ id: 'm3-ultra' }, 2)).toBe('?gpu=m3-ultra&mem=2');
+    expect(toolQuery(m3Ultra, 2)).toBe('?gpu=m3-ultra&mem=512');
+    expect(toolQuery(m3Ultra, 0)).toBe('?gpu=m3-ultra&mem=96');
+  });
+});
+
+describe('memOptionIndex', () => {
+  it('matches a size in GB to its option', () => {
+    expect(memOptionIndex(m3Ultra, '96')).toBe(0);
+    expect(memOptionIndex(m3Ultra, '512')).toBe(2);
+  });
+
+  it('falls back to a legacy option index', () => {
+    expect(memOptionIndex(m3Ultra, '0')).toBe(0);
+    expect(memOptionIndex(m3Ultra, '1')).toBe(1);
+    expect(memOptionIndex(m3Ultra, '2')).toBe(2);
+  });
+
+  it('returns null for anything else', () => {
+    for (const raw of [null, '', '3', '-1', '1.5', '128', 'abc', 'Infinity', '1e9']) {
+      expect(memOptionIndex(m3Ultra, raw)).toBeNull();
+    }
+    expect(memOptionIndex({ id: 'rtx-4060', vram_gb: 8 }, '0')).toBeNull();
+    expect(memOptionIndex(undefined, '96')).toBeNull();
+  });
+});
+
+describe('memParam', () => {
+  it('turns an option index into its size in GB', () => {
+    expect(memParam(m3Ultra, 1)).toBe(256);
+    expect(memParam(m3Ultra, '2')).toBe(512);
+  });
+
+  it('returns null when there is no option', () => {
+    expect(memParam(m3Ultra, '')).toBeNull();
+    expect(memParam(m3Ultra, null)).toBeNull();
+    expect(memParam(m3Ultra, 3)).toBeNull();
+    expect(memParam({ id: 'rtx-4060', vram_gb: 8 }, 0)).toBeNull();
   });
 });
 

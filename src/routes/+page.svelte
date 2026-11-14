@@ -1,8 +1,9 @@
 <script>
   import { browser } from '$app/environment';
-  import { replaceState } from '$app/navigation';
+  import { afterNavigate, replaceState } from '$app/navigation';
   import gpus from '$lib/data/gpus.json';
   import { TIGHT_FIT_CONTEXT_K, calcMultiGpuResources } from '$lib/calculations.js';
+  import { memOptionIndex, memParam } from '$lib/pages.js';
   import GpuInput from '$lib/components/GpuInput.svelte';
   import ModelResults from '$lib/components/ModelResults.svelte';
   import NotifySignup from '$lib/components/NotifySignup.svelte';
@@ -20,15 +21,9 @@
     if (rawGpu && gpus.some((g) => g.id === rawGpu)) {
       gpuId = rawGpu;
 
-      // Validate memory index — must be in range for this GPU
-      const rawMem = params.get('mem') ?? '';
-      if (rawMem !== '') {
-        const gpu = gpus.find((g) => g.id === gpuId);
-        const idx = Number(rawMem);
-        if (gpu?.vram_options && Number.isInteger(idx) && idx >= 0 && idx < gpu.vram_options.length) {
-          memIdx = rawMem;
-        }
-      }
+      // Resolve memory size in GB (or a legacy option index) to an option index
+      const idx = memOptionIndex(gpus.find((g) => g.id === gpuId), params.get('mem'));
+      if (idx != null) memIdx = String(idx);
     }
 
     // Validate manual VRAM — must be a positive number
@@ -167,7 +162,7 @@
     gpuId = state.gpuId || '';
     updateUrl({
       gpu: state.gpuId || null,
-      mem: state.memIdx !== '' ? state.memIdx : null,
+      mem: memParam(gpus.find((g) => g.id === state.gpuId), state.memIdx),
       vram: state.manualVram || null,
       qty: (state.gpuQuantity && state.gpuQuantity !== '1') ? state.gpuQuantity : null,
       ctx: state.contextK !== '' ? state.contextK : null,
@@ -177,6 +172,16 @@
       sort: sortBy !== 'mmlu' ? sortBy : null,
     });
   }
+
+  // Rewrite legacy index links (mem=1) to the GB form (mem=128). afterNavigate
+  // rather than onMount: replaceState throws until the router has started.
+  afterNavigate(({ type }) => {
+    if (type !== 'enter') return;
+    const mem = memParam(gpus.find((g) => g.id === urlParams.gpuId), urlParams.memIdx);
+    if (mem != null && new URL(window.location.href).searchParams.get('mem') !== String(mem)) {
+      updateUrl({ mem });
+    }
+  });
 
   function onSortChange() {
     if (!browser) return;
