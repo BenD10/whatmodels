@@ -89,7 +89,7 @@ quantization imply — that almost always means a missing shard or an auxiliary 
 - Shared logic (HF fetching, KV derivation, validation) lives in `model_script_utils.py`
   in this folder.
 - Validation mirrors `src/lib/data/data.test.js`, including the cross-variant rules
-  (variants of one model must agree on `params_b`, `max_context_k`, `mmlu_score`,
+  (variants of one model must agree on `params_b`, `max_context_k`, `mmlu_score`, `swe_bench_score`,
   `kv_per_1k_gb` and `features`, and a lighter quant must weigh less).
 - Only the stdlib is required; `list_recent_models.py` still uses `requests`.
 - `list_recent_models.py` sorts all of Hugging Face by `lastModified`, so its output
