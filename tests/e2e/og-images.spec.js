@@ -12,6 +12,7 @@ const PAGES = [
   { path: '/vram/16gb', image: '/og/vram/16gb.png', alt: /^Best local LLMs for 16 GB of VRAM: \d+ models run well/ },
   { path: '/', image: '/og/site.png', alt: /^What Models\?/ },
   { path: '/primer', image: '/og/site.png', alt: /^What Models\?/ },
+  { path: '/data/', image: '/og/site.png', alt: /^What Models\?/ },
 ];
 
 for (const { path, image, alt } of PAGES) {
