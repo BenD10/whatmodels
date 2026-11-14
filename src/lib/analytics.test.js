@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createInputTracker, INPUT_TRACK_DELAY_MS, trackGpuPageLink } from './analytics.js';
+import { createInputTracker, INPUT_TRACK_DELAY_MS } from './analytics.js';
 
 describe('createInputTracker', () => {
   beforeEach(() => vi.useFakeTimers());
@@ -79,22 +79,5 @@ describe('createInputTracker', () => {
     const send = vi.fn();
     createInputTracker(send).flush();
     expect(send).not.toHaveBeenCalled();
-  });
-});
-
-describe('trackGpuPageLink', () => {
-  afterEach(() => {
-    delete globalThis.window;
-  });
-
-  it('sends gpu_page_link_clicked with the GPU and placement', () => {
-    const capture = vi.fn();
-    globalThis.window = { posthog: { capture } };
-    trackGpuPageLink('rtx-5090', 'results_summary');
-    expect(capture).toHaveBeenCalledWith('gpu_page_link_clicked', { gpu_id: 'rtx-5090', placement: 'results_summary' });
-  });
-
-  it('is a no-op without PostHog', () => {
-    expect(() => trackGpuPageLink('rtx-5090', 'results_summary')).not.toThrow();
   });
 });
