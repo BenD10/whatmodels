@@ -7,6 +7,7 @@ Scripts in this folder manage `src/lib/data/models.json`.
 | Script | Purpose |
 |--------|---------|
 | `add_model.py` | Add a model (all its quantizations) from Hugging Face metadata |
+| `backfill_gguf_repo.py` | Find and verify `gguf_repo` / `gguf_shards` for rows that lack them |
 | `extract_model_ids.py` | Print all model IDs from `models.json` |
 | `list_recent_models.py` | List recently modified Hugging Face models (noisy, see note below) |
 | `update_model_stats.py` | Set benchmark scores on existing entries, or report gaps |
@@ -45,6 +46,34 @@ python3 scripts/models/update_model_stats.py --report   # what is still missing
 | `max_context_k` | `config.json`, falling back to the GGUF header |
 | `layers`, `params_b` | `config.json` / repo metadata |
 | `active_weight_gb` | From `--active-params-b`, scaled per quantization |
+| `gguf_repo`, `gguf_shards` | The repo each quantization was measured from (`--gguf-repo`, or its `--quant-source`) and how many files its GGUF has |
+
+## Run commands: `gguf_repo` and `gguf_shards`
+
+Model pages print `ollama run hf.co/<gguf_repo>:<TAG>` and `llama-server -hf <gguf_repo>:<TAG>`
+for every row whose `gguf_repo` is set (`TAG` is the quantization, `F16` for fp16 rows; see
+`RUN_TAGS`). `gguf_repo` is per row because one quantization can come from another repo.
+`gguf_shards` is the GGUF's file count: the Hub refuses split GGUFs to Ollama, so rows with
+more than one file get only the llama.cpp command. `null` means no verified source, and the
+page shows no command for that row.
+
+`add_model.py` fills both and warns when llama.cpp's `-hf repo:TAG` would pick a different
+file than the one it measured (e.g. a `Q4_K_M-fp16` variant that sorts first).
+
+For rows without a repo, `backfill_gguf_repo.py` searches the official org and the usual
+quantizers (unsloth, bartowski, ggml-org, lmstudio-community, plus per-model `HINTS`) and
+accepts a repo only when a complete GGUF of the row's quantization matches `weight_gb`
+within 2% (GiB, or decimal GB for older rows), llama.cpp's tag resolution lands on that file
+set, and (for single files) the Hub's Ollama manifest serves that exact file.
+
+```bash
+python3 scripts/models/backfill_gguf_repo.py --dry-run          # report, write nothing
+python3 scripts/models/backfill_gguf_repo.py                    # fill rows whose gguf_repo is missing or null
+python3 scripts/models/backfill_gguf_repo.py --recheck --only "Qwen3.5 27B" --dry-run
+python3 scripts/models/backfill_gguf_repo.py --cache-dir /tmp/hf-cache   # reuse Hub responses between runs
+```
+
+Anonymous Hub calls are rate limited; the script waits and retries when told to.
 
 `mmlu_score` and `swe_bench_score` are **never** auto-populated — pass `--mmlu` /
 `--swe-bench` with values from benchmark leaderboards, or leave them null.

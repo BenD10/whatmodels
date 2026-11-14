@@ -86,6 +86,23 @@ describe('models.json', () => {
       expect(new Set(model.features).size).toBe(model.features.length);
     });
 
+    // --- run-command source ---
+    it('has gguf_repo: null or a Hugging Face owner/name', () => {
+      expect(model).toHaveProperty('gguf_repo');
+      if (model.gguf_repo !== null) {
+        expect(model.gguf_repo).toMatch(/^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*$/);
+      }
+    });
+
+    it('has gguf_shards: a file count when gguf_repo is set, else null', () => {
+      if (model.gguf_repo === null) {
+        expect(model.gguf_shards).toBeNull();
+      } else {
+        expect(Number.isInteger(model.gguf_shards)).toBe(true);
+        expect(model.gguf_shards).toBeGreaterThanOrEqual(1);
+      }
+    });
+
     // --- notes ---
     it('has a non-empty notes string', () => {
       expect(typeof model.notes).toBe('string');
