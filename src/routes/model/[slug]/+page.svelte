@@ -4,7 +4,10 @@
   import { TIGHT_FIT_CONTEXT_K, calcVramForContext, cheapestGpusFor, contextLabel, tokLabel } from '$lib/calculations.js';
   import CheapestGpus from '$lib/components/CheapestGpus.svelte';
   import OgImage from '$lib/components/OgImage.svelte';
+  import RunCommand from '$lib/components/RunCommand.svelte';
+  import { trackRunCommandCopied } from '$lib/analytics.js';
   import { modelCard, modelOgPath } from '$lib/og.js';
+  import { runCommands } from '$lib/runCommands.js';
   import { SITE_NAME, SITE_URL, breadcrumbLd, gpuShortName, jsonLdScript, largestGpuMemory, modelDescription, modelPageFacts, quotedContextK } from '$lib/pages.js';
   import { modelPageHeading, modelPageTitle } from '$lib/titles.js';
 
@@ -22,6 +25,10 @@
   let showMidContext = $derived(model.max_context_k > MID_CONTEXT_K);
   let shortContext = $derived(model.max_context_k < TIGHT_FIT_CONTEXT_K);
   let largest = largestGpuMemory(gpus);
+  // Quantizations with a verified Hugging Face source get copy-paste run commands
+  let runnable = $derived(
+    variants.map((variant) => ({ variant, run: runCommands(variant) })).filter((r) => r.run != null)
+  );
 
   // Shared with the preview image, so the two never disagree
   let facts = $derived(modelPageFacts(model, gpus));
@@ -165,6 +172,36 @@
     </div>
     <p class="note">Weights plus fp16 KV cache. Leave ~1 GB headroom for the inference engine.</p>
   </section>
+
+  {#if runnable.length > 0}
+    <section class="run" aria-labelledby="run-locally">
+      <h3 id="run-locally">Run it locally</h3>
+      <p class="note lead">
+        Each command downloads the GGUF from Hugging Face, then <a href="https://ollama.com/download" rel="noopener">Ollama</a> starts a chat and
+        <a href="https://github.com/ggml-org/llama.cpp#quick-start" rel="noopener">llama.cpp</a> starts an OpenAI-compatible server with a web UI on port 8080.{#if model.features.includes('vision')}{' '}Both fetch the vision projector (mmproj) automatically.{/if}
+      </p>
+      {#each runnable as { variant, run } (variant.id)}
+        <div class="run-variant">
+          <div class="run-head">
+            <span class="badge quant">{variant.quantization}</span>
+            <span class="run-size">{variant.weight_gb.toFixed(1)} GB</span>
+            <a class="run-repo" href="https://huggingface.co/{run.repo}" rel="noopener">{run.repo}</a>
+          </div>
+          {#each run.commands as c (c.tool)}
+            <RunCommand
+              label={c.label}
+              command={c.command}
+              context={variant.quantization}
+              oncopy={() => trackRunCommandCopied(variant.id, c.tool)}
+            />
+          {/each}
+          {#if run.sharded}
+            <p class="note">Split into {variant.gguf_shards} files, which Ollama can't pull from Hugging Face yet; llama.cpp downloads the whole set.</p>
+          {/if}
+        </div>
+      {/each}
+    </section>
+  {/if}
 
   {#if cheapestToBuy.length > 0}
     <section>
@@ -340,6 +377,42 @@
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: var(--text-muted);
+  }
+
+  .run .lead {
+    margin: 0 0 0.75rem;
+  }
+
+  .run-variant {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.7rem 0.8rem;
+    margin-bottom: 0.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .run-variant .note {
+    margin-top: 0;
+  }
+
+  .run-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .run-size {
+    color: var(--text-muted);
+  }
+
+  .run-repo {
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
   }
 
   .gpu-list {

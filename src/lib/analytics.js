@@ -78,3 +78,8 @@ export function trackNotifyFormSubmitted(vramTier, pageType) {
 export function trackAffiliateClick(gpuId, pageType, placement, marketplace) {
   capture('affiliate_click', { gpu_id: gpuId, page_type: pageType, placement, marketplace });
 }
+
+/** A run command copied from a model page; `tool` is 'ollama' or 'llama.cpp'. */
+export function trackRunCommandCopied(modelId, tool) {
+  capture('run_command_copied', { model_id: modelId, tool });
+}

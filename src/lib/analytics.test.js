@@ -1,5 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createInputTracker, INPUT_TRACK_DELAY_MS } from './analytics.js';
+import { createInputTracker, INPUT_TRACK_DELAY_MS, trackRunCommandCopied } from './analytics.js';
+
+describe('trackRunCommandCopied', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('captures run_command_copied with the model id and tool', () => {
+    const capture = vi.fn();
+    vi.stubGlobal('window', { posthog: { capture } });
+    trackRunCommandCopied('qwen3.5-27b-q4', 'ollama');
+    expect(capture.mock.calls).toEqual([['run_command_copied', { model_id: 'qwen3.5-27b-q4', tool: 'ollama' }]]);
+  });
+
+  it('is a no-op when PostHog is not loaded', () => {
+    vi.stubGlobal('window', {});
+    expect(() => trackRunCommandCopied('qwen3.5-27b-q4', 'llama.cpp')).not.toThrow();
+  });
+});
 
 describe('createInputTracker', () => {
   beforeEach(() => vi.useFakeTimers());
