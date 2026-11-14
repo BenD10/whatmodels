@@ -138,6 +138,14 @@ describe('models.json', () => {
     );
 
     it.each(Object.entries(byName))(
+      '%s variants share the same swe_bench_score',
+      (_name, variants) => {
+        const values = new Set(variants.map((m) => m.swe_bench_score));
+        expect(values.size).toBe(1);
+      },
+    );
+
+    it.each(Object.entries(byName))(
       '%s variants share the same kv_per_1k_gb',
       (_name, variants) => {
         const values = new Set(variants.map((m) => m.kv_per_1k_gb));
