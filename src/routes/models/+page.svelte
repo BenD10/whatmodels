@@ -43,12 +43,16 @@
 <div class="page">
   <h1>Browse by model</h1>
   <p class="intro">Pick a model to see the VRAM it needs and which GPUs can run it. Minimum VRAM is for the smallest quantization with {contextLabel(TIGHT_FIT_CONTEXT_K)} context.</p>
-  {#if latest.models.length > 0}
-    <p class="whats-new">
+  <p class="whats-new">
+    {#if latest.models.length > 0}
       New in the {releaseDateLabel(latest.date)} release:
       <a href="{base}{releasePath(latest.date)}">{namesList(latest.models)}</a>
-    </p>
-  {/if}
+    {:else}
+      <!-- A corrections-only release: link it by its title -->
+      Latest data release ({releaseDateLabel(latest.date)}):
+      <a href="{base}{releasePath(latest.date)}">{latest.title}</a>
+    {/if}
+  </p>
 
   <ul>
     {#each models as m}

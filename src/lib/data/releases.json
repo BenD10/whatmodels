@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-11-14",
+    "title": "File sizes corrected to GiB, and run commands for every model",
+    "summary": "File sizes on 112 rows were in decimal GB, not the GiB the site uses everywhere else, so 12 models now fit in less memory. Model pages also gain copy-paste Ollama and llama.cpp commands.",
+    "models_added": [],
+    "gpus_added": [],
+    "corrections": [
+      "File sizes corrected to GiB on 112 rows: Phi-4 14B and GPT-OSS 20B now run well from 12 GB (was 16 GB), Gemma 3 12B from 8 GB (was 10 GB), Qwen3 Next 80B-A3B from 48 GB (was 64 GB).",
+      "Speed estimates now convert GiB file sizes to decimal GB before dividing by memory bandwidth (quoted in GB/s), so about half the models read 2–7% slower, matching published llama-bench runs.",
+      "Model pages list the Hugging Face GGUF each quantization was measured from, with ollama run and llama-server -hf commands (204 of 214 rows)."
+    ]
+  },
+  {
     "date": "2026-11-13",
     "title": "Mistral Large 4, six more new models and faster MoE estimates",
     "summary": "Seven new models, from the 1T-parameter Mistral Large 4 down to LFM3 1.7B, and active-parameter data for 18 mixture-of-experts models, so their speed estimates are no longer several times too low.",

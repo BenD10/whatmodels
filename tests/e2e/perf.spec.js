@@ -21,6 +21,7 @@ const PAGES = [
   { path: '/vram/16gb', ready: '.overview' },
   { path: '/data/', ready: 'h1' },
   { path: '/gpus', ready: 'h1' },
+  { path: '/new/', ready: 'h1' },
 ];
 
 // Lab CLS of our own pages is 0.000 everywhere except the shared link above;

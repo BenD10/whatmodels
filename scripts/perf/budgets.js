@@ -38,6 +38,8 @@ export const budgets = {
     gpus: 'gpus.html',
     primer: 'primer.html',
     privacy: 'privacy.html',
+    new: 'new/index.html',
+    'new/[date]': /^new\/[^/]+\.html$/,
   },
 
   defaults: {
