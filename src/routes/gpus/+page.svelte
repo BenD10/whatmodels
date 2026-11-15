@@ -58,7 +58,7 @@
 
   {#each byManufacturer as [manufacturer, list]}
     <section>
-      <h3>{manufacturer}</h3>
+      <h2>{manufacturer}</h2>
       <ul>
         {#each list as gpu}
           <li>
@@ -83,7 +83,7 @@
     font-weight: 700;
   }
 
-  h3 {
+  h2 {
     font-size: 0.85rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -95,6 +95,11 @@
   .intro {
     color: var(--text-muted);
     margin-top: -0.75rem;
+  }
+
+  /* In muted body text: underline so it isn't told apart by colour alone */
+  .intro a {
+    text-decoration: underline;
   }
 
   a {

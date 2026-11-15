@@ -72,13 +72,5 @@ export const budgets = {
   // Known failures with a fix on the way. Each turns its failures into warnings;
   // `only` limits the exemption to the known offender so a new one still fails.
   // Delete an entry once its fix merges (the check prints a note when it's stale).
-  pending: {
-    'image-bytes': {
-      reason: 'the 75 KiB logo.png becomes a 7 KiB logo.webp on perf/quick-wins',
-      only: /logo\.png/,
-    },
-    'lcp-fetchpriority': {
-      reason: 'perf/quick-wins adds fetchpriority="high" to the header logo',
-    },
-  },
+  pending: {},
 };

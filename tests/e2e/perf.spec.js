@@ -67,12 +67,7 @@ test.use({ launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } });
 
 test.describe('layout shift (CLS)', () => {
   for (const { path, ready, cls: limit = CLS_LIMIT } of PAGES) {
-    test(`${path} stays under ${limit}`, async ({ page }, testInfo) => {
-      // On main the shared-link home page jumps when the scrollbar appears
-      // (0.81 in this test on desktop). The fix,
-      // `html { scrollbar-gutter: stable }`, is on perf/quick-wins; drop this
-      // fixme when that merges.
-      test.fixme(!runKnown && path.startsWith('/?') && testInfo.project.name === 'desktop', 'scrollbar shift: fixed on perf/quick-wins');
+    test(`${path} stays under ${limit}`, async ({ page }) => {
       await page.addInitScript(observeCls);
       await page.goto(path);
       await settle(page, ready);
@@ -124,18 +119,11 @@ const LIGHTHOUSE_RULES = [
 // Known failures on main, which the blocking test skips. The fixme test checks
 // them on every page so the remaining work stays visible; delete an entry once
 // no page fails it, and the fixme once the list is empty.
-// perf/quick-wins (fe6608d) fixes all three on / and the --text-muted text
-// everywhere, but these still fail with it merged:
-//   color-contrast: .params.badge, .quant.badge, .group-count, .gpu-mem
-//     (result lists on /, /gpu, /vram, /model) and .meta on /data/
-//   heading-order, link-in-text-block: /gpus (an <h3> after the intro, and the intro link)
+//   color-contrast: .params.badge, .quant.badge, .group-count, .gpu-mem on the
+//     tinted result rows (/, /gpu, /vram, /model) and .meta on /data/. Passing
+//     needs a lighter muted grey (~#9595a5) and accent (~#7b97ff): a design call.
 const KNOWN_A11Y = {
-  'color-contrast': '--text-muted is 4.3:1 on --surface (needs 4.5:1); badges are lower',
-  'heading-order': 'an <h3> with no <h2> before it on the landing pages',
-  'link-in-text-block': 'intro links told apart by colour only',
-  // The GPU picker's clear button (shown once a GPU is picked) is about 13 px
-  // wide, under the 24 px minimum. Not fixed on any branch yet.
-  'target-size': 'MultiSelect .clear-btn is under 24x24 px',
+  'color-contrast': 'muted text and badges on tinted result rows are under 4.5:1',
 };
 
 async function axe(page, { only } = {}) {
