@@ -216,8 +216,14 @@
     color: var(--text-muted);
     font-size: 1.1rem;
     cursor: pointer;
-    padding: 0 0.25rem;
+    padding: 0;
     line-height: 1;
+    /* WCAG 2.2 target size: at least 24×24 px */
+    min-width: 24px;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .clear-btn:hover {
